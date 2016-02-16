@@ -1,0 +1,1020 @@
+Changes for 2015 December 10:
+
+   * 'astcheck' has a command-line option to set a path to
+the data.  (The insistence that the asteroid elements had to
+be in the same path as everything else was stupid.)  Also
+did some more error checking to evade compiler warnings.
+
+   * 'afuncs.h' has macros for hours_per_day,  minutes_per_hour,
+seconds_per_minute,  and quantities inferred from that.  Numbers
+such as 1440 (minutes per day) and 86400 (seconds/day) are not
+exactly "magic numbers",  but they really should be defined...
+many files are changed to use the newly defined constants.
+
+   * 'astfuncs.cpp', 'classel.cpp': asinh() and atanh() in
+there are now only added in for older MSVC,  which (rather
+weirdly) didn't have inverse hyperbolic trig.
+
+   * 'classel.cpp' had issues if z = vz = 0,  i.e.,  the input
+state vector has _exactly_ zero inclination.  In that situation,
+Omega and omega are undefined;  you have to make a somewhat
+arbitrary choice,  which the code now does.
+
+   * 'calendar.cpp' can now produce a year-on-a-page calendar,
+suitable only for dollhouses.
+
+   * 'colors.cpp' had some weird issues... I don't think it ever
+handled the more recent loneos.pho file correctly.  It now does.
+
+   * 'cospar.cpp' now returns,  for the earth,  a rotation
+matrix that includes IAU 1980 nutation.  That required a new
+setup_precession_with_nutation( ) function (see 'precess.cpp').
+
+   * 'cospar.txt':  see the note in the file for 2015 Nov 17.
+The Jupiter System III rotation rate wasn't quite right,  and
+the rotation terms for Mercury were botched.
+
+Changes for 2015 June 5:
+
+   * Several files:  snprintf() is (rather bizarrely) not
+supported in MSVC or OpenWATCOM.  So quite a few files now
+have code that essentially "works around" the absence of a
+working snprintf().  Not a big deal,  but then again,
+supporting snprintf() in the standard manner wouldn't be a
+big deal for MS or OW.
+
+Changes for 2015 Apr 15:
+
+   * 'rocks.cpp':  revised the test routine and investigated
+why Triton doesn't work.  Flipping the signs for p and q got
+it working,  at least to the point of generating values within
+about 300-500 km of Horizons,  'triton.cpp',  and ephemerides
+generated from observations in Find_Orb.
+
+Changes for 2014 December 20:
+
+   * full_ctime(), split_time(), and get_time_from_string()
+all now have long double variants known as full_ctimel(),
+split_timel(), and get_time_from_stringl() .  They are
+identical to the originals,  except in the use of long doubles
+and in that times are uniformly given/provided relative to
+J2000 = JD 2451545.0.  Use of long doubles provides quite
+a bit of added precision;  having times be relative to J2000
+provides still more,  for dates within a millennium or so
+of J2000.  The original,  garden-variety double functions
+simply call the long double variants.
+
+   * Several changes to fix compiler warnings generated
+when using -Wextra and -pedantic with g++.
+
+   * The leap second for the end of June 2015 is included.
+Rather embarrassingly,  the code had extrapolated a leap
+second to occur at the end of December 2014.  (It was a
+very marginal case;  deciding when the leap second would be
+inserted was probably close to a coin-flip for the Time
+Lords in Paris.)
+
+   * Partly as a result of the above,  I revised 'utc_test'
+to do testing for when leap seconds will occur over a given
+set of years.
+
+Changes for 2014 March 13:
+
+   * 'calendar.cpp', 'classel.cpp': added error checking and
+assert()s.
+
+   * 'cospar.cpp', 'precess.cpp':  to the latter,  I added a
+new 'setup_precession_with_nutation( )' function.  This is
+intended to create a precession matrix that adds in the effects
+of nutation,  and is used in 'cospar' for determining the
+earth's real orientation.  (Previously,  you just got the
+mean orientation,  with nutation ignored.)  However,  I don't
+think I have it right.  I added this because I had trouble
+with radar observations.  (The problems turned out to be due
+to something else.  Still,  someday,  the real orientation --
+complete with nutations,  polar motion,  and offsets from
+modelled nutation/precession/polar motion and observed --
+really should be computed.)
+
+   * 'delta_t.cpp':  added a new observed Delta-T for 2014,
+and somewhat improved the syntax so that adding new values to
+the table would be more straightforward.
+
+   * 'jevent.cpp':  fixed a bug,  plus removed a limitation
+on the maximum table size.
+
+   * 'linlunar.mak':  we now have One Make File to Rule Them
+All,  suited for almost all systems.  You can run :
+
+make -f linlunar.mak MSWIN=1    (for MinGW on MS Windows)
+make -f linlunar.mak CLANG=1    (for OS/X and BSD lacking gcc)
+make -f linlunar.mak            (for Linux with gcc)
+
+   Also,  the last two support 'clean' as a target.  Note
+that we still have separate make files for MSVC and Watcom.
+
+Changes for 2013 October 17:
+
+   * 'calendar.cpp': improved the date file handling so you
+could specify multiple dates for an event (in case it recurs
+or spans more than one day).
+
+   * 'astfuncs.cpp': Jonathan Myers pointed out some problems
+with the kepler( ) function when handed low-eccentricity cases
+with mean anomalies outside the -180 to 180 degree range.
+I fixed this,  made a modest speed improvement for medium
+eccentricity orbits,  and switched a Boolean value to actually
+be of type bool.
+
+   * 'get_time.cpp':  dates before 1582 October 4 should
+have been parsed as being in the Julian calendar,  and those
+after in Gregorian.  Instead,  all of 1582 October was parsed
+as Julian.  This is fixed.
+
+Changes for 2013 September 1:
+
+   * 'cospar.txt': fixed rotation models for Pluto and its
+satellites.  Because Pluto is now a "dwarf planet",  rather
+than a "planet",  the north and south poles for it and its
+satellites have been swapped.  $%*!&@ IAU pole definitions...
+
+Changes for 2013 August 15:
+
+   * 'classel.cpp': fixed a bug introduced in some situations
+by the 2013 July 12 improvements.
+
+   * 'calendar.cpp':  separated recurring annual events (now
+in 'dates.txt') from one-time events (now in 'date####.txt',
+where #### is the four-digit year).  Also allowed one to
+specify events such as 'the last Thursday in November' and
+so forth;  see 'dates.txt' for examples.
+
+Changes for 2013 July 30:
+
+   * 'cospar.txt', 'cospar.cpp',  'cosptest.cpp':  revised
+to allow for orientations of numbered asteroids.  So a
+"planet index" of -1 specifies (1) Ceres,  -4 specifies
+(4) Vesta,  etc.
+
+Changes for 2013 July 12:
+
+   * 'comets.h': added a 'gm' parameter.  This means that
+'calc_classical_elements' no longer needs GM passed in.
+
+   * 'calendar.cpp',  'phases.cpp':  made 64-bit safe (both
+broke in certain places when run on my 64-bit Ubuntu box.)
+
+   * 'classel.cpp':  made changes for nearly-parabolic orbits
+to get around a nasty loss-of-precision bug.  As it happens,  the
+solution is almost identical to that used in 'astfuncs.cpp' for
+the Kepler equation for near-parabolic orbits;  I really need to
+combine the code and share the solution.  Also switched to use
+of the 'gm' member of the ELEMENTS structure,  added some
+asserts for debugging,  and did some code cleanup.
+
+   * 'integrat.cpp', 'mpcorb.cpp', 'relativi.cpp':  made sure
+GM was properly set in the ELEMENTS structure.
+
+   * 'showelem.cpp':  switched to use of GM from the 'gm' member
+of the ELEMENTS structure.  Also fixed a problem with rendering
+of negative semimajor axes.
+
+Changes for 2013 June 8:
+
+   * 'astfuncs.cpp': ensured that the angular momentum was
+computed in derive_quantities().
+
+   * 'classel.cpp': added some asserts to investigate misbehavior
+with near-parabolic orbits,  and added a test to avoid a possible
+divide-by-zero bug.
+
+   * 'rckin.cpp': made so it would run on Linux.
+
+   * 'rocks.cpp': updated Pan & Daphnis with SAT357eq.
+
+   * 'showelem.cpp': fixed a bug with "huge" semimajor axes,  and
+caused it to use the perihelion distance within the ELEMENTS
+structure instead of re-computing it (sometimes erroneously or
+with poor precision,  when the orbit is parabolic).
+
+   * 'cospar.txt':  fixed Mercury and Titan in accordance with
+the 2009 IAU resolutions.
+
+Changes for 2013 April 7:
+
+   * 'showelem.cpp':  can now show barycentric elements for
+'central object' index = -1.
+
+   * 'get_time.cpp':  Jari Suomela pointed out that FITS input such
+as '2009-10-01T03:14:15.9' was interpreted as 10 January if you
+had selected day/month order.  FITS input should (and now is)
+always assumed to be in month/day order.
+
+   * 'big_vsop.cpp':  added a lot of documentation.
+
+Changes for 2013 January 28:
+
+   * Got all test routines (even some pretty irrelevant ones) to compile
+under OpenWATCOM,  MinGW,  and MSVC.  (Previously,  some would compile
+in one place but not another;  and a few were compiled in separate
+batch files.)  This required a lot of changes to 'make' files,  plus
+some minor changes in source code where different compilers balked
+and/or gave cosmetic warnings.
+
+   * 'refract4.cpp':  Noticed some problems when computing integrated
+refractions for observations at greater than 90 degree zenith angle
+(i.e.,  observed_alt < 0.) or made above the troposphere (height above
+ground greater than 11 km).  The algorithm wasn't really meant to handle
+such situations.  It still doesn't,  but now returns more gracefully.
+Also added plenty of comments,  and broke out the test routine into a
+new 'test_ref.cpp' program.
+
+   * 'dist.cpp':  You can now get a reverse azimuth with the Vicenty code.
+I also fixed up the root-finding algorithm to converge a little faster
+and with less risk of error,  and set a variable OpenWATCOM thought
+could be uninitialized (it couldn't be,  but OpenWATCOM wasn't quite
+bright enough to realize why.)
+
+   * showelem.cpp:  Fixed some improper handling of SHOWELEM_OMIT_PQ_MASK
+(didn't always actually remove the PQ mask when set).
+
+   * 'phases.cpp', 'jevent.cpp':  both of these had #include <malloc.h>,
+now unnecessary on all systems and missing on some.  Also,  both had PI
+#defined to insufficient precision.
+
+   * 'calendar.cpp',  'gust86.cpp':  each of these relied on the ability
+to initialize arrays with non-constant data.  OpenWATCOM doesn't like that.
+Fortunately,  the ability to do this wasn't key to anything I was doing.
+
+   * 'testprec.cpp': revised to have default from/to dates to test if
+none are provided on the command line.
+
+   * 'utc_test.cpp': added a header line and output of DUT1 = UT1 - UTC,
+and added comments.
+
+Changes for 2012 December 21:
+
+   * 'cospar.cpp':  some speed improvements.  Also changes to some
+parameters in 'cospar.txt' to bring it up to date;  look at notes
+at the bottom of that file for details.
+
+Changes for 2012 November 21:
+
+   * 'vislimit.cpp':  added some comments and changed some variable names
+to be more descriptive (for extinction coeffs from Rayleigh,  aerosols,
+ozone,  and water).
+
+Changes for 2012 March 20:
+
+   * 'delta_t.cpp':  Revised the handling for Delta-T before the year
+1620 to follow polynomial fits from the _Five Millennium Catalogue of
+Solar Eclipses_ by Fred Espenak and Jean Meeus,  pages 12-13.  In doing
+so,  I extended the ability to specify one's own Delta-T formulae to
+include polynomials beyond the quadratic level.
+
+   I also implemented a new scheme for "future" UTC.  The problems here
+are that one doesn't know in advance when leap seconds will be inserted
+(you can only make an educated guess,  one that lines up with your guess
+about "future" plain old UT) and that in a few centuries,  we'll be adding
+leap seconds two or more at a time.  I leave the second issue to our
+dozen-greats-grandchildren;  the approach taken for the first issue is
+described in 'delta_t.cpp'.
+
+Changes for 2012 March 22:
+
+   * 'classel.cpp':  Realized that for certain hyperbolic orbits near
+periapsis,  the mean anomaly would be poorly defined and sometimes
+become NaN (resulting in the time of periapsis also being NaN).
+Similar logic is now used for both hyperbolic and parabolic cases.
+
+   * 'ps_1996.cpp':  New program that shows basics of computing
+geocentric lunar/planetary positions in J2000 coordinates.  Handling
+of topocentric correction,  precession,  nutation,  and aberration
+will come later,  perhaps.
+
+Changes for 4 February 2012:
+
+   * 'delta_t.cpp':  Cleaned up the UTC-UT code to include fewer cryptic
+numbers,  and added a 'utc_test.cpp' routine to make sure I'd not
+broken anything.
+
+Changes for 23 January 2012:
+
+   * 'refract4.cpp':  Got an e-mail mentioning that this function could
+go into an infinite loop.  I did a little digging,  and found out that
+it could indeed do so at temperatures below -85 C.  This is mostly
+a theoretical issue (the coldest temperature ever measured on earth was
+-89.2 C,  at the Russian research station at Lake Vostok in Antarctica),
+but was easy enough to fix.  The test program for 'refract4' also has a
+few new command line options and spits out error messages.
+
+   * Revised 'delta_t.cpp' to include the new leap second for July 2012,
+and made the leap second table slightly more readable and easy to modify.
+
+Changes for 20 January 2012:
+
+   * Revised 'get_time.cpp' to handle time input with 'AM',  'A.M.',
+'PM', 'P.M.',  or lowercase versions of these.  For the last two of
+these,  twelve hours are added (i.e.,  it does what a human would expect
+it to do.)  This may cause ambiguity someday if I try to add the Jewish
+calendar,  for which the standard abbreviation is AM (Anno Mundi,
+"Year of the World").  But I'll burn that bridge when I get to it.
+
+Changes for 6 January 2012:
+
+   * Revised 'astephem.cpp' so that it could be thoroughly controlled
+via command line,  with object selected,  starting time of the ephemeris,
+number of steps,  and step size given.  If they are not given,  it
+goes ahead and asks for these details through the console,  as before.
+Also revised it so that unnumbered objects could be selected.
+
+   * Everything that compiles in the MinGW version now also compiles
+in Linux (except for 'relativi').  g++ was somewhat pickier than MinGW
+in some areas.  For example,  ignoring the return values of fread()
+and fgets() resulted in warnings;  one also is nagged about putting
+braces and parentheses in certain places.  None of this affects the
+function of the code (and a few of the suggestions were actually
+good ideas),  but it did result in a lot of small changes.
+
+Changes for 21 Nov 2011:
+
+   * 'get_time.cpp' now has broader and more logical capabilities
+for handling lunar phases.  A time entry such as
+
+21 Nov 2011 +4w 3q -2d
+
+   will be interpreted,  logically enough,  as "start from 21 Nov
+2011;  add four weeks;  find the nearest last quarter;  back up
+two days from that point."  Spaces may be omitted:
+
+21n2011+4w3q-2d
+
+   Phases 'nm', '1q', 'fm',  and '3q' are handled.
+
+Changes for 23 Sep 2011:
+
+   * 'precess.cpp' was revised to cache the precession matrix
+(same as a previous version did,  but using the new scheme in which
+precession is always done in ecliptic coordinates).  'prectest.cpp'
+is a test program I used to verify that the precession code was
+doing what it was supposed to do.
+
+   * 'obliquit.cpp' caches values to improve speed.  The formula
+used is quite accurate for years -8000 to +12000,  but diverges
+badly outside that range.  Rather than return "garbage" values
+wherein the obliquity rapidly reaches +/-90 degrees,  I capped
+the obliquity at the values reached at the ends of the valid range.
+
+   * 'obliqui2.cpp' contains a couple of alternative obliquity
+formulae.  'oblitest.cpp' tests them out.
+
+Changes for 13 Aug 2011:
+
+   * 'classel' had some issues with circular and very near-circular
+orbits.  You could get "not a number" and "infinite" results in
+these cases,  due to mathematical singularities.  I rewrote much
+of the function to handle this.
+
+   Three vector cross-products are computed in that code,  which
+really called for a separate vector_cross_product() function,
+now to be found in miscell.cpp.
+
+Changes for 29 Jul 2011:
+
+   * 'lunar2.cpp' relied on structures being packed to four-byte
+boundaries and on 'long' being a 32-bit type.  That broke on a
+64-bit compile on an Ubuntu box.
+
+   * As part of some contract work,  I broke up 'riseset3.cpp'
+so that it contained only the core functionality,  putting the
+test routine into 'tables.cpp'.  I added a new 'lun_tran.cpp'
+with functions for computing the time when the moon transits,
+as well as the 'anti-transit' time (time when the moon is at
+its lowest altitude).
+
+Changes for 24 May 2011:
+
+   * Prompted by Jean-Claude Pelle,  I made some major changes to
+the COSPAR routines (code in 'cospar.cpp',  data in 'cospar.txt').
+These are mostly described in 'cospar.txt'.  Note that there is now
+a 'cosptest.cpp' unit test program,  which I used to verify that
+nothing got broken in the course of these improvements.  (Except
+for the fact that more objects now have COSPAR data,  users should
+see no change.)
+
+Changes for 2 Mar 2011:
+
+   * 'jsats' has been changed from the E2x3 theory of Lieske to the
+later E5 theory.  I'd not realized it,  but the first edition of
+Meeus' _Astronomical Algorithms_ used E2x3.  E5 is almost identical,
+except that the coefficients have changed.  So the switch was not
+especially difficult (though somewhat tedious).
+
+   However,  comparisons using JPL _Horizons_ ephemerides make it look
+as if the improvement isn't all that great; errors are still about 100
+km over 1950-2020.  Which is usually more than sufficient.  However, if
+the errors are at that level, we're adding in a lot of terms that are
+essentially meaningless.  At some point,  I may #ifdef out a lot of
+small terms.
+
+   Errors grow outside the 1950-2020 range,  especially for Callisto
+and Ganymede.  These show some quadratic drift along-orbit;  presumably,
+one is (in the Horizons model) accelerating whilst the other decelerates.
+(The E5 theory has no quadratic terms in mean motion;  I'm somewhat
+inclined to add them for Callisto and Ganymede.)
+
+   * 'htc20b':  new code to compute ephemerides for Helene, Telesto
+and Calypso (small satellites of Saturn).  I haven't actually used
+this code anywhere,  though the test code at the end indicates that
+at least I'm getting the same results as the original version did.
+
+   * 'precess2':  new code to compute precession matrices,  using
+the formulae for _ecliptic_ precession from Meeus' _Astronomical
+Algorithms_.  Previously,  I used the equatorial precession formulae.
+But looking at the coefficients,  I was struck by the much smaller
+magnitude of the cubic terms for the ecliptic formulae.  I realized
+that this made sense,  since precession is almost entirely a rotation
+around the ecliptic plane;  expressing it in equatorial coordinates
+is not really a good way of doing things.  And indeed,  if you use
+the ecliptic algorithm for precession,  the results are stable out
+to many more millennia than they are for the equatorial formula.
+
+   'precess2' is not currently used anywhere.  I hope to incorporate
+it in the next version of this code,  in place of the current 'precess'.
+(Which I eventually did;  see above changes for 23 Sep 2011.)
+
+   * 'get_time' now allows entries such as '1q',  'fm-3', 'NM+4',
+or '3q-1' to get times of the nearest first quarter phase,  or the
+time three days before full moon,  or four days after new moon,
+or the day before the third-quarter phase.  In each case,  the
+event nearest the currently-chosen time will be selected,  so that
+the time will change by (at most) half a lunation.
+
+   * 'easter' now contains test code for determining the frequency at
+which Easter will occur for a given date,  the years when it will occur
+for a given date,  and a table of Easter dates for a span of years.
+
+Changes for 10 Jan 2011:
+
+   * In several files,  corrected 'millenia' to 'millennia'.
+
+Changes for 8 Jan 2011:
+
+   * 'jsats':  Prompted by an e-mail from Thomas Meyer,  I realized
+that the Galilean satellite code had errors wherein the mean longitude
+was sometimes used in places where the true longitude should have been
+used.  This led to errors of as much as 1/200 of a Jovian radius,  or
+about 1/4 of a satellite radius. This has been fixed.
+
+   In the process of fixing this,  I realized that the code was poorly
+coded in some ways,  and I rewrote a lot of it.  (There is a new
+'jsattest.cpp' program which I used to verify that my changes in the
+code didn't cause changes in ephemerides... except for my fix of the
+above bug,  which _did_ cause changes.  Beneficial changes,  however.)
+
+   Also,  note that the code is now GPL'ed.
+
+Changes for 6 Jan 2011:
+
+   * 'astcheck' now checks possible matches to ensure that they have
+similar motion to the observed object.  This strongly suppresses
+spurious matches,  enabling the program to search out to a degree
+(instead of just a quarter degree) and to mag 22 (instead of mag 21).
+I also revised the error/help message to be more informative.
+
+Changes for 4 Jan 2011:
+
+   * Prompted by a conversation with Yaakov Zik,  I added some
+comments to 'delta_t.cpp'.  It is functionally unchanged,  just
+commented better.  Also revised 'lunar.mng' (make file for the
+MinGW compiler) so it wouldn't needlessly recompile certain files
+(I'd messed up the original makefile.)
+
+Changes for 3 Jan 2011:
+
+   * Prompted by an e-mail from Thomas Meyer,  I added a lot
+of comments in 'jsats.cpp' and fixed up 'jevent.cpp' to work
+somewhat more rationally.  The former was functionally unchanged
+(just commented better).  The latter now provides times in UT
+instead of TD,  and truncates to minutes instead of rounding.
+
+Changes for 15 Dec 2010:
+
+   * I wanted to be able to output dates without spaces in
+'full_ctime( )',  so I added a FULL_CTIME_NO_SPACES macro
+in date.h and added a few corresponding lines to 'miscell.cpp'.
+This was done to support some things going on in 'astcheck.cpp',
+a new program that reads 80-column MPC astrometry data and looks
+for corresponding objects.  'astcheck' is now included with this
+code,  since it's a decent demonstration of some of the things
+in this library.
+
+Change for 1 Oct 2010:
+
+   * Realized that 'get_time' handled decimal year input
+relative to J2000 = JD 2451545,  i.e.,  1.5 January 2000.
+Integer years were handled relative to 1 January,  which
+makes more sense.  So I redefined J2000 to be JD 2451544.5.
+Now,  entering a value such as 1999.99999 gives a value
+shortly before 1 January 2000,  instead of just before midday
+on that day.
+
+Changes for 19 Sep 2010:
+
+   * Added observed Delta-T data for January 2010 to the array of
+Delta-T values in 'delta_t.cpp'.  Also added three projected leap
+seconds for 2013,  2016,  and 2019,  to keep UTC-UT1 close to zero
+over the next decade.  (Those projected leap seconds will almost
+certainly prove to be wrong.)
+
+Changes for 13 May 2010:
+
+   * Martin Ettl kindly passed on some results from 'cppcheck'
+(http://sourceforge.net/projects/cppcheck/), which revealed
+the following issues:
+
+[phases.cpp:295]: (Error) Resource leak: log_file
+[phases.cpp:295]: (Error) Resource leak: data_file
+[de_plan.cpp:299]: (Error) Resource leak: ifile
+[persian.cpp:216]: (Error) Memory leak: jds
+[mpcorb.cpp:29]: (Error) Uninitialized variable: rval
+[rckin.cpp:75]: (Error) Resource leak: ifile
+[elp82dat.cpp:383]: (Error) Deallocating a deallocated pointer: ifile
+[colors.cpp:275]: (Error) Resource leak: ifile
+
+   As it happens,  none of these are particularly worrisome.  In
+certain processing programs,  I've relied on the fact that files
+are closed and memory freed when the program terminates.  All of
+these issues,  except for the one in 'elp82dat',  are of that sort.
+I am reasonably certain that the 'elp82dat' reflects a problem in
+cppcheck.
+
+   Still,  I'm impressed with the fact that 'cppcheck' was able to
+find such issues,  and would like to be able to use it in the
+future.  So I've fixed all of the above issues (except the elp82dat
+one),  in hopes of getting a clean bill of health from cppcheck in
+the future.
+
+Changes for 28 Mar 2010:
+
+   * showelem.cpp:  All calendar conversions were being done with the
+Gregorian calendar only.  I revised it so that the Julian calendar is
+used before October 1582.  (Basically just meant using
+CALENDAR_JULIAN_GREGORIAN rather than the default.)
+
+Changes for 2 Feb 2010:
+
+   * 'date.h':  added some macros demonstrating how one can set the
+precision and format for date output.
+
+Changes for 15 Feb 2010:
+
+   * 'chinese.dat':  Following a question from Mark Sims,  I realized
+that certain years in the data file for the Chinese calendar were set
+incorrectly.  Specifically,  any year in which the preceding year had
+an '11i' or '12i' intercalary month was stored with garbage data.  This
+occurred in 68 years over the 5990-year range of the original
+'chinese.dat'.  This was due to a small bug in the processing programs.
+I've fixed this,  and generated a new 'chinese.dat' covering the years
+-3000 to +7000 Gregorian (the previous one covered -3000 to +2990).
+
+   Be advised that,  since the Chinese calendar is an observational one,
+the extrapolations into the past and future get to be iffy as uncertainty
+in Delta-T grows.  If the time of New Moon is very close to midnight
+Chinese time (zone UT+8 hours),  a small change in Delta-T may cause a
+month to begin a day earlier or later.  The first such case is the
+lunar month corresponding to a New Moon at 28 Sep 2057 16:00:17 UT,
+just after midnight in the UT+8 zone.  But some sources (including the
+Hong Kong observatory) have this occurring just _before_ midnight.  The
+uncertainty in Delta-T for 2057 is such that either of us could be right.
+As one goes further into the future (or past),  uncertainty in Delta-T
+grows,  and so does uncertainty about the calendar.
+
+   Similar issues plague the Jalali calendar and the French Republican one
+(sort of;  note that it's unclear if the Republican calendar was intended
+to be algorithmic or observational).
+
+Changes for 29 Jan 2010:
+
+   * 'triton.cpp'/'marsuran.cpp':  Realized that 'marsuran' was essentially
+no longer in use,  and in some cases shouldn't be used (the Uranian and
+Martian satellite solutions were abysmal).  Ideally,  I'd just drop this
+file completely.  But it also contains an algorithm for Triton's position,
+which I need to keep because the 'rocks' solution is wrong (see comment
+below for 'rocks.cpp'.)
+
+   So I removed most of 'marsuran.cpp' and renamed it to 'triton.cpp'.
+The renaming seemed wise,  given that all Martian and Uranian satellites
+had been completely removed!
+
+   * 'rocks.cpp':  realized that the data for Triton must be wrong somewhere;
+the orbit given in this file (from JPL's NEP050 solution) results in
+prograde motion.  I've not puzzled it all out yet,  but it's definitely
+wrong.  Added a suitable comment to warn about this.
+
+   Also,  Uranians are all based on URA091 now (instead of,  mostly,
+URA086X.)
+
+   * 'get_time.cpp':  Removed the 'scan_for_time' variable,  which was
+occasionally set,  but never actually used anywhere.
+
+   * 'cospar.cpp':  Realized that errors were mis-handled.  There's
+code to extract the planet orientation and spin rate from 'cospar.txt',
+then save it for the next call... but the error code was _not_ saved
+for the next call.  Some of my code was therefore thinking it was getting
+a perfectly decent orientation matrix,  even though it wasn't.
+
+   Also,  added orientation data for the Plutonian moons Hydra and Nix.
+No 'official' model exists for these,  but as described in 'cospar.txt',
+I was able to make a reasonable rotation model for them.
+
+Changes for 11 Jan 2010:
+
+   * 'showelem.cpp':  now supports more digits of precision,  enough to
+support the full range of 64-bit floats.  This isn't apt to be very useful
+to anyone;  I added it to simplify some debugging I was doing in Find_Orb.
+
+Changes for 24 Nov 2009:
+
+   * Fixed some loss-of-precision problems in 'classel.cpp'.  Specifically,
+I noticed that the argument of perihelion was computed using arcsin,
+so that if sin(arg_per) was near +/-1,  you'd lose precision.  In fact,
+one could get a result slightly outside the -1 <= sin(arg_per) <= 1 range.
+Also did a lot of cleanup.
+
+Changes for 21 Oct 2009:
+
+   * Made a lot of small changes to evade gcc and MinGW compiler warnings.
+I also investigated an old optimization bug in 'de_plan.cpp',  but was
+unable to replicate it.  For the nonce,  at least,  I'm leaving optimizations
+fully enabled.
+
+Changes for 20 Sep 2009:
+
+   * Fixed a bug in 'date.cpp' wherein a 'month_data' buffer of 13
+bytes was subjected to the line
+
+   memset( month_data, 0, 14);
+
+   I think this got by because the extra byte was blank anyway.  But
+the latest gcc caught this bug and considered it to be 'stack smashing'.
+In the investigation of this bug,  I cleaned up some of the date.cpp and
+jd.cpp code: no changes in functionality,  but it's easier to read.
+
+Changes for 9 Apr 2009:
+
+   * Added some comments to 'integrat' explaining how the integration
+scheme works.
+
+Changes for 4 Apr 2009:
+
+   * Added a 'make' file for MinGW (gcc for Windows).  Everything compiled
+Just Fine,  except for an issue with the use of asinh() in astfuncs.cpp.
+That source file now recognizes that asinh is only needed with Microsoft
+Visual C/C++.
+
+   * COM_FILE.CPP:  when extracting a periodic comet name,  preference
+now goes to the permanent designation.  So if given P/Van Ness (213P)
+(P/2005 R2),  the name extracted would be (213P).  This should help
+to evade some problems with certain comets appearing twice.
+
+Changes for 21 Mar 2009:
+
+   * Various files:  This code does a fair bit of direct reading of structures
+from files on disk.  To do that,  it relies heavily on sizeof(short) = 2
+and sizeof( long) = 4.  This is,  of course,  stupid,  and means any
+64-bit compiles will break.  Where structures are read from disk,  they
+now use int16_t and int32_t,  instead of short and long.
+
+Changes for 16 Mar 2009:
+
+   * GET_TIME.CPP:  If the input date/time has a field with a decimal
+point,  you can be pretty sure that that is the day of the month. The
+code now makes use of this fact for puzzling out the formats.  (For
+example,  both '9.75/4' and '4/9.75' would be interpreted as 9 April
+18:00.)
+
+Changes for 13 Feb 2009:
+
+   * ROCKS.CPP:  Got data for Deimos and Phobos from Bob Jacobson at JPL.
+Rearranged the rock elements slightly,  and they're now in numerical order.
+Also wrote a little 'rckin' program to take the JPL format and convert it
+into C code,  fixed a mistake of long standing in the numbering of
+Uranus XXV = Perdita,  and enabled certain satellites that had been
+disabled (simply because Guide wasn't using them).
+
+   * BIG_VSOP.CPP:  Added a file 'big_vsop.txt',  which describes how this
+function and the data are set up.
+
+   * INTEGRAT.CPP:  Improvements to handling input dates in various formats,
+fix to allow Pluto to be in the file.  See 'integrat.htm' for details.
+
+   * GUST86.CPP:  Code to compute positions for five main satellites of
+Uranus (Miranda = Uranus V, Ariel = Uranus I, Umbriel = Uranus II,
+Titania = Uranus III,  Oberon = Uranus IV).  Thanks are due to Chris
+Marriott,  the author of _SkyMap Pro_,  for the original version of this
+code.  I've had this sitting on my hard drive for an embarrassingly long
+time.  See 'uranus1.cpp' and 'uranus2.cpp' for usage demonstrations.
+
+Changes for 23 Oct 2008:
+
+   * ASTFUNCS.CPP:  the kepler( ) function has gone unchanged for about
+a decade,  so I was surprised to find _two_ bugs in it.  For certain
+hyperbolic,  very high mean anomaly cases,  it failed to exit a loop,
+because it looked for fabs( err) < thresh .  In reality,  delta_curr
+was becoming suitably small,  and that was the value that should have
+been tested.
+
+   Also,  for elliptical cases,  the mean anomaly really ought to be
+kept in the range -pi < mean_anom < pi.  For M slightly outside that
+range,  you lose a little precision and waste an iteration or two.
+For M far outside that range (i.e.,  "many orbits completed"),  you
+lose _lots_ of accuracy.
+
+   This also caused me to see some possibilities for loss of precision
+with nearly-parabolic orbits,  resulting in a new 'near_parabolic'
+function that does essentially the same math,  but in a way that avoids
+subtracting nearly-equal quantities.
+
+   * DELTA_T.CPP:  added newly announced leap second for end of 2008.
+
+   * ROCKS.CPP: Updated orbital elements for Pan and Daphnis,  from
+SAT276 to SAT291.
+
+   * GET_TIME.CPP: added better handling of offsets,  so one can have
+'13:14-10m +3h' interpreted as 16:04,  for example.  Also,  days of the
+week can be entered (which meant I had to add some day-of-week functions
+to 'date.cpp').
+
+Changes for 6 Apr 2008:
+
+   * GET_TIME.CPP: function mostly extracted from Guide that parses
+time strings, sort of an inverse of 'full_ctime'.  It attempts to handle
+odd inputs 'logically' (i.e.,  "2007-10-17" will be understood even if
+those three values are in an odd order,  because 17 is clearly a day
+of the month and 2007 a year,  leaving 10 as the month).
+
+   * GET_TEST.CPP runs assorted tests of the above function.
+
+   * MISCELL.CPP: fixed a rather stupid series of bugs in 'full_ctime'
+which caused instants a few microseconds shy of midnight to appear as
+2:24:00 (i.e., one-tenth of a day).
+
+   * DIST_PA.CPP now has a "reverse" function:  given a point and
+distance and position angle,  it computes the resulting point.
+
+   * VISLIMIT.CPP was set up so that the instant the moon went below
+the horizon,  its contributed light went to zero.  I'm not sure what
+the actual behavior should be,  but that was definitely wrong.  I
+revised it to have a fairly sudden exponential decrease as it goes
+below the horizon.
+
+   * JD.CPP shows Delta-T for the selected time.  That just provided
+me with a convenient testing mechanism.  It also now uses the 'get_time.cpp'
+function,  so the date on the command line can be more flexible (and
+so I can test the 'get_time.cpp' functions.)
+
+Changes for 2 Feb 2008:
+
+   * ROCKS.CPP:  Updated most of the rocks and added some new ones.
+
+   * COSPAR.CPP:  Revised so it gets data from 'cospar.txt'.  This
+allows it to generate correct rotation data,  including the previously
+neglected smaller terms,  for all planets and satellites,  including
+many previously ignored as "insufficiently important".
+
+   From time to time,  changes may be made to the COSPAR data in
+'cospar.txt'.  (For example,  the model for Mercury was recently
+improved,  and one matching the average rotation rate of the clouds
+of Venus was added.)  Those changes will be described at the end of
+that file,  in the comments section.
+
+   The previous implementation is still provided,  as 'cospar2.cpp',
+just for reference;  I don't expect to be making any use of it.
+
+   * DELTA_T.CPP:  Updated the Delta-T lookup table.
+
+   * EASTER.CPP:  23 Mar 2008 is Easter,  and a neighbor of mine asked
+about when Easter would be so early again.  I revised the test routine
+so you can find out in which years Easter will fall on a given day
+(in addition to the previous,  more common "when will Easter be this
+year").
+
+   * SHOWELEM.CPP:  Epochs with precision greater than .01 day were
+"shifted" to the nearest .01 day and the mean anomaly adjusted
+accordingly.  This is fixed:  if you specify the "usual" sort of
+epoch (i.e.,  midnight UT for some date),  the output will look as
+it always did (truncated to one decimal place),  but otherwise,
+decimal places will all get shown.
+
+Changes for 3 July 2007:
+
+   * JD.CPP:  Added code so that most cases where day/month/year
+is entered on the command line,  instead of year/month/day,  will
+be corrected.
+
+Changes for 8 June 2007:
+
+   * ROCKS.CPP:  Converted some variables to type 'const' to
+help me see what the heck is going on.
+
+   * INTEGRAT.CPP:  Made some small revisions because MPC altered
+the 'mpcorb' format very slightly,  so that when the program looked
+for the names 'Ceres',  'Pallas',  and 'Vesta',  it didn't find them.
+Now it will,  whether the input is in the old or new format.
+
+Changes for 23 April 2007:
+
+   * JD.CPP:  Added an error message for cases where no date is
+specified on the command line,  removed some unused macros and
+variables,  and changed certain "variables" to be of type const.
+(This is largely cosmetic:  if a particular "variable" is,  in
+fact,  constant,  I like to make that fact obvious.)
+
+   * ASTEPHEM.CPP:  This program now gets orbital elements from
+'mpcorb.dat' (or 'mpcorbcr.dat'),  rather than from Guide-format
+elements.  As before,  it uses those elements to generate
+asteroid ephemerides.
+
+   * COSPAR.CPP,  MISCELL.CPP:  compiling with gcc -Wall caused
+a few warning messages to appear,  mostly for cases where things
+defined as 'int' should have been 'long int' or vice versa.
+Again,  cosmetic (unless one were on a system wherein 'int'
+differs from 'long'.)
+
+Mid-2006 changes:
+
+   * ASTFUNCS.CPP:  A couple of lines in the 'kepler' function for
+handling "hyperbolic, large-mean-anomaly cases".  Such cases caused
+overflow problems (when _really_ hyperbolic and large-MA... but such
+cases arose with objects in planetary encounters.) */
+
+   * DIST_PA.CPP:  As comments in the source indicate,  there was a
+roundoff problem with certain position angles where the RAs were
+identical, or nearly so.  I essentially had to do a total rewrite,
+abandoning the haversine-based approach.
+
+   * SHOWELEM.CPP:  Distances are now shown in kilometers (not AU)
+whenever they are less than 400000 km (roughly the distance from the
+earth to the moon).
+
+   * DELTA_T.CPP: Added leap second for 1 January 2006,  plus comments
+on which leap second is which.
+
+Changes for 29 March 2005:
+
+   * SHOWELEM.CPP:  The 'decimal_day_to_dmy' function now takes a
+'calendar' argument,  instead of assuming Gregorian.  That allows
+use of the function by assorted calendar-dependent routines in Guide.
+Most other uses will just pass in a 0 (Gregorian) value.
+
+   * REFRACT4.CPP:  Some code for a 'reverse_integrated_refraction'
+function,  which inverts the 'integrated_refraction' function.
+
+Changes for 3 Feb 2005:
+
+   * DATE.CPP:  Found and fixed a bug in the 'is_hebrew_leap_year' function.
+   * SOLSEQN.CPP:  Added some error handling for cases where the 'big_vsop.bin'
+file isn't found.
+   * Generally:  Switched use of asin( ) to asine( ),  i.e.,  the version that
+protects against domain errors.  I was getting such errors in Find_Orb,
+and was trying to track them down.  It turned out to have nothing to do
+with asin( ) calls in this library... but they're a good idea anyway,
+just on general principle.
+
+Changes for 16 Dec 2004:
+
+   * DATE.CPP:  Changed a lot of variables to be of type 'const'.
+This has no bearing on the actual operation of the code,  but it
+does mean that a human reading the code can say:  "OK,  I know
+these variables aren't going to change within the function."
+
+Changes for 1 Dec 2004:
+
+   * DELTA_T.CPP:  Previously,  there was an adjustment to Delta-T
+within the code now marked by "#ifdef TRY_OMITTING",  for years before
+1620.  The idea was that the formulae for Delta-T were originally
+derived with an assumed lunar secular acceleration of 26 arcseconds
+per century^2.  If you use a theory such as VSOP or ELP,  which
+assume a secular acceleration of -23.8946 arcsec/cy^2,  then you
+have to assume the earth's spin is,  in the long run,  decelerating
+at a different rate... after all,  if the moon is receding at a different
+rate,  it's soaking up the earth's angular momentum at a different rate,
+too.
+
+   However,  I'm now using DE-405 and DE-406 for just about everything.
+I could have made sure that Delta-T was adjusted for DE-40*,  or the
+other way around.  I chose the latter.  (Dealing with these assorted
+time systems is a heck of a mess!)
+
+   * ALT_AZ.CPP:  Some new code to add "supergalactic" transformations
+as a parallel to the galactic ones.
+
+Changes for 7 April 2004:
+
+   * DATE.CPP:  the "modern Persian" calendar is now supported.  This
+corresponds quite closely to the traditional Jalaali calendar,  but
+instead of being a purely observational calendar,  683 leap years are
+spread evenly over a 2820-year span.
+
+Changes for 17 Dec 2003:
+
+   * MISCELL.CPP:  the 'full_ctime' has been mostly rewritten to allow
+handling of different calendars,  and more flexible formats and setting
+of levels of precision.  Most of this was required by my Guide software,
+to support a new feature wherein people could specify exactly how times
+and dates are to be formatted (see
+http://www.projectpluto.com/update8.htm#time_format .)  All this also
+meant some changes to the FULL_CTIME macros in 'date.h'.
+
+   * DATE.CPP:  the code for setting/storing month names used to copy
+in the month names provided to set_month_name(),  which meant you
+couldn't have excessively long names (more than six bytes plus a
+trailing NUL). Now,  instead,  set_month_name() maintains a table of
+pointers to the user-specified month names,  and provision is made
+for a thirteenth month name (useful for the Hebrew and French
+calendars).  All this was required for the same 'time_format' dialog
+described in the URL given in the previous paragraph.
+
+   * DELTA_T.CPP: brought the table of delta_t values up to date.
+Values for late 2003 were off by about 1.2 seconds!
+
+   * INTEGRAT.CPP: this code used to assume that the first,  second,
+and fourth asteroids in an 'mpc_orb.dat' file were Ceres,  Pallas,  and
+Vesta.  It then assumed that it could compute positions for these three
+asteroids,  and compute perturbations caused by them.  That was a bad
+move,  since there are 'mpc_orb'-formatted files that don't contain these
+four objects.  The code now looks for the actual asteroid names "Ceres",
+etc. instead.
+
+   * NUTATION.CPP: fixed an erroneous coefficient reported by James
+Miller and Mark Huss;  that repair required me to clarify the code a
+bit. It's not quite as cryptic as previous versions were.
+
+Changes for 12 Dec 2002:
+
+   * Added REFRACT4.CPP,  code to compute a truly "accurate" refraction
+value via numerical integration.  Compare to the code in REFRACT.CPP
+(which is much simpler,  but not quite as precise.)
+
+   * COLORS.CPP was fixed to read 'loneos.pho' properly (it was getting
+confused by lines where the RA was given to .001-second precision).
+
+   * The Republican calendar code in DATE.CPP was returning weird
+values (and sometimes just locking up!) for dates prior to
+JD 2007729.5 or after JD 2598322.5.  The values outside that range
+are still not necessarily exact,  but should at least be close,
+with more "graceful" degradation of accuracy.
+
+   * REFRACT.CPP had an error,  where I thought the input value was
+in degrees,  but it was really in arcminutes.
+
+   * INTEGRAT.CPP and SHOWELEM.CPP had slightly "bad" planetary masses
+(in particular,  that for Earth was off by about .5%!)
+
+Changes for 6 June 2002:
+
+   * There's now a LUNARDLL.MAK file,  for creating a 32-bit Windoze DLL.
+
+   * The #defines for AU_PER_DAY and AU_IN_KM were moved into
+'afuncs.h'.  I hadn't realized this,  but there were a few places
+where both were defined with fewer digits than one might ideally like.
+This affects a slew of files.
+
+   * DATE.CPP:  the method for handling the French Revolutionary
+(Republican) calendar was changed a bit.  You can still use the
+"algorithmic" methods,  but there's some new code that allows you
+to use the original ugly scheme in which the year begins on the
+autumnal equinox,  so leap years occur at either four or five-year
+intervals.  (#define's can switch you back to the other methods.)
+The code looks much like that for the Persian Jalaali calendar,
+and I used the same program,  PERSIAN.CPP (q.v.),  slightly modified,
+to generate the lookup table.
+
+   * DELTA_T.CPP now contains a table of values of Delta-T to .01
+second,  not .1 second,  precision.  I made the size of the table a
+#define,  since I keep increasing it a bit from time to time. There
+are some new notes at the bottom of the file,  because at some point,
+I want to include some code to give,  not just Delta-T = TDT - UT1,
+but TDT - UTC.  For the latter,  I'll mostly just need a table of
+leap seconds.  But none of this affects the code yet.
+
+   * DIST_PA.CPP:  in reply to an inquiry as to how this function
+works,  I added some comments and revised a bug in how the PA was done.
+
+   * EASTER.CPP:  mostly cosmetic change of some values to type 'const'.
+
+   * PERSIAN.CPP:  code added to do a similar analysis for the French
+Revolutionary (Republican) calendar.  See DATE.CPP.  (I also switched
+to use of the "full VSOP" as used in BIG_VSOP.CPP,  rather than the
+"small VSOP" used previously.  That gave better accuracy,  but also
+meant I had to make some minor changes to the make files.)
+
+   * PRECESS.CPP:  Jordi Mas reported that the function
+'setup_ecliptic_precession( )' was broken,  and has probably been
+so since it was first written.  (I never actually had a situation
+where I used it.)  It's fixed now.
+
+   * SSATS.CPP:  After I got an inquiry about these formulae,  I added
+some comments near the top,  and made some cosmetic changes such as
+converting some values to be of type 'const'.

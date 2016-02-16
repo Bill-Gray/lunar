@@ -1,0 +1,89 @@
+; Test cases for 'get_time':
+format 6        (day/month/year: 0009-aug-07)
+se 2009
+7 oct
+12 29
+28 11
+oct 1912
+7 dec 1941 3:14
+22 1963 nov18:19:22
+081225 :
+17760704 12:00
+2451545
+2008 n
+se 11 2001
+-3h
++5d
+17:
+:7
+2008/50.25
+d :
+3:14:15.92653
+-443 2 12
+1997.06.05 12:30:23.3348
+BC 415o9 12:33 -2h
+21000203 03:14
+650225 16:00
+3:14:15.9
+11/2 :
+12 3
+11.25-2
+3-13.4
+j2451545
+Ap :
+6/18/2004
+:17:12.3
+JD 2451545.
+2008-03-14T15:26:53.5
+mjd 51000
+50 2008 3:14.159
+y1952.34
+50.75 2008
+1952.34
+:8.4
++9.25
+format 806     (year/day/month: following should be 0003-may-4, jun-7)
+3 4 5
+7 6
+format 1806    (year/month/day: following should be 0001-feb-6, sep-11)
+1.2.6
+9 11
+format 6       (day/month/year: 0009-aug-07)
+7 8 9
+format 1006    (month/day/year: 0012-oct-11)
+10 11 12
+15 2 2008
+3 16 2009
+7 4 bc11
+2008.15.2 4:
+2009 7 16
+; If a field has a decimal point in it,  it should be recognized as a day:
+1941 4 3.2
+5.5 10 2009
+2002-6.25-8
+1.3 1997 4
+;   Next line _should_ change between runs...
+now-4d
+;   ...but nothing else should!
+10/5.4/2015
+3 1917 7.75
+9.125 5
+2 7.25
+;     find time three days before new moon...
+nm-3d
+1457 oct 3 BC 12:34
+;  Start from 2011 dec 13,  back up four weeks,  find the time of the
+; nearest Third Quarter phase,  then add two days:
+2011 dec 13 -4w 3Q +2d
+;  Similar efforts:
+15o1843-300d1q+16d-22.43h
++60d nm
+1q 3:00
+4:56:07 p.m.
+5 4 37 6:10 pm -2h
+8/3 3:01 A.M.
+14/9 12:17 pm
+s11 12:51am
+2009-10-01T21:41:23.8
+format 6       (day/month/year: 0009-aug-07)
+1997-03-04T03:14:16

@@ -1,0 +1,103 @@
+# Basic astronomical functions library - OpenWatcom C/C++ version
+
+all: astcheck.exe astephem.exe calendar.exe  &
+   cosptest.exe dist.exe easter.exe get_test.exe jevent.exe jpl2b32.exe  &
+   jd.exe jsattest.exe lun_test.exe marstime.exe oblitest.exe persian.exe &
+   phases.exe ps_1996.exe relativi.exe ssattest.exe tables.exe testprec.exe &
+   testprec.exe uranus1.exe utc_test.exe
+
+astephem.exe:         astephem.obj mpcorb.obj wafuncs.lib
+   wcl386 -zq -k10000 astephem.obj mpcorb.obj wafuncs.lib
+
+astcheck.exe: astcheck.obj mpcorb.obj wafuncs.lib
+   wcl386 -zq -k10000 astcheck.obj mpcorb.obj wafuncs.lib
+
+calendar.exe:         calendar.obj wafuncs.lib
+   wcl386 -zq -k10000 calendar.obj wafuncs.lib
+
+cosptest.exe:         cosptest.obj wafuncs.lib
+   wcl386 -zq -k10000 cosptest.obj wafuncs.lib
+
+dist.exe:             dist.cpp
+   wcl386 -zq -k10000 dist.cpp
+
+easter.exe:           easter.cpp
+   wcl386 -zq -k10000 easter.cpp -DTEST_CODE
+
+get_test.exe:         get_test.obj wafuncs.lib
+   wcl386 -zq -k10000 get_test.obj wafuncs.lib
+
+htc20b.exe:           htc20b.obj wafuncs.lib
+   wcl386 -zq -k10000 htc20b.obj wafuncs.lib -DTEST_MAIN
+
+jd.exe:               jd.obj wafuncs.lib
+   wcl386 -zq -k10000 jd.obj wafuncs.lib
+
+jevent.exe:           jevent.cpp wafuncs.lib
+   wcl386 -zq -k10000 jevent.cpp wafuncs.lib
+
+jpl2b32.exe:          jpl2b32.cpp
+   wcl386 -zq -k10000 jpl2b32.cpp
+
+jsattest.exe:         jsattest.obj wafuncs.lib
+   wcl386 -zq -k10000 jsattest.obj wafuncs.lib
+
+lun_test.exe:         lun_test.obj lun_tran.obj riseset3.obj wafuncs.lib
+   wcl386 -zq -k10000 lun_test.obj lun_tran.obj riseset3.obj wafuncs.lib
+
+marstime.exe:         marstime.cpp
+   wcl386 -zq -k10000 marstime.cpp -DTEST_PROGRAM
+
+oblitest.exe:         oblitest.obj obliqui2.obj spline.obj wafuncs.lib
+   wcl386 -zq -k10000 oblitest.obj obliqui2.obj spline.obj wafuncs.lib
+
+persian.exe:          persian.obj solseqn.obj wafuncs.lib
+   wcl386 -zq -k10000 persian.obj solseqn.obj wafuncs.lib
+
+phases.exe:           phases.obj wafuncs.lib
+   wcl386 -zq -k10000 phases.obj wafuncs.lib
+
+ps_1996.exe:          ps_1996.obj wafuncs.lib
+   wcl386 -zq -k10000 ps_1996.obj wafuncs.lib
+
+relativi.exe:         relativi.cpp wafuncs.lib
+   wcl386 -zq -k10000 relativi.cpp wafuncs.lib -DTEST_CODE
+
+ssattest.exe:         ssattest.obj wafuncs.lib
+   wcl386 -zq -k10000 ssattest.obj wafuncs.lib
+
+tables.exe:           tables.obj riseset3.obj wafuncs.lib
+   wcl386 -zq -k10000 tables.obj riseset3.obj wafuncs.lib
+
+testprec.exe:         testprec.obj wafuncs.lib
+   wcl386 -zq -k10000 testprec.obj wafuncs.lib
+
+test_ref.exe:         test_ref.obj refract4.obj refract.obj
+   wcl386 -zq -k10000 test_ref.obj refract4.obj refract.obj
+
+uranus1.exe:          uranus1.obj gust86.obj
+   wcl386 -zq -k10000 uranus1.obj gust86.obj
+
+utc_test.exe:         utc_test.obj wafuncs.lib
+   wcl386 -zq -k10000 utc_test.obj wafuncs.lib
+
+wafuncs.lib: alt_az.obj astfuncs.obj big_vsop.obj classel.obj com_file.obj cospar.obj      &
+             date.obj delta_t.obj de_plan.obj dist_pa.obj        &
+             eart2000.obj elp82dat.obj getplane.obj get_time.obj &
+             jsats.obj lunar2.obj triton.obj miscell.obj nutation.obj       &
+             obliquit.obj pluto.obj precess.obj refract.obj       &
+             refract4.obj rocks.obj showelem.obj &
+             ssats.obj vislimit.obj vsopson.obj
+   wlib -q wafuncs.lib +alt_az.obj +astfuncs.obj +big_vsop.obj +classel.obj +com_file.obj +cospar.obj
+   wlib -q wafuncs.lib +date.obj +delta_t.obj +de_plan.obj +dist_pa.obj
+   wlib -q wafuncs.lib +eart2000.obj +elp82dat.obj +getplane.obj +get_time.obj
+   wlib -q wafuncs.lib +jsats.obj +lunar2.obj +triton.obj +miscell.obj +nutation.obj
+   wlib -q wafuncs.lib +obliquit.obj +pluto.obj +precess.obj +refract.obj
+   wlib -q wafuncs.lib +refract4.obj +rocks.obj +showelem.obj
+   wlib -q wafuncs.lib +ssats.obj +vislimit.obj +vsopson.obj
+
+CC=wcc386
+CFLAGS=-w4 -oxt -4r -s -j -zq -za99
+
+.cpp.obj:
+   $(CC) $(CFLAGS) $<

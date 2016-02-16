@@ -1,0 +1,47 @@
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+#include <math.h>
+#include <time.h>
+#include "watdefs.h"
+#include "afuncs.h"
+#include "lunar.h"
+
+      /* Unit test code for COSPAR functions.  I've used this     */
+      /* after making changes to 'cospar.txt' or 'cospar.cpp'     */
+      /* just to verify that only the things that were _supposed_ */
+      /* to change,  actually changed.                            */
+
+int main( int intentionally_unused_argc, char **intentionally_unused_argv)
+{
+   double matrix[9], prev_matrix[9];
+   int i, j, system_number, rval;
+   clock_t t0 = clock( );
+
+   setvbuf( stdout, NULL, _IONBF, 0);
+   for( i = 0; i < 9; i++)
+      prev_matrix[i] = 0.;
+   for( i = -5; i < 2000; i++)
+      {
+      for( system_number = 0; system_number < 4; system_number++)
+         {
+         rval = calc_planet_orientation( i, system_number,
+                        2451000. + (double)i * 1000., matrix);
+         if( rval && rval != -1)
+            printf( "rval %d\n", rval);
+         else if( !rval)
+            if( memcmp( matrix, prev_matrix, 9 * sizeof( double)))
+               {
+               printf( "Planet %d, system %d\n", i, system_number);
+               for( j = 0; j < 9; j += 3)
+                  printf( "%11.8f %11.8f %11.8f\n",
+                             matrix[j], matrix[j + 1], matrix[j + 2]);
+               for( j = 0; j < 9; j++)
+                  prev_matrix[j] = matrix[j];
+               }
+         }
+      }
+   printf( "Total time: %f\n",
+            (double)( clock() - t0) / (double)CLOCKS_PER_SEC);
+   return( 0);
+}

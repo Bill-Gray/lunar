@@ -1,0 +1,91 @@
+Hi Mark,
+
+   Following is "documentation",  of a sort,  for 'big_vsop.bin'
+and 'big_vsop.cpp'.  I'll incorporate it into the latter at some
+point.  The opening paragraphs are probably old news to you,
+but... here goes:
+
+   BE WARNED that for many purposes,  rather than using VSOP (in
+either its short or long forms),  it's well to use either the
+PS-1996 series or DE ephemerides.  Source code for both is
+available from my site.
+
+   VSOP is based on the now-obsolete DE-200 ephemeris,  doesn't
+include the moon or Pluto,  and requires summing up a staggering
+number of terms to get full accuracy.  Use of DE ephemerides or
+PS-1996 is much faster and more accurate.
+
+   On the plus side,  VSOP covers millennia into the past and
+future (PS-1996 only covers about a century or so into the past
+and future, depending on the planet in question),  and can be
+packed into a small file size (the full DE ephemerides can
+consume up to 200 MBytes).  You can sum up just a few VSOP terms
+and get results good to an arcminute or so,  ample for
+low-precision uses.
+
+   In both 'big_vsop.bin' and 'vsop.bin',  for each of the eight
+planets (Mercury through Neptune), data is provided in the
+"usual" VSOP form,  as a Poisson series (a mix of a Fourier-like
+series of trig terms and a Taylor-like power series.)  Thus,  for
+example, the ecliptic latitude of a planet would be computed as
+
+latitude = (sum of trig terms0)
+         + (sum of trig terms1) * t
+         + (sum of trig terms2) * t^2
+         + (sum of trig terms3) * t^3
+         + (sum of trig terms4) * t^4
+         + (sum of trig terms5) * t^5
+
+   ...with similar series given for ecliptic longitude and heliocentric
+radius.
+
+   't' = (jd - 2541545.0) / 365250,  the difference in millennia
+between the time in question and 1.5 January 2000.  The 'trig terms'
+are all of the form amplitude * cos( angle + rate * t).  Almost all of
+'big_vsop.bin' consists of the values for 'amplitude',  'angle' and
+'rate',  with a small header describing just where the 'amplitude',
+'angle' and 'rate' data for a given series begins and ends.
+
+   As you can see,  each value requires summing up six series,  then
+multiplying by some integer power of t.  We've got six series per
+value,  three values per planet,  and eight planets... therefore,
+6 * 3 * 8 = 144 series.  Any given planet requires 18 series.
+
+   The 'big_vsop' header could,  in theory,  give you the starting
+and ending location of each series,  as short integer values.  You'd
+then have 144 * 2,  or 288,  values in the header.  In reality,  all
+I did was store the beginning of each series;  you figure out where
+it ends by looking at the beginning of the next series.  That brings
+us down to 145 values in the header (the last value giving you where
+the final series actually ends.)
+
+   Since each header entry is a short int,  we're looking at 290 bytes.
+
+   In a possibly misguided effort to save space (well,  it _did_ make
+lots of sense back in 1993!),  I store the header data needed for
+one particular planet in RAM at a given time.  If someone asks for
+a "new planet" (in big_vsop.cpp,  'if( curr_planet != planet)'),
+then we dig through 'big_vsop.bin' for the required header data
+and store it in a static array.  That requirement is for nineteen
+short (16-bit) integers:  there are three values to be computed
+(lat/lon/r) and six series for each of them (1, t, t^2, ...t^5),
+and we need to know where the last of them ends.  So the static
+array 'cache' is dimensioned for 19 shorts.
+
+   We then use that data stored in 'cache' to go forth and grab
+VSOP data.  For longitude,  the coefficients for the (1, t, ...t^5)
+series are stored at offsets indicated by cache[0], cache[1], ...
+cache[5],  with the latter ending at cache[6] (that is,  the t^5
+series would have cache[6]-cache[5] terms.)  For latitude,
+the coefficients would be at offsets indicated by cache[6...11],
+and for heliocentric radius,  cache[12...17],  with the last
+t^5 term having cache[18]-cache[17] terms.
+
+   The actual file offset,  in bytes,  is going to be 24 bytes
+per term (each term consumes three double-precision floats) plus
+the 290 bytes for the header.  That's why the actual 'fseek' call
+in 'big_vsop.cpp' reads as
+
+      fseek( ifile, 290L + (long)loc[0] * 24L, SEEK_SET);
+
+-- Bill
