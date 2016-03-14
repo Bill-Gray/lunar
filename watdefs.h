@@ -16,8 +16,19 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301, USA.    */
 
+#ifdef __WATCOMC__
+#ifndef bool
+#define bool int
+#endif
+#ifndef true
+#define true 1
+#endif
+#ifndef false
+#define false 0
+#endif
 #ifdef __386__
 #define BITS_32
+#endif
 #endif
 
 #ifdef __GNUC__
@@ -65,15 +76,13 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 #define STRUPR       strupr
 
 #ifdef __WATCOMC__
-   #define true  1
-   #define false 0
-   #define _ftime        ftime
-   #define _timeb        timeb
-   #define _videoconfig videoconfig
-   #define _timezone    timezone
-   #define _tzset       tzset
-   #define _swab        swab
-   #define _unlink      unlink
+#define _ftime        ftime
+#define _timeb        timeb
+#define _videoconfig videoconfig
+#define _timezone    timezone
+#define _tzset       tzset
+#define _swab        swab
+#define _unlink      unlink
 // int _stricmp( char *s1, char *s2);
 // int _memicmp( char *s1, char *s2, int n);
 #endif
