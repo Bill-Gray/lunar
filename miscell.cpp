@@ -360,8 +360,11 @@ void DLL_FUNC full_ctimel( char *buff, long double t2k, const int format)
       else
          {
          strcpy( month_str, set_month_name( month, NULL));
-         strcat( month_str, "   ");    /* ensure three-digit abbr for */
-         month_str[3] = '\0';          /* all months */
+//       strcat( month_str, "   ");    /* ensure three-digit abbr for */
+//       month_str[3] = '\0';          /* all months */
+            /* 2016 Feb 17:  I don't think we need to ensure this.  And it */
+            /* causes trouble with UTF-8 months in (e.g.) Russian,  where */
+            /* three chars = six bytes.   */
          }
 
       if( format & FULL_CTIME_TWO_DIGIT_YEAR)
