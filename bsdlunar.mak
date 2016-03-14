@@ -1,54 +1,57 @@
-# GNU MAKE Makefile for 'lunar' basic astronomical functions library
-#  (see 'bsdlunar.mak' for BSD)
+# Makefile for 'lunar' basic astronomical functions library for BSD
+#  (based on 'linlunar.mak' for Linux (q.v.))
 #
 # Usage: make -f [path\]linlunar.mak [CLANG=Y] [XCOMPILE=Y] [MSWIN=Y] [tgt]
 #
 # where tgt can be any of:
 # [all|astcheck|astephem|calendar... clean]
 #
-#   'XCOMPILE' = cross-compile for Windows,  using MinGW,  on a Linux box
-#   'MSWIN' = compile for Windows,  using MinGW,  on a Windows machine
-#   'CLANG' = use clang instead of GCC;  Linux only
-# None of these: compile using g++ on Linux,  for Linux
+#	'XCOMPILE' = cross-compile for Windows,  using MinGW,  on a BSD box
+#	'MSWIN' = compile for Windows,  using MinGW,  on a Windows machine
+#	'CLANG' = use clang instead of GCC;  BSD only
+# None of these: compile using g++ on BSD,  for BSD
+#	Note that I've only tried the last of these,  on PC-BSD (which is based
+# on FreeBSD).  I would expect CLANG to work,  and one _can_ use MinGW
+# on BSD (so I hear;  I've not tried it).
 
 CC=g++
 LIBSADDED=
 EXE=
 
-ifdef CLANG
-	CC=clang
-endif
+.ifdef CLANG
+  CC=clang
+.endif
 
 RM=rm -f
 
-ifdef MSWIN
-	EXE=.exe
-else
-	LIBSADDED=-lm
-endif
+.ifdef MSWIN
+  EXE=.exe
+.else
+  LIBSADDED=-lm -lrt
+.endif
 
-ifdef XCOMPILE
-   CC=x86_64-w64-mingw32-g++
-   EXE=.exe
-   LIBSADDED=
-endif
+.ifdef XCOMPILE
+	CC=x86_64-w64-mingw32-g++
+	EXE=.exe
+	LIBSADDED=
+.endif
 
 all: astcheck$(EXE) astephem$(EXE) calendar$(EXE) colors$(EXE) colors2$(EXE) \
-   cosptest$(EXE) dist$(EXE) easter$(EXE) get_test$(EXE) htc20b$(EXE) jd$(EXE) \
-   jevent$(EXE) jpl2b32$(EXE) jsattest$(EXE) lun_test$(EXE) \
-   marstime$(EXE) oblitest$(EXE) persian$(EXE)  \
-   phases$(EXE) ps_1996$(EXE) ssattest$(EXE) tables$(EXE) \
-   test_ref$(EXE) testprec$(EXE) uranus1$(EXE) utc_test$(EXE)
+	cosptest$(EXE) dist$(EXE) easter$(EXE) get_test$(EXE) htc20b$(EXE) jd$(EXE) \
+ jevent$(EXE) jpl2b32$(EXE) jsattest$(EXE) lun_test$(EXE)  \
+ marstime$(EXE) oblitest$(EXE) persian$(EXE)  \
+ phases$(EXE) ps_1996$(EXE) ssattest$(EXE) tables$(EXE) \
+	test_ref$(EXE) testprec$(EXE) uranus1$(EXE) utc_test$(EXE)
 
-CFLAGS=-Wextra -Wall -O4 -pedantic -Wno-unused-parameter
+CFLAGS=-Wall -O3
 
 .cpp.o:
 	$(CC) $(CFLAGS) -c $<
 
 OBJS= alt_az.o astfuncs.o big_vsop.o classel.o cospar.o date.o delta_t.o \
-   de_plan.o dist_pa.o eart2000.o elp82dat.o getplane.o get_time.o \
-   jsats.o lunar2.o miscell.o nutation.o obliquit.o pluto.o precess.o \
-   showelem.o ssats.o triton.o vsopson.o
+	de_plan.o dist_pa.o eart2000.o elp82dat.o getplane.o get_time.o \
+	jsats.o lunar2.o miscell.o nutation.o obliquit.o pluto.o precess.o \
+	showelem.o ssats.o triton.o vsopson.o
 
 lunar.a: $(OBJS)
 	$(RM) lunar.a
@@ -101,17 +104,17 @@ htc20b$(EXE): htc20b.cpp lunar.a
 jd$(EXE): jd.o lunar.a
 	$(CC) $(CFLAGS) -o jd$(EXE) jd.o lunar.a $(LIBSADDED)
 
-jevent$(EXE):   jevent.o lunar.a
+jevent$(EXE):	jevent.o lunar.a
 	$(CC) $(CFLAGS) -o jevent$(EXE) jevent.o lunar.a $(LIBSADDED)
 
-jpl2b32$(EXE):   jpl2b32.o
+jpl2b32$(EXE):	jpl2b32.o
 	$(CC) $(CFLAGS) -o jpl2b32$(EXE) jpl2b32.o $(LIBSADDED)
 
 jsattest$(EXE): jsattest.o lunar.a
 	$(CC) $(CFLAGS) -o jsattest$(EXE) jsattest.o lunar.a $(LIBSADDED)
 
 lun_test$(EXE): lun_test.o lun_tran.o riseset3.o lunar.a
-	$(CC) $(CFLAGS) -o lun_test$(EXE) lun_test.o lun_tran.o riseset3.o lunar.a $(LIBSADDED)
+	$(CC)	$(CFLAGS) -o lun_test$(EXE) lun_test.o lun_tran.o riseset3.o lunar.a $(LIBSADDED)
 
 marstime$(EXE): marstime.cpp
 	$(CC) $(CFLAGS) -o marstime$(EXE) marstime.cpp -DTEST_PROGRAM $(LIBSADDED)
