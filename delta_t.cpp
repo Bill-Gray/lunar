@@ -86,8 +86,7 @@ static const short delta_t_table[] =
   6607,    /* 2010  1 1:   66.0699                              */
   6660,    /* 2012  1 1:   66.6030                              */
   6728,    /* 2014  1 1:   67.2810                              */
-  6806 };  /* 2016  1 1:   _prediction_ fitting late 2015 trend */
-           /*   (replace with measured value after 2016!)       */
+  6810 };  /* 2016  1 1:   68.1024                              */
 
 /* 8 Aug 2000:  Some people have expressed an interest in being able to
    insert their own formulae for Delta-T while running Guide.  I've
