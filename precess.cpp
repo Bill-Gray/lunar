@@ -61,10 +61,11 @@ a given time,  using the setup_ecliptic_precession_from_j2000( ) function.
 If you want to go from a given time to J2000,  the same function is
 called and the result is inverted.  If you want to go from a time t1
 to a time t2,  the code creates a J2000-to-t1 matrix and inverts it.
-Then it makes a J2000-to-t2 matrix,  and multiplies the two matrices.
-(With some logic to skip some steps if t1=2000 or t2=2000,  where you'd
-get identity matrices anyway.)  Thus,  precession and inverse precession
-are exactly inverse operations.    */
+(Fortunately,  we're talking about orthonormal matrices;  inversion is
+simply transposition.)  Then it makes a J2000-to-t2 matrix,  and
+multiplies the two matrices. (With some logic to skip some steps if
+t1=2000 or t2=2000,  where you'd get identity matrices anyway.)  Thus,
+precession and inverse precession are exactly inverse operations.    */
 
 #include <math.h>
 #include <string.h>
