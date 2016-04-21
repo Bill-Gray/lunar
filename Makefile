@@ -114,6 +114,9 @@ get_test$(EXE): get_test.o liblunar.a
 htc20b$(EXE): htc20b.cpp liblunar.a
 	$(CC) $(CFLAGS) -o htc20b$(EXE) -DTEST_MAIN htc20b.cpp liblunar.a $(LIBSADDED)
 
+integrat$(EXE): integrat.o liblunar.a
+	$(CC) $(CFLAGS) -o integrat$(EXE) integrat.o liblunar.a $(LIBSADDED) -ljpl
+
 jd$(EXE): jd.o liblunar.a
 	$(CC) $(CFLAGS) -o jd$(EXE) jd.o liblunar.a $(LIBSADDED)
 
