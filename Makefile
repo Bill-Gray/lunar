@@ -47,7 +47,7 @@ install:
 	cp date.h     /usr/local/include
 	cp lunar.h    /usr/local/include
 	cp watdefs.h  /usr/local/include
-	cp lunar.a    /usr/local/lib
+	cp liblunar.a /usr/local/lib
 
 uninstall:
 	rm -f /usr/local/include/afuncs.h
@@ -55,7 +55,7 @@ uninstall:
 	rm -f /usr/local/include/showelem.h
 	rm -f /usr/local/include/date.h
 	rm -f /usr/local/include/watdefs.h
-	rm -f /usr/local/lib/lunar.a
+	rm -f /usr/local/lib/liblunar.a
 
 CFLAGS=-Wextra -Wall -O4 -pedantic -Wno-unused-parameter
 
@@ -67,8 +67,8 @@ OBJS= alt_az.o astfuncs.o big_vsop.o classel.o cospar.o date.o delta_t.o \
    jsats.o lunar2.o miscell.o nutation.o obliquit.o pluto.o precess.o \
    showelem.o ssats.o triton.o vsopson.o
 
-lunar.a: $(OBJS)
-	ar crsv lunar.a $(OBJS)
+liblunar.a: $(OBJS)
+	ar crsv liblunar.a $(OBJS)
 
 clean:
 	$(RM) $(OBJS)
@@ -82,16 +82,16 @@ clean:
 	$(RM) htc20b$(EXE) jd$(EXE) jevent$(EXE) jpl2b32$(EXE) jsattest$(EXE)
 	$(RM) lun_test$(EXE) marstime$(EXE) oblitest$(EXE) persian$(EXE) phases$(EXE)
 	$(RM) ps_1996$(EXE) relativi$(EXE) ssattest$(EXE) tables$(EXE)
-	$(RM) test_ref$(EXE) testprec$(EXE) uranus1$(EXE) utc_test$(EXE) lunar.a
+	$(RM) test_ref$(EXE) testprec$(EXE) uranus1$(EXE) utc_test$(EXE) liblunar.a
 
-astcheck$(EXE): astcheck.o mpcorb.o lunar.a
-	$(CC) $(CFLAGS) -o astcheck$(EXE) astcheck.o mpcorb.o lunar.a $(LIBSADDED)
+astcheck$(EXE): astcheck.o mpcorb.o liblunar.a
+	$(CC) $(CFLAGS) -o astcheck$(EXE) astcheck.o mpcorb.o liblunar.a $(LIBSADDED)
 
-astephem$(EXE): astephem.o mpcorb.o lunar.a
-	$(CC) $(CFLAGS) -o astephem$(EXE) astephem.o mpcorb.o lunar.a $(LIBSADDED)
+astephem$(EXE): astephem.o mpcorb.o liblunar.a
+	$(CC) $(CFLAGS) -o astephem$(EXE) astephem.o mpcorb.o liblunar.a $(LIBSADDED)
 
-calendar$(EXE): calendar.o lunar.a
-	$(CC) $(CFLAGS) -o calendar$(EXE) calendar.o   lunar.a $(LIBSADDED)
+calendar$(EXE): calendar.o liblunar.a
+	$(CC) $(CFLAGS) -o calendar$(EXE) calendar.o   liblunar.a $(LIBSADDED)
 
 colors$(EXE): colors.cpp
 	$(CC) $(CFLAGS) -o colors$(EXE) colors.cpp -DSIMPLE_TEST_PROGRAM
@@ -99,69 +99,69 @@ colors$(EXE): colors.cpp
 colors2$(EXE): colors2.cpp
 	$(CC) $(CFLAGS) -o colors2$(EXE) colors2.cpp -DTEST_FUNC
 
-cosptest$(EXE): cosptest.o lunar.a
-	$(CC) $(CFLAGS) -o cosptest$(EXE) cosptest.o   lunar.a $(LIBSADDED)
+cosptest$(EXE): cosptest.o liblunar.a
+	$(CC) $(CFLAGS) -o cosptest$(EXE) cosptest.o   liblunar.a $(LIBSADDED)
 
 dist$(EXE): dist.cpp
 	$(CC) $(CFLAGS) -o dist$(EXE) dist.cpp $(LIBSADDED)
 
-easter$(EXE): easter.cpp lunar.a
-	$(CC) $(CFLAGS) -o easter$(EXE) -DTEST_CODE easter.cpp lunar.a $(LIBSADDED)
+easter$(EXE): easter.cpp liblunar.a
+	$(CC) $(CFLAGS) -o easter$(EXE) -DTEST_CODE easter.cpp liblunar.a $(LIBSADDED)
 
-get_test$(EXE): get_test.o lunar.a
-	$(CC) $(CFLAGS) -o get_test$(EXE) get_test.o lunar.a $(LIBSADDED)
+get_test$(EXE): get_test.o liblunar.a
+	$(CC) $(CFLAGS) -o get_test$(EXE) get_test.o liblunar.a $(LIBSADDED)
 
-htc20b$(EXE): htc20b.cpp lunar.a
-	$(CC) $(CFLAGS) -o htc20b$(EXE) -DTEST_MAIN htc20b.cpp lunar.a $(LIBSADDED)
+htc20b$(EXE): htc20b.cpp liblunar.a
+	$(CC) $(CFLAGS) -o htc20b$(EXE) -DTEST_MAIN htc20b.cpp liblunar.a $(LIBSADDED)
 
-jd$(EXE): jd.o lunar.a
-	$(CC) $(CFLAGS) -o jd$(EXE) jd.o lunar.a $(LIBSADDED)
+jd$(EXE): jd.o liblunar.a
+	$(CC) $(CFLAGS) -o jd$(EXE) jd.o liblunar.a $(LIBSADDED)
 
-jevent$(EXE):   jevent.o lunar.a
-	$(CC) $(CFLAGS) -o jevent$(EXE) jevent.o lunar.a $(LIBSADDED)
+jevent$(EXE):   jevent.o liblunar.a
+	$(CC) $(CFLAGS) -o jevent$(EXE) jevent.o liblunar.a $(LIBSADDED)
 
 jpl2b32$(EXE):   jpl2b32.o
 	$(CC) $(CFLAGS) -o jpl2b32$(EXE) jpl2b32.o $(LIBSADDED)
 
-jsattest$(EXE): jsattest.o lunar.a
-	$(CC) $(CFLAGS) -o jsattest$(EXE) jsattest.o lunar.a $(LIBSADDED)
+jsattest$(EXE): jsattest.o liblunar.a
+	$(CC) $(CFLAGS) -o jsattest$(EXE) jsattest.o liblunar.a $(LIBSADDED)
 
-lun_test$(EXE): lun_test.o lun_tran.o riseset3.o lunar.a
-	$(CC) $(CFLAGS) -o lun_test$(EXE) lun_test.o lun_tran.o riseset3.o lunar.a $(LIBSADDED)
+lun_test$(EXE): lun_test.o lun_tran.o riseset3.o liblunar.a
+	$(CC) $(CFLAGS) -o lun_test$(EXE) lun_test.o lun_tran.o riseset3.o liblunar.a $(LIBSADDED)
 
 marstime$(EXE): marstime.cpp
 	$(CC) $(CFLAGS) -o marstime$(EXE) marstime.cpp -DTEST_PROGRAM $(LIBSADDED)
 
-oblitest$(EXE): oblitest.o obliqui2.o spline.o lunar.a
-	$(CC) $(CFLAGS) -o oblitest$(EXE) oblitest.o obliqui2.o spline.o lunar.a $(LIBSADDED)
+oblitest$(EXE): oblitest.o obliqui2.o spline.o liblunar.a
+	$(CC) $(CFLAGS) -o oblitest$(EXE) oblitest.o obliqui2.o spline.o liblunar.a $(LIBSADDED)
 
-persian$(EXE): persian.o solseqn.o lunar.a
-	$(CC) $(CFLAGS) -o persian$(EXE) persian.o solseqn.o lunar.a $(LIBSADDED)
+persian$(EXE): persian.o solseqn.o liblunar.a
+	$(CC) $(CFLAGS) -o persian$(EXE) persian.o solseqn.o liblunar.a $(LIBSADDED)
 
-phases$(EXE): phases.o lunar.a
-	$(CC) $(CFLAGS) -o phases$(EXE)   phases.o   lunar.a $(LIBSADDED)
+phases$(EXE): phases.o liblunar.a
+	$(CC) $(CFLAGS) -o phases$(EXE)   phases.o   liblunar.a $(LIBSADDED)
 
-ps_1996$(EXE): ps_1996.o lunar.a
-	$(CC) $(CFLAGS) -o ps_1996$(EXE)   ps_1996.o   lunar.a $(LIBSADDED)
+ps_1996$(EXE): ps_1996.o liblunar.a
+	$(CC) $(CFLAGS) -o ps_1996$(EXE)   ps_1996.o   liblunar.a $(LIBSADDED)
 
-relativi$(EXE): relativi.cpp lunar.a
-	$(CC) $(CFLAGS) -o relativi$(EXE) -DTEST_CODE relativi.cpp lunar.a $(LIBSADDED)
+relativi$(EXE): relativi.cpp liblunar.a
+	$(CC) $(CFLAGS) -o relativi$(EXE) -DTEST_CODE relativi.cpp liblunar.a $(LIBSADDED)
 
-ssattest$(EXE): ssattest.o lunar.a
-	$(CC) $(CFLAGS) -o ssattest$(EXE) ssattest.o lunar.a $(LIBSADDED)
+ssattest$(EXE): ssattest.o liblunar.a
+	$(CC) $(CFLAGS) -o ssattest$(EXE) ssattest.o liblunar.a $(LIBSADDED)
 
-tables$(EXE):                    tables.o riseset3.o lunar.a
-	$(CC) $(CFLAGS) -o tables$(EXE) tables.o riseset3.o lunar.a $(LIBSADDED)
+tables$(EXE):                    tables.o riseset3.o liblunar.a
+	$(CC) $(CFLAGS) -o tables$(EXE) tables.o riseset3.o liblunar.a $(LIBSADDED)
 
 test_ref$(EXE):                    test_ref.o refract.o refract4.o
 	$(CC) $(CFLAGS) -o test_ref$(EXE) test_ref.o refract.o refract4.o $(LIBSADDED)
 
-testprec$(EXE):                    testprec.o lunar.a
-	$(CC) $(CFLAGS) -o testprec$(EXE) testprec.o lunar.a $(LIBSADDED)
+testprec$(EXE):                    testprec.o liblunar.a
+	$(CC) $(CFLAGS) -o testprec$(EXE) testprec.o liblunar.a $(LIBSADDED)
 
 uranus1$(EXE): uranus1.o gust86.o
 	$(CC) $(CFLAGS) -o uranus1$(EXE) uranus1.o gust86.o $(LIBSADDED)
 
-utc_test$(EXE):                utc_test.o lunar.a
-	$(CC) $(CFLAGS) -o utc_test$(EXE) utc_test.o lunar.a $(LIBSADDED)
+utc_test$(EXE):                utc_test.o liblunar.a
+	$(CC) $(CFLAGS) -o utc_test$(EXE) utc_test.o liblunar.a $(LIBSADDED)
 
