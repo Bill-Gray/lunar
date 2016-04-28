@@ -27,8 +27,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 
 /* For the following,  see p 373 of the _Explanatory Supplement_ */
 /* Note that 'rocks.cpp' also has code for computing the position of Triton.
-However,  the elements don't make a lot of sense,  resulting in prograde
-motion.  So use this instead.  */
+The following is,  therefore,  essentially obsolete.   */
 
 void DLL_FUNC calc_triton_loc( const double jd, double *vect)
 {
