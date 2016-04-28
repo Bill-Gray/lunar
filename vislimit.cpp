@@ -281,7 +281,7 @@ int main( const int argc, const char **argv)
    int i;
 
    b.zenith_ang_moon = 40. * PI / 180.;
-   b.zenith_ang_sun = 100. * PI / 180.;
+   b.zenith_ang_sun = 105. * PI / 180.;
    b.moon_elongation = 180. * PI / 180.;        /* full moon */
    b.ht_above_sea_in_meters = 1000.;
    b.latitude = 30. * PI / 180.;
@@ -295,12 +295,30 @@ int main( const int argc, const char **argv)
    b.dist_sun = 40. * PI / 180.;
    b.mask = 31;
 
+   for( i = 2; i < argc; i++)
+      if( argv[i][0] == '-')
+         switch( argv[i][1])
+            {
+            case 'e':
+               b.moon_elongation = atof( argv[i] + 2) * PI / 180.;
+               break;
+            case 's':
+               b.zenith_ang_sun = (90. - atof( argv[i] + 2)) * PI / 180.;
+               break;
+            case 'l':
+               b.zenith_ang_moon = (90. - atof( argv[i] + 2)) * PI / 180.;
+               break;
+            default:
+               printf( "Option '%s' not recognized\n", argv[i]);
+               break;
+            }
+
    set_brightness_params( &b);
    compute_sky_brightness( &b);
    compute_extinction( &b);
    for( i = 0; i < 5; i++)
       printf( "%lf  %lg  %.5lf\n", b.k[i], b.brightness[i], b.extinction[i]);
-   printf( "Limiting magnitude: %.5lf", compute_limiting_mag( &b));
+   printf( "Limiting magnitude: %.5lf\n", compute_limiting_mag( &b));
    return( 0);
 }
 #endif
