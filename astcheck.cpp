@@ -28,7 +28,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 #include "afuncs.h"
 
 #define PI 3.1415926535897932384626433832795028841971693993751058209749445923
-#define LOG_10 2.302585
+#define LOG_10 2.3025850929940456840179914546843642076011014886287729760333279009675726
 const double radians_to_arcsec = 180. * 3600. / PI;
 
 int get_earth_loc( const double t_millennia, double *results);
