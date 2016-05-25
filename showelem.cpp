@@ -308,6 +308,7 @@ int DLL_FUNC elements_in_mpc_format( char *obuff, const ELEMENTS *elem,
       const double SOLAR_GM = (GAUSS_K * GAUSS_K);
       const double t0 = elem->major_axis *
                       sqrt( elem->major_axis * SOLAR_GM / elem->gm);
+      const double t0_in_days = t0 * 365.25;
       const double apoapsis_dist =
              perihelion_dist * (1. + elem->ecc) / (1. - elem->ecc);
       char tbuff[40];
@@ -320,16 +321,20 @@ int DLL_FUNC elements_in_mpc_format( char *obuff, const ELEMENTS *elem,
             obuff += sprintf( obuff, "P%7ld", (long)t0);
          else
             obuff += sprintf( obuff, "P%7.2f", t0);
-         if( t0 * 365.25 < 999.9)
-            obuff += sprintf( obuff, "/%6.2fd ", t0 * 365.25);
+         if( t0_in_days < 999.9)
+            obuff += sprintf( obuff, "/%6.2fd ", t0_in_days);
          else
             obuff += sprintf( obuff, "         ");
          }
       else
-         if( t0 > 1. / 365.25)
-            obuff += sprintf( obuff, "P%7.2fd        ", t0 * 365.25);
+         {
+         if( t0_in_days * minutes_per_day < 9999.)  /* about 6.944 days */
+            obuff += sprintf( obuff, "P%7.2fm/%5.3fd ",
+                              t0_in_days * minutes_per_day,
+                              t0_in_days);
          else
-            obuff += sprintf( obuff, "P%7.2fm        ", t0 * 365.25 * 1440.);
+            obuff += sprintf( obuff, "P%7.2fd        ", t0_in_days);
+         }
       if( elem->abs_mag != 0.)
          {
          sprintf( obuff, (elem->is_asteroid ? "  H%7.1f     G   %4.2f" :
