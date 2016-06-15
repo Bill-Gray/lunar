@@ -112,7 +112,8 @@ AST_DATA
 #pragma pack( )
 
 static FILE *orbits_file;
-static int n_asteroids, astorb_epoch, record_length, verbose = 0;
+static int n_asteroids, astorb_epoch, record_length;
+int verbose = 0;
 static int n_numbered, using_mpcorb = 0;
 static size_t mpcorb_header_length;
 const char *data_path = NULL;
@@ -335,7 +336,7 @@ AST_DATA *compute_day_data( const long ijd)
          printf( "%d", counter % 10);
          counter++;
          }
-      if( using_mpcorb && tbuff[172] == ')')
+      if( using_mpcorb && tbuff[173] == ')')
          n_numbered = i + 1;
       if( !using_mpcorb && tbuff[5] != ' ')
          n_numbered = i + 1;
@@ -477,12 +478,15 @@ static int is_between( int bound1, int bound2, int x, int tolerance)
    return( rval);
 }
 
-int qsort_stricmp( const void *elem1, const void *elem2)
+int qsort_mpc_cmp( const void *elem1, const void *elem2)
 {
    const char **buff1 = (const char **)elem1;
    const char **buff2 = (const char **)elem2;
+   int compare = memcmp( *buff1, *buff2, 12);
 
-   return( strcmp( *buff1, *buff2));
+   if( !compare)     /* same ID;  now compare times */
+      compare = memcmp( (*buff1) + 15, (*buff2) + 15, 16);
+   return( compare);
 }
 
    /* To compute observed object motion,  this code grabs the RA/dec */
@@ -582,7 +586,8 @@ static int16_t cvt_tolerance( int16_t arcseconds)
 static void show_astorb_info( void)
 {
    printf( "ASTCHECK version %s %s\n", __DATE__, __TIME__);
-   printf( "astorb.dat version %d %d %d,  with %d objects (%d numbered)\n",
+   printf( "%s version %04d %02d %02d,  with %d objects (%d numbered)\n",
+            (using_mpcorb ? "mpcorb.dat" : "astorb.dat"),
             astorb_epoch / 10000, (astorb_epoch / 100) % 100,
             astorb_epoch % 100, n_asteroids, n_numbered);
 }
@@ -621,7 +626,11 @@ int snprintf( char *string, const size_t max_len, const char *format, ...)
 
 #define MAX_RESULTS 500
 
+#ifdef CGI_VERSION
+int astcheck_main( const int argc, const char **argv)
+#else
 int main( const int argc, const char **argv)
+#endif
 {
    double jd, ra, dec;
    FILE *ifile;
@@ -735,7 +744,7 @@ int main( const int argc, const char **argv)
          strcpy( ilines[n_ilines], buff);
          n_ilines++;
          }
-   qsort( ilines, n_ilines, sizeof( char **), qsort_stricmp);
+   qsort( ilines, n_ilines, sizeof( char **), qsort_mpc_cmp);
    for( n = 0; n < n_ilines; n++)
       if( (!n || memcmp( ilines[n], ilines[n - 1], 12)) &&
                        !get_mpc_data( ilines[n], &jd, &ra, &dec))
@@ -787,6 +796,7 @@ int main( const int argc, const char **argv)
          if( !n)     /* on our very first object: */
             {
             show_astorb_info( );
+            printf( "An explanation of these data is given at the bottom of the list.\n");
             printf( "                             d_ra   d_dec    dist    mag  motion \n");
             }
          if( verbose)
@@ -801,7 +811,11 @@ int main( const int argc, const char **argv)
          memcpy( buff, ilines[n], 12);
          buff[12] = '\0';
          if( ra_motion || dec_motion)
+#ifdef CGI_VERSION
+            printf( "\n<b>%s: %.0f\"/hr in RA, %.0f\"/hr in dec (%.2f hours)</b>\n",
+#else
             printf( "\n%s: %.0f\"/hr in RA, %.0f\"/hr in dec (%.2f hours)\n",
+#endif
                         buff, ra_motion, dec_motion, (jd2 - jd) * 24.);
          else
             printf( "\n%s: only one observation\n", buff);
@@ -830,7 +844,22 @@ int main( const int argc, const char **argv)
                      memcpy( tbuff, tbuff + 166, 26);
                      }
                   else
+                     {
                      extract_astorb_dat( &class_elem, tbuff);
+                     memmove( tbuff + 9, tbuff + 7, 17);
+                     if( tbuff[5] != ' ')    /* a numbered object */
+                        {
+                        size_t j;
+
+                        sprintf( tbuff, "%7d)", atoi( tbuff));
+                        tbuff[8] = ' ';
+                        for( j = 1; tbuff[j] == ' '; j++)
+                           ;
+                        tbuff[j - 1] = '(';
+                        }
+                     else              /* unnumbered:  leave blanks */
+                        memset( tbuff, ' ', 9);
+                     }
                   tbuff[26] = '\0';
                   earth_obj_dist = compute_asteroid_loc( earth_loc, &class_elem, jd,
                            &ra1, &dec1);
@@ -910,21 +939,7 @@ int main( const int argc, const char **argv)
             }
          for( i = 0; i < n_results; i++)
             {
-            char number[10];
-
-            number[0] = ' ';
-            number[8] = '\0';
-            memcpy( number + 1, results[i], 7);
-            if( number[6] != ' ')         /* yes,  it's a numbered object */
-               {                          /* put it in parentheses        */
-               int j;
-
-               number[7] = ')';
-               for( j = 6; number[j] != ' '; j--)
-                  ;
-               number[j] = '(';
-               }
-            printf( "%s %s\n", number, results[i] + 7);
+            printf( "%s\n", results[i]);
             free( results[i]);
             }
          n_lines_printed += n_results;
@@ -938,6 +953,12 @@ int main( const int argc, const char **argv)
       free( day_data[0]);
    if( day_data[1])
       free( day_data[1]);
+   printf( "The apparent motion and arc length for each object are shown,  followed\n"
+           "by a list of possible matches,  in order of increasing distance.  For\n"
+           "each match,  the separation is shown,  both in RA and dec,  and then\n"
+           "the 'total' separation,  all in arcseconds.  Next,  the magnitude and\n"
+           "apparent motion of the possible match are shown.  All motions are in\n"
+           "arcseconds per hour.\n");
    if( !mpc_station_file)
       printf( "ObsCodes.html not found; parallax wasn't included!\n");
    else
