@@ -132,7 +132,7 @@ static void add_pq_data( char *obuff, const double p, const double q,
 {
    const int n_digits_to_show = (precision > 13 ? precision : 13);
 
-   sprintf( obuff + strlen( obuff), "%*.*f%*.*f",
+   sprintf( obuff + strlen( obuff), "%+*.*f%+*.*f",
             n_digits_to_show + 3, n_digits_to_show, p,
             n_digits_to_show + 3, n_digits_to_show, q);
    lop_digits( obuff + 11, precision);

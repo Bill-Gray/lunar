@@ -33,10 +33,11 @@ ifdef XCOMPILE
    LIBSADDED=
 endif
 
-all: astcheck$(EXE) astephem$(EXE) calendar$(EXE) colors$(EXE) colors2$(EXE) \
-   cosptest$(EXE) dist$(EXE) easter$(EXE) get_test$(EXE) htc20b$(EXE) jd$(EXE) \
+all: astcheck$(EXE) astephem$(EXE) calendar$(EXE) cgicheck$(EXE)  \
+   colors$(EXE) colors2$(EXE) cosptest$(EXE) dist$(EXE) easter$(EXE) \
+   get_test$(EXE) htc20b$(EXE) jd$(EXE) \
    jevent$(EXE) jpl2b32$(EXE) jsattest$(EXE) lun_test$(EXE) \
-   marstime$(EXE) oblitest$(EXE) persian$(EXE)  \
+   marstime$(EXE) oblitest$(EXE) persian$(EXE) \
    phases$(EXE) ps_1996$(EXE) ssattest$(EXE) tables$(EXE) \
    test_ref$(EXE) testprec$(EXE) uranus1$(EXE) utc_test$(EXE)
 
@@ -72,12 +73,12 @@ liblunar.a: $(OBJS)
 
 clean:
 	$(RM) $(OBJS)
-	$(RM) astcheck.o astephem.o calendar.o cosptest.o get_test.o gust86.o
+	$(RM) astcheck.o astephem.o calendar.o cgicheck.o cosptest.o get_test.o gust86.o
 	$(RM) htc20b.o jd.o jevent.o jpl2b32.o jsattest.o lun_test.o
 	$(RM) lun_tran.o mpcorb.o oblitest.o obliqui2.o persian.o phases.o
 	$(RM) ps_1996.o refract.o refract4.o riseset3.o solseqn.o spline.o
 	$(RM) ssattest.o tables.o test_ref.o testprec.o uranus1.o utc_test.o
-	$(RM) astcheck$(EXE) astephem$(EXE) calendar$(EXE) colors$(EXE)
+	$(RM) astcheck$(EXE) astephem$(EXE) calendar$(EXE) cgicheck$(EXE) colors$(EXE)
 	$(RM) colors2$(EXE) cosptest$(EXE) dist$(EXE) easter$(EXE) get_test$(EXE)
 	$(RM) htc20b$(EXE) jd$(EXE) jevent$(EXE) jpl2b32$(EXE) jsattest$(EXE)
 	$(RM) lun_test$(EXE) marstime$(EXE) oblitest$(EXE) persian$(EXE) phases$(EXE)
@@ -92,6 +93,9 @@ astephem$(EXE): astephem.o mpcorb.o liblunar.a
 
 calendar$(EXE): calendar.o liblunar.a
 	$(CC) $(CFLAGS) -o calendar$(EXE) calendar.o   liblunar.a $(LIBSADDED)
+
+cgicheck$(EXE): astcheck.cpp mpcorb.o liblunar.a cgicheck.o cgi_func.o
+	$(CC) $(CFLAGS) -o cgicheck$(EXE) -DCGI_VERSION cgicheck.o astcheck.cpp mpcorb.o cgi_func.o liblunar.a $(LIBSADDED)
 
 colors$(EXE): colors.cpp
 	$(CC) $(CFLAGS) -o colors$(EXE) colors.cpp -DSIMPLE_TEST_PROGRAM
