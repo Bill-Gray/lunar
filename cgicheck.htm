@@ -1,0 +1,72 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<HTML>
+<HEAD>
+   <TITLE> On-line asteroid identification </TITLE>
+   <META http-equiv=Content-Type content="text/html; charset=utf-8">
+   <META NAME="Author" CONTENT="Bill Gray">
+</head>
+<body>
+
+<h1> On-line asteroid identification </h1>
+
+<p> <a href="https://github.com/Bill-Gray/lunar">
+Source code for this can be found on GitHub. </a> </p>
+
+<p> This is an on-line version of the <a href="astcheck.htm"> <tt> astcheck
+</tt> </a> program used for identifying observations with known objects.
+Use the form below to find asteroids that might match the position/motion
+of objects you've observed. </p>
+
+<p> Suggested quick start:  <b>Don't panic!</b>  Copy/paste your observations in the
+large text window below, <em> or </em> click on "Browse" to pick a file
+containing the astrometry.  Then click the "find matching asteroids"
+button.  That will probably be all you need. </p>
+
+<p> The output will show each object,  and its motion in arcseconds/hour.
+After that,  you'll see possible matching objects,  and their offsets in
+arcseconds and their motions in arcseconds/hour.  You can set a limit for
+the search radius,  and can tell the program whether to use the Minor
+Planet Center's <a href="http://www.minorplanetcenter.org/iau/MPCORB.html">
+MPCORB </a> or the Lowell Observatory <a href="ftp://ftp.lowell.edu/pub/elgb/astorb.html">
+ASTORB</a> orbit catalog.  The latter offers "current ephemeris uncertainty"
+data.  This is not perhaps as rock-solid as it ought to be,  but can tell
+you if the predicted position from the orbital elements is very,  very good,
+or complete rubbish. </p>
+
+<p> You can also show only possible matches with unnumbered objects,  useful
+to those who are already pretty confident that the object isn't easily identified. </p>
+
+<p> If you're still not getting things to work,  contact me at
+p&#x202e;&ocirc;&#xe7;.&ouml;tulp&#x165;c&eacute;j&ocirc;&#x159;p&#x40;ot&uacute;l&#x202c;m
+(modified to baffle spammers). </p>
+
+<p><hr>
+<FORM METHOD=POST enctype="multipart/form-data" ACTION="/cgi-bin/astcheck/cgicheck"
+  onReset="return confirm('Do you really want to reset the form to the defaults?')" >
+  <p><input type=submit value=" Find matching asteroids ">
+     <input type=reset value=" Reset ">
+
+<p> Cut/paste observations in the
+<a href="http://www.minorplanetcenter.net/iau/info/OpticalObs.html">
+80-column MPC format </a> below.  Don't worry about it if some
+other text is copied in as well;  extra text will simply be disregarded.
+
+<p><textarea name="TextArea" cols=90 rows=10></textarea>
+
+<p> <i> Or, </i> you can upload a file containing the astrometry.
+<input type=file name="upfile">
+
+<br>
+<input type="radio" name="catalog" value="0" checked="checked"> Use ASTORB <br>
+<input type="radio" name="catalog" value="1"> Use MPCORB <br>
+<input type="checkbox" name="uncertainties"> Show current ephemeris uncertainties (ASTORB only) <br>
+<input type="checkbox" name="unn_only"> Show only unnumbered objects <br>
+
+<p> Find matches within <input name="radius" maxlength=6 size=6 value="2"> degrees
+
+  <p><input type=submit value=" Find matching asteroids ">
+     <input type=reset value=" Reset ">
+</form>
+
+</body>
+</html>
