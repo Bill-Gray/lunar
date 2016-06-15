@@ -73,9 +73,10 @@ liblunar.a: $(OBJS)
 
 clean:
 	$(RM) $(OBJS)
-	$(RM) astcheck.o astephem.o calendar.o cgicheck.o cosptest.o get_test.o gust86.o
-	$(RM) htc20b.o jd.o jevent.o jpl2b32.o jsattest.o lun_test.o
-	$(RM) lun_tran.o mpcorb.o oblitest.o obliqui2.o persian.o phases.o
+	$(RM) astcheck.o astephem.o calendar.o cgicheck.o cgi_func.o
+	$(RM) cosptest.o get_test.o gust86.o htc20b.o  jd.o
+	$(RM) jevent.o jpl2b32.o jsattest.o lun_test.o lun_tran.o
+	$(RM) mpcorb.o oblitest.o obliqui2.o persian.o phases.o
 	$(RM) ps_1996.o refract.o refract4.o riseset3.o solseqn.o spline.o
 	$(RM) ssattest.o tables.o test_ref.o testprec.o uranus1.o utc_test.o
 	$(RM) astcheck$(EXE) astephem$(EXE) calendar$(EXE) cgicheck$(EXE) colors$(EXE)
