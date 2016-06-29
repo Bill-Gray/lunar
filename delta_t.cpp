@@ -288,6 +288,45 @@ TAI-UTC must always be an integer,  with leap seconds inserted at
 irregular intervals,  always at the end of June or December,  to keep
 UTC within .9 seconds of UT.   */
 
+/* TDB (barycentric dynamical time) and TDT (terrestrial dynamic time)
+differ by periodic terms.  The largest has an annual frequency and
+amplitude of 1.656 milliseconds;  the rest are so small that they are
+often neglected.  However,  I've implemented the first six terms from
+1988IAUS..128..419F .  That paper gives 44 terms;  the remaining terms
+are below the two microsecond level.
+
+   At present,  I'm ignoring this less-than-two-millisecond difference.
+
+   An earlier version of this code had the following values.  I dunno
+whence I got them (failure to document my own code properly!);  I include
+them here for reference.
+
+   const double deg2rad = pi / 180.;
+   static const double amplitude[4] = {
+           1656.675, 22.418, 13.84, 10.216 };
+   static const double freq[4] = { 35999.4729 * deg2rad,
+            32964.467 * deg2rad, 71998.746 * deg2rad, 3599.373 * deg2rad };
+   static const double phase[4] = { 357.5287 * deg2rad,
+             246.199 * deg2rad, 355.057 * deg2rad, 243.451 * deg2rad };  */
+
+#ifdef NOT_CURRENTLY_USED_OR_EVEN_TESTED
+long double tdb_minus_tdt( const long double t_centuries)
+{
+   static const long double amplitude[6] = { 1656.6894e-6,
+            22.4175e-6, 13.8399e-6, 4.7701e-6, 4.6767e-6, 2.2566e-6 };
+   static const long double freq[6] = { 628.30758494, 575.33848843,
+            1256.61516988, 52.96909651, 606.97767539, 21.32990954 };
+   static const long double phase[6] = { 6.2400497, 4.2969771,
+            6.1968995, 0.4444038, 4.0211937, 5.5431320 };
+   long double rval = 0;
+   size_t i;
+
+   for( i = 0; i < sizeof( phase) / sizeof( phase[0]); i++)
+      rval += amplitude[i] * sinl( freq[i] * t_centuries + phase[i]);
+   return( rval);     /* cvt microseconds to days */
+}
+#endif
+
 /* These macros determine the MJD of the given date in 'YEAR'.  */
 /* They're valid for _non-negative_ years in the _Gregorian_ calendar. */
 
