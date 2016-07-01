@@ -1,19 +1,21 @@
 # GNU MAKE Makefile for 'lunar' basic astronomical functions library
-#  (see 'bsdlunar.mak' for BSD)
+#  (use 'gmake' for BSD,  and probably 'gmake CLANG=Y')
 #
 # Usage: make -f [path\]linlunar.mak [CLANG=Y] [XCOMPILE=Y] [MSWIN=Y] [tgt]
 #
 # where tgt can be any of:
 # [all|astcheck|astephem|calendar... clean]
 #
-#   'XCOMPILE' = cross-compile for Windows,  using MinGW,  on a Linux box
-#   'MSWIN' = compile for Windows,  using MinGW,  on a Windows machine
-#   'CLANG' = use clang instead of GCC;  Linux only
-# None of these: compile using g++ on Linux,  for Linux
+#	'XCOMPILE' = cross-compile for Windows,  using MinGW,  on a Linux or BSD box
+#	'MSWIN' = compile for Windows,  using MinGW,  on a Windows machine
+#	'CLANG' = use clang instead of GCC;  BSD/Linux only
+# None of these: compile using g++ on BSD or Linux
+#	Note that I've only tried clang on PC-BSD (which is based on FreeBSD).
 
 CC=g++
 LIBSADDED=
 EXE=
+CFLAGS=-Wextra -Wall -O3 -pedantic -Wno-unused-parameter
 
 ifdef CLANG
 	CC=clang
@@ -58,8 +60,6 @@ uninstall:
 	rm -f /usr/local/include/watdefs.h
 	rm -f /usr/local/lib/liblunar.a
 
-CFLAGS=-Wextra -Wall -O4 -pedantic -Wno-unused-parameter
-
 .cpp.o:
 	$(CC) $(CFLAGS) -c $<
 
@@ -74,7 +74,7 @@ liblunar.a: $(OBJS)
 clean:
 	$(RM) $(OBJS)
 	$(RM) astcheck.o astephem.o calendar.o cgicheck.o cgi_func.o
-	$(RM) cosptest.o get_test.o gust86.o htc20b.o  jd.o
+	$(RM) cosptest.o get_test.o gust86.o htc20b.o jd.o
 	$(RM) jevent.o jpl2b32.o jsattest.o lun_test.o lun_tran.o
 	$(RM) mpcorb.o oblitest.o obliqui2.o persian.o phases.o
 	$(RM) ps_1996.o refract.o refract4.o riseset3.o solseqn.o spline.o
@@ -125,10 +125,10 @@ integrat$(EXE): integrat.o liblunar.a
 jd$(EXE): jd.o liblunar.a
 	$(CC) $(CFLAGS) -o jd$(EXE) jd.o liblunar.a $(LIBSADDED)
 
-jevent$(EXE):   jevent.o liblunar.a
+jevent$(EXE):                    jevent.o liblunar.a
 	$(CC) $(CFLAGS) -o jevent$(EXE) jevent.o liblunar.a $(LIBSADDED)
 
-jpl2b32$(EXE):   jpl2b32.o
+jpl2b32$(EXE):                    jpl2b32.o
 	$(CC) $(CFLAGS) -o jpl2b32$(EXE) jpl2b32.o $(LIBSADDED)
 
 jsattest$(EXE): jsattest.o liblunar.a
