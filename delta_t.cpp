@@ -246,12 +246,12 @@ TCB - TDB = L * (jd - 2443144.5) * seconds_per_day,
    where L=1.550505e-08
 
 TAI-GPS = 19 seconds ("fixed" as of 1980;  at that point,  GPS time was
-identical to UTC.  But since then,  16 leap seconds have been added to
-UTC (as of 2012),  so that GPS and UTC have slipped apart by that much.)
+identical to UTC.  But since then,  leap seconds have been added to
+UTC,  so that GPS and UTC have slipped apart.)
 
-Note also that as of March 2015,  the last official leap second was
-for July 2015.  Beyond December 2015,  UTC is indeterminate (until leap
-seconds are announced,  or it's announced that they won't be inserted.)
+Note also that this records only announced leap seconds.  UTC can only
+really be determined up to about six months in advance.  Beyond that,
+it's indeterminate.
 
 The 'leap_intervals' array will work up to 65535 days past the start of
 use of leap seconds in 1972,  or until the January 2151 leap second (if
@@ -399,10 +399,11 @@ double DLL_FUNC td_minus_utc( const double jd_utc)
                  JAN_1( 1990) - utc0, JAN_1( 1991) - utc0, JUL_1( 1992) - utc0,
                  JUL_1( 1993) - utc0, JUL_1( 1994) - utc0, JAN_1( 1996) - utc0,
                  JUL_1( 1997) - utc0, JAN_1( 1999) - utc0, JAN_1( 2006) - utc0,
-                 JAN_1( 2009) - utc0, JUL_1( 2012) - utc0, JUL_1( 2015) - utc0 };
+                 JAN_1( 2009) - utc0, JUL_1( 2012) - utc0, JUL_1( 2015) - utc0,
+                 JAN_1( 2017) - utc0  };
       const int n_leap_seconds = sizeof( leap_intervals) / sizeof( leap_intervals[0]);
 
-      if( imjd_utc >= JUL_1( 2015))
+      if( imjd_utc >= JUL_1( 2017))
          {
          int day = imjd_utc + 2400000 - 1721058;
          int year = (int)( (int64_t)day * (int64_t)400 / (int64_t)146097);
