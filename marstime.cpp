@@ -1,7 +1,7 @@
 /* marstime.cpp: convert Martian "standard" time to/from TT
      (Temps Terrestienne,  Earth-based atomic time)
 
-Copyright (C) 2015, Project Pluto
+Copyright (C) 2016, Project Pluto
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -40,8 +40,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 #include <stdio.h>
 #endif
 
-const double days_per_sol = 1.027491252;
-const double zero_sol_point = 44796.0 - 0.00096;
+const double days_per_sol = 1.0274912517;
+const double zero_sol_point = 44796.0 - 0.0009626;
 const double zero_jd_point = 2451549.5;
 
 double tt_to_mtc( const double jd);
@@ -73,9 +73,9 @@ double mars_true_solar_minus_mean_solar_time( const double jd)
       3.1415926535897932384626433832795028841971693993751058209749445923;
    const double D2R = pi / 180.;
             /* equations B-1 & B-2: */
-   const double mars_mean_anom = 19.3870 * D2R + .52402075 * D2R * t;
+   const double mars_mean_anom = 19.3871 * D2R + .52402073 * D2R * t;
         /* 'a_fms' = 'angle of fictitious mean sun' */
-   const double a_fms =         270.3863 * D2R + .52403840 * D2R * t;
+   const double a_fms =         270.3871 * D2R + .524038496 * D2R * t;
 #ifndef IGNORE_PERTURBERS
    const double tconst = 2. * pi / 365.25;
    static const double amplit[7] = { .0071 * D2R, .0057 * D2R,
