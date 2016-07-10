@@ -50,12 +50,12 @@ extern const char *hebrew_month_names[13] = {
       "Adar II", "Nisan", "Iyar", "Sivan", "Tammuz", "Av", "Elul" };
 
 extern const char *french_month_names[12] = {
-  "Vend‚miaire",           "Germinal",
-  "Brumaire",              "Flor‚al",
+  "Vendmiaire",           "Germinal",
+  "Brumaire",              "Floral",
   "Frimaire",              "Prairial",
-  "Niv“se",                "Messidor",
-  "Pluvi“se",              "Thermidor",
-  "Vent“se",               "Fructidor" };
+  "Nivse",                "Messidor",
+  "Pluvise",              "Thermidor",
+  "Ventse",               "Fructidor" };
 
 extern const char *french_extra_day_names[6] = {
         "Jour de la vertu (Virtue Day)",
