@@ -44,6 +44,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 /* Following macro isn't actually used...
    #define PERTURBERS_CERES_PALLAS_VESTA 0x1c00   */
 #define N_PERTURBERS 13
+         /* hash table sizes should be prime numbers: */
+#define HASH_TABLE_SIZE 1000001
 
 static int verbose = 0, n_steps_taken = 0, resync_freq = 50;
 static int asteroid_perturber_number = -1;
@@ -720,6 +722,27 @@ static double try_to_integrate( char *buff, const double dest_jd,
    return( elem.epoch);
 }
 
+static long compute_hash( const char *buff)
+{
+   long rval = 0;
+   const long big_prime = 314159265359L;
+   int i;
+
+   for( i = 0; *buff; i++, buff++)
+      if( i < 20 || i > 105)
+         rval = rval * big_prime + (long)*buff;
+   return( rval);
+}
+
+static unsigned find_in_table( const long *hashes, const long hash_val)
+{
+   unsigned i, loc = (unsigned)hash_val % HASH_TABLE_SIZE;
+
+   for( i = 1; hashes[loc] && hashes[loc] != hash_val; i += 2)
+      loc = (loc + i) % HASH_TABLE_SIZE;
+   return( loc);
+}
+
 static void error_exit( void)
 {
 #ifdef _MSC_VER
@@ -732,14 +755,16 @@ static void error_exit( void)
 
 int main( int argc, const char **argv)
 {
-   FILE *ifile, *ofile;
+   FILE *ifile, *ofile, *update_file = NULL;
+   const char *temp_file_name = "ickywax.ugh";
+   long *hashes, *file_offsets, hash_val;
    const char *ephem_filename = NULL;
    double dest_jd, max_err = 1.e-12, stepsize = 2., t_last_printout = 0.;
    double starting_jd = 0., curr_jd;
    char buff[220], time_buff[60];
    int i, n_integrated = 0, total_asteroids_in_file, header_found = 0;
    int max_asteroids = (1 << 30);
-   int quit = 0;
+   int quit = 0, n_found_from_update = 0;
    clock_t t0;
 
    if( argc == 2 && !memcmp( argv[1], "today", 5))
@@ -784,6 +809,28 @@ int main( int argc, const char **argv)
          strcat( buff, " ");
          strcat( buff, argv[i]);
          }
+   if( !rename( argv[2], temp_file_name))
+      {
+      int n_hashes = 0;
+
+      printf( "Using an update\n");
+      update_file = fopen( temp_file_name, "rb");
+      hashes = (long *)calloc( HASH_TABLE_SIZE * 2, sizeof( long));
+      file_offsets = hashes + HASH_TABLE_SIZE;
+      while( fgets( buff, sizeof( buff), update_file))
+         if( (hash_val = compute_hash( buff)) != 0L)
+            {
+            const unsigned hash_loc = find_in_table( hashes, hash_val);
+
+            hashes[hash_loc] = hash_val;
+            file_offsets[hash_loc] = ftell( update_file) - strlen( buff);
+            n_hashes++;
+            }
+      printf( "Got %d hashes\n", n_hashes);
+      }
+   else
+      hashes = file_offsets = NULL;
+
    curr_jd = JAN_1970 + (double)time( NULL) / seconds_per_day;
                /* Start with the destination epoch being "right now",    */
                /* suitably rounded to 0h TD.  One can then set the time  */
@@ -919,8 +966,11 @@ int main( int argc, const char **argv)
    while( !quit && fgets( buff, sizeof( buff), ifile)
                                  && n_integrated < max_asteroids)
       {
+      bool got_it_from_update = false;
+      const int asteroid_number = atoi( buff);
+
       asteroid_perturber_number = -1;
-      switch( atoi( buff))
+      switch( asteroid_number)
          {
          case 1:              /* Ceres */
             if( strstr( buff + 174, "Ceres "))
@@ -937,8 +987,29 @@ int main( int argc, const char **argv)
          default:
             break;
          }
+      if( update_file && asteroid_perturber_number == -1
+                          && (hash_val = compute_hash( buff)) != 0L)
+         {
+         char buff2[220];
+         const unsigned hash_loc = find_in_table( hashes, hash_val);
 
-      if( try_to_integrate( buff, dest_jd, max_err, stepsize) != 0.)
+         if( hashes[hash_loc])
+            {
+            assert( hashes[hash_loc] == hash_val);
+            fseek( update_file, file_offsets[hash_loc], SEEK_SET);
+            if( fgets( buff2, sizeof( buff2), update_file)
+                         && !memcmp( buff2, buff, 20)
+                         && !memcmp( buff2 + 105, buff + 105, 97))
+               {
+               strcpy( buff, buff2);
+               got_it_from_update = true;
+               n_found_from_update++;
+               }
+            }
+         }
+
+      if( !got_it_from_update &&
+                  try_to_integrate( buff, dest_jd, max_err, stepsize) != 0.)
          {
          clock_t t = clock( );
          const double elapsed_time = (double)(t - t0) / (double)CLOCKS_PER_SEC;
@@ -963,11 +1034,12 @@ int main( int argc, const char **argv)
          else if( elapsed_time > t_last_printout + 1.)
             {
             t_last_printout = elapsed_time;
-            printf( "%.0f seconds elapsed;  %.0f seconds remain; %d done      \r",
+            printf( "%.0f seconds elapsed;  %.0f seconds remain; %d done %d    \r",
                         elapsed_time,
                        (double)(total_asteroids_in_file - n_integrated)
                        * elapsed_time / (double)n_integrated,
-                       n_integrated);
+                       n_integrated,
+                       n_found_from_update);
             }
 #ifdef _MSC_VER
          if( kbhit( ))
