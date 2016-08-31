@@ -33,6 +33,34 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 #include "afuncs.h"        /* for rotate_vector( ) proto */
 #include "jpleph.h"
 
+/* On some (non-Windows) system,  spreading the integration out to
+multiple processes is possible.  It's handled a little oddly.  The number
+of processes can be specified on the command line with the -z switch.
+Things proceed unchanged at first,  until data for the three perturbing
+asteroids (Ceres,  Pallas,  Vesta) have been read and their ephemerides
+computed. _Then_ we fork,  with each process reading every n_processes
+line,  and "chunk" files being created.  Thus,  if n_processes is 7,  the
+first process will create a chunk file with asteroids 5, 12, 19, 26, ...
+The second will process asteroids 6, 13, 20, ...
+
+   Once all the processes complete,  the original process zippers the
+results from the chunk files together and unlinks them.     */
+
+#if defined( __linux) || defined( __unix__) || defined( __APPLE__)
+   #define FORKING
+
+   #include <unistd.h>     /* Symbolic Constants */
+   #include <sys/types.h>  /* Primitive System Data Types */
+   #include <errno.h>      /* Errors */
+   #include <stdio.h>      /* Input/Output */
+   #include <sys/wait.h>   /* Wait for Process Termination  */
+            /* above basically allows for forking so we can */
+            /* run different objects on different cores     */
+   #include <sys/time.h>         /* these allow resource limiting */
+   #include <sys/resource.h>     /* see '-r' command switch below */
+#endif
+
+
 #define PI 3.1415926535897932384626433832795028841971693993751058209749445923
 #define GAUSS_K .01720209895
 #define SOLAR_GM (GAUSS_K * GAUSS_K)
@@ -80,6 +108,28 @@ static void add_relativistic_accel( double *accel, const double *posnvel)
 
    for( i = 0; i < 3; i++)
       accel[i] += r_component * posnvel[i] + v_component * posnvel[i + 3];
+}
+
+static FILE *err_fopen( const char *filename, const char *permits)
+{
+   FILE *rval = fopen( filename, permits);
+
+   if( !rval)
+      {
+      printf( "Couldn't open file '%s'\n", filename);
+#ifdef _MSC_VER
+      printf( "Hit any key:\n");
+      getch( );
+#endif
+      exit( -1);
+      }
+   return( rval);
+}
+
+static char *chunk_filename( char *filename, const int chunk_number)
+{
+   sprintf( filename, "chunk%d.ugh", chunk_number);
+   return( filename);
 }
 
 static void set_differential_acceleration( const double *posnvel,
@@ -444,7 +494,7 @@ int integrate_orbit( ELEMENTS *elem, const double jd_from, const double jd_to,
 
 int load_vsop_data( void)
 {
-   FILE *ifile = fopen( "vsop.bin", "rb");
+   FILE *ifile = err_fopen( "vsop.bin", "rb");
    const unsigned vsop_size = 60874u;
 
    vsop_data = NULL;
@@ -764,6 +814,10 @@ int main( int argc, const char **argv)
    char buff[220], time_buff[60];
    int i, n_integrated = 0, total_asteroids_in_file, header_found = 0;
    int max_asteroids = (1 << 30);
+#ifdef FORKING
+   int n_processes = 0, process_number = 0, child_status;
+   bool forking_has_happened = false;
+#endif
    int quit = 0, n_found_from_update = 0;
    clock_t t0;
 
@@ -795,26 +849,13 @@ int main( int argc, const char **argv)
       return( -1);
       }
    setvbuf( stdout, NULL, _IONBF, 0);
-   ifile = fopen( argv[1], "rb");
-   if( !ifile)
-      {
-      printf( "Couldn't find %s\n", argv[1]);
-      error_exit( );
-      return( -2);
-      }
-   *buff = '\0';
-   for( i = 3; i < argc; i++)
-      if( argv[i][0] != '-')
-         {
-         strcat( buff, " ");
-         strcat( buff, argv[i]);
-         }
+   ifile = err_fopen( argv[1], "rb");
    if( !rename( argv[2], temp_file_name))
       {
       int n_hashes = 0;
 
       printf( "Using an update\n");
-      update_file = fopen( temp_file_name, "rb");
+      update_file = err_fopen( temp_file_name, "rb");
       hashes = (long *)calloc( HASH_TABLE_SIZE * 2, sizeof( long));
       file_offsets = hashes + HASH_TABLE_SIZE;
       while( fgets( buff, sizeof( buff), update_file))
@@ -837,6 +878,13 @@ int main( int argc, const char **argv)
                /* relative to that point (e.g., "25 Feb" will be assumed */
                /* to refer to that date in the current year).            */
    dest_jd = floor( curr_jd) + .5;
+   *buff = '\0';
+   for( i = 3; i < argc; i++)
+      if( argv[i][0] != '-')
+         {
+         strcat( buff, " ");
+         strcat( buff, argv[i]);
+         }
    if( !memcmp( buff, " today", 6))
       dest_jd += atof( buff + 6);
    else
@@ -845,16 +893,7 @@ int main( int argc, const char **argv)
    sprintf( buff, "Integrat version %s %s\nIntegrating to %s = JD %.5f\n",
                         __DATE__, __TIME__, time_buff, dest_jd);
    printf( "%s", buff);
-   ofile = fopen( argv[2], "wb");
-   if( !ofile)
-      {
-      printf( "Couldn't open output file '%s'\n", argv[2]);
-#ifdef _MSC_VER
-      printf( "Hit any key:\n");
-      getch( );
-#endif
-      return( -5);
-      }
+   ofile = err_fopen( argv[2], "wb");
    if( dest_jd != floor( dest_jd) + .5)
       {
       printf( "WARNING: the MPCORB format can only handle 'standard' 0h TD epochs.\n");
@@ -903,7 +942,13 @@ int main( int argc, const char **argv)
                verbose = 1 + atoi( argv[i] + 2);
                printf( "Setting verbose output\n");
                break;
+#ifdef FORKING
+            case 'z':
+               n_processes = atoi( argv[i] + 2);
+               break;
+#endif
             default:
+               printf( "Command-line option '%s' ignored\n", argv[i]);
                break;
             }
    if( ephem_filename)
@@ -967,10 +1012,9 @@ int main( int argc, const char **argv)
                                  && n_integrated < max_asteroids)
       {
       bool got_it_from_update = false;
-      const int asteroid_number = atoi( buff);
 
       asteroid_perturber_number = -1;
-      switch( asteroid_number)
+      switch( atoi( buff))
          {
          case 1:              /* Ceres */
             if( strstr( buff + 174, "Ceres "))
@@ -987,6 +1031,54 @@ int main( int argc, const char **argv)
          default:
             break;
          }
+#ifdef FORKING
+      if( (perturber_mask & 0x1c00) == 0x1c00 && n_processes
+               && !forking_has_happened)
+         {
+         char outfile_name[50];
+         int j;
+         const long offset = ftell( ifile);
+
+         forking_has_happened = true;
+         fclose( ofile);
+         fclose( ifile);
+         if( jpl_ephemeris)
+            jpl_close_ephemeris( jpl_ephemeris);
+         if( update_file)
+            fclose( update_file);
+         while( process_number < n_processes - 1)
+            {
+            const pid_t childpid = fork( );
+
+            if( childpid == -1)      /* fork( ) returns -1 on failure */
+               {
+               perror( "fork"); /* display error message */
+               exit(0);
+               }
+            else if( childpid == 0)     /* we're a child process */
+               {
+//             printf( "Hi!  I'm child %d.  My PID is %d; parent's is %d\n",
+//                      process_number, getpid( ), getppid( ));
+               }
+            else
+               break;       /* break out of loop,  signalling we're a parent */
+            process_number++;
+            }
+         printf( "Hi!  I've got process number %d,  PID %d,  parent's is %d\n",
+                        process_number, getpid( ), getppid( ));
+         sprintf( outfile_name, "chunk%d.ugh", process_number);
+         ofile = err_fopen( chunk_filename( outfile_name, process_number), "wb");
+         ifile = err_fopen( argv[1], "rb");
+         fseek( ifile, offset, SEEK_SET);
+         if( jpl_ephemeris)
+            jpl_ephemeris = jpl_init_ephemeris( ephem_filename, NULL, NULL);
+         if( update_file)
+            update_file = err_fopen( temp_file_name, "rb");
+         j = 0;
+         while( j < process_number && fgets( buff, sizeof( buff), ifile))
+            j++;
+         }
+#endif
       if( update_file && asteroid_perturber_number == -1
                           && (hash_val = compute_hash( buff)) != 0L)
          {
@@ -1048,10 +1140,47 @@ int main( int argc, const char **argv)
 #endif
          }
       fputs( buff, ofile);
+#ifdef FORKING
+      if( forking_has_happened)
+         {
+         int j = 1;
+
+         while( j < n_processes && fgets( buff, sizeof( buff), ifile))
+            j++;
+         }
+#endif
       }
    if( jpl_ephemeris)
       jpl_close_ephemeris( jpl_ephemeris);
    fclose( ifile);
    fclose( ofile);
+#ifdef FORKING
+   if( forking_has_happened)
+      {
+      printf( "Process %d is done\n", process_number);
+      wait( &child_status); /* wait for child to exit, and store its status */
+      printf( "Waiting is over for process %d\n", process_number);
+      if( !process_number)
+         {
+         FILE **ifiles = (FILE **)calloc( n_processes, sizeof( FILE *));
+
+         for( i = 0; i < n_processes; i++)
+            ifiles[i] = err_fopen( chunk_filename( buff, i), "rb");
+         ofile = err_fopen( argv[2], "ab");
+         i = 0;
+         while( fgets( buff, sizeof( buff), ifiles[i]))
+            {
+            fputs( buff, ofile);
+            i = (i + 1) % n_processes;
+            }
+         for( i = 0; i < n_processes; i++)
+            {
+            fclose( ifiles[i]);
+            unlink( chunk_filename( buff, i));
+            }
+         fclose( ofile);
+         }
+      }
+#endif
    return( 0);
 }
