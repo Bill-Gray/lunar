@@ -202,7 +202,7 @@ int main( int argc, char **argv)
    printf( "Delta-T = TD - UT1 = %.4f; TD - UTC = %.4f; UT1 - UTC = DUT1 = %.4f\n",
                             td_minus_ut( jd),
                             td_minus_utc( jd),
-                            td_minus_ut( jd) - td_minus_utc( jd));
+                            td_minus_utc( jd) - td_minus_ut( jd));
    load_chinese_calendar_data( NULL);
    return( 0);
 }
