@@ -195,9 +195,12 @@ int DLL_FUNC nutation( const double t, double DLLPTR *d_lon,
 int main( const int argc, const char **argv)
 {
    double d_lon, d_obliq;
-   const double t = (atof( argv[1]) - 2000.) / 100.;
+   double year = atof( argv[1]);
 
-   nutation( t, &d_lon, &d_obliq);
+   if( year > 5000.)       /* t isn't a year;  it's a JD.  So cvt to a year : */
+      year = (year - 2451545.) / 365.25 + 2000.;
+
+   nutation( (year - 2000.) / 100., &d_lon, &d_obliq);
    printf( "%lf %lf\n", d_lon, d_obliq);
    return( 0);
 }
