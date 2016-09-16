@@ -251,9 +251,9 @@ static double kepler( const double ecc, double mean_anom)
             trial = asinh( mean_anom / ecc);
          }
       curr = trial;
+      if( thresh > THRESH)       /* happens if e > 2. */
+         thresh = THRESH;
       }
-   if( ecc > 1. && mean_anom > 4.)    /* hyperbolic, large-mean-anomaly case */
-      curr = log( mean_anom);
 
    if( ecc < 1.)
       while( fabs( delta_curr) > thresh)
