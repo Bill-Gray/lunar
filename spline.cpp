@@ -19,83 +19,72 @@ and it's -2 if we're completely outside the table.)
 
    With that accomplished,  we need to set up a cubic spline between
 the points table[xn...xn+3].  To simplify life a little,  we add
-xn to table,  so that values table[0...3] will be used instead;
-and we subtract xn+1.5 from x,  so that -.5 < x < .5 if we aren't
+xn + 1 to table,  so that values table[-1...2] will be used instead;
+and we subtract xn + 1 from x,  so that 0. < x < 1. if we aren't
 extrapolating.
 
-   The spline has to match the values in table[] at integer
-values,  and the first derivative has to match from one spline to
-the next.  To accomplish that,  we say that the first derivative
+   So we're looking for a cubic spline f(x) with a value of table[0]
+for x=0;  a value of table[1] for x=1;  and a continuous first derivative
+across grid points.  To accomplish that,  we say that the first derivative
 at a grid point x=n is equal to (table[n+1] - table[n-1]) / 2.
 
-   So now we're creating a cubic spline of a function where
+   So now we're creating a cubic function f(x) where
 
-   y0 = f(-1.5) = table[0]
-   y1 = f(-0.5) = table[1]
-   y2 = f( 0.5) = table[2]
-   y3 = f( 1.5) = table[3]
+   f(0) = table[0]
+   f(1) = table[1]
+   f'(0) = (table[1] - table[-1]) / 2
+   f'(1) = (table[2] - table[0]) / 2
 
-   ...where the cubic is required to match at .5 and -.5,  and the
-slope has to be (y2-y0)/2 at x=-.5 and (y3-y1) at x=.5.  This lets
-us have a continuous function over -.5 to +.5,  with the slopes matching
-up across grid points.  Given the coefficients of that cubic,  we
-can compute an interpolated value for -.5 < x < .5.
+   With this,  we'll have a cubic that matches the grid points
+exactly,  and have a continuous first derivative.  (There will
+usually be discontinuities in second and higher derivatives.)
 
-   So... cubic(x) = ax^3 + bx^2 + cx + d,  so
-         cubic'(x) = 3ax^2 + 2bx + c
+   f(x) = ax^3 + bx^2 + cx + table[0]                 (1)
+   f(1) - f(0) = a + b + c                            (2)
+   f'(0) = (table[1] - table[-1]) / 2 = c             (3)
+   f'(1) = (table[2] - table[0]) / 2 = 3a + 2b + c    (4)
 
-   cubic'(-.5) = 3a/4 - b + c = (y2 - y0) / 2       (1)
-   cubic'( .5) = 3a/4 + b + c = (y3 - y1) / 2       (2)
-         -> b = (y3 - y1 - y2 + y0) / 4             (3) = (2) - (1), halved
-         and 3a/2 + 2c = (y2 - y0 + y3 - y1) / 2    (4) = (1) + (2)
+   Essentially,  we get the constant term of the cubic at no
+charge;  it's table[0].  We get the linear term at not much
+charge;  it's the first derivative at x=0.  To get the
+cubic term a,  add equations (3) and (4) and subtract
+twice equation (2) :
 
-   cubic( 0.5) =  a/8 + b/4 + c/2 + d = y2          (5)
-   cubic(-0.5) = -a/8 + b/4 - c/2 + d = y1          (6)
-         -> b/2 + 2d = y2 + y1                      (7) = (5) + (6)
-         -> d = (y2 + y1) / 2. - b / 4              (8) = (7) rearranged
-         and a/4 + c = y2 - y1                      (9) = (5) - (6)
+   a = (table[2] - table[0]) / 2 + c - 2. * (table[1] - table[0])   (5)
 
-   OK.  Double (9) and subtract it from (4) and you get
+   Now that we have a and c,
 
-   a = -1.5y2 - y0/2 + y3/2 + 1.5y1 = 1.5(y1-y2) + (y3-y0)/2  (10)
+   b = table[1] - table[0] - a - c                   (6)
 
-   ...and feed a back into (9) and get, pretty trivially,
-
-   c = y2 - y1 - a / 4                              (11)
-
-   OK,  I admit,  it's all pretty simple math.  I just wrote it
-out so I didn't lose track of what I'd done.  You'll notice that
-this is all accomplished in about half as many lines as it takes
-to describe it...  */
+   We now have all coefficients for the cubic (1) and can evaluate it.
+*/
 
 double cubic_spline_interpolate_within_table(
          const double *table, const int n_entries, double x, int *err_code)
 {
-   int idx = (int)floor( x) - 1;
+   int idx = (int)floor( x);
 
-   if( idx < 0)      /* extrapolate from front of table */
+   if( idx < 1)      /* extrapolate from front of table */
       {
       if( err_code)
-         *err_code = (idx < -1 ? -2 : -1);
-      idx = 0;
+         *err_code = (idx < 0 ? -2 : -1);
+      idx = 1;
       }
-   else if( idx > n_entries - 4)
+   else if( idx > n_entries - 3)
       {             /* extrapolate beyond end of table */
       if( err_code)
-         *err_code = (idx > n_entries - 3 ? -2 : -1);
-      idx = n_entries - 2;
+         *err_code = (idx > n_entries - 2 ? -2 : -1);
+      idx = n_entries - 3;
       }
    else             /* no extrapolation involved */
       if( err_code)
          *err_code = 0;
    table += idx;
-   x -= (double)idx + 1.5;
+   x -= (double)idx;
 
-   const double y1_minus_y2 = table[1] - table[2];
-   const double a = 1.5 * y1_minus_y2 + .5 * (table[3] - table[0]);  /* (10) */
-   const double c = -.25 * a - y1_minus_y2;                          /* (11) */
-   const double y1_plus_y2 = table[1] + table[2];
-   const double b = (table[3] + table[0] - y1_plus_y2) / 4.;         /* (3) */
-   const double d = .5 * y1_plus_y2 - b * .25;                       /* (8) */
-   return( d + x * (c + x * (b + x * a)));
+   const double c = (table[1] - table[-1]) * .5;
+   const double y1 = table[1] - table[0];
+   const double a = (table[2] - table[0]) * .5 - 2. * y1 + c;
+   const double b = y1 - a - c;
+   return( table[0] + x * (c + x * (b + x * a)));
 }
