@@ -36,10 +36,18 @@ This could lead to an error in the nutation in longitude of up to
 to make some small improvements to "de-gibberish-ize" the code,  at
 least a little. */
 
-#define N_NUTATION_COEFFS 62
+#ifdef MEEUS
+      /* Meeus' _Astronomical Algorithms_ gives a truncated version */
+      /* of the full IAU 1980 nutation series : */
+   #define N_NUTATION_COEFFS 62
+#else
+   #define N_NUTATION_COEFFS 105
+      /* Really 106,  but the first and largest term is handled separately */
+#endif
+
 #define PI 3.1415926535897932384626433832795028841971693993751058209749445923
 #define NUTATION_COMPACT( D, M, Mp, F, Om)   \
-          ((D+3) * 7*7*7*7 + (M+3) * 7*7*7 + (Mp+3) * 7*7 + (F+3) * 7 + Om+3)
+      (int16_t)((D+4) * 9*9*9*9 + (M+4) * 9*9*9 + (Mp+4) * 9*9 + (F+4) * 9 + Om+4)
 
       /* nutation formula comes from p 132-5, Meeus,  Astro Algor */
       /* input is time in julian centuries from 2000. */
@@ -68,6 +76,7 @@ int DLL_FUNC nutation( const double t, double DLLPTR *d_lon,
                                   9327191L, -36825L, 327270L,
                                  12504452L,  20708L, 450000L };
    const int16_t args[3 * N_NUTATION_COEFFS + 1] = {
+                     /*    D  M  Mp F  Om       */
          NUTATION_COMPACT(-2, 0, 0, 2, 2),-13187,5736,    /* 01 */
          NUTATION_COMPACT( 0, 0, 0, 2, 2), -2274, 977,    /* 02 */
          NUTATION_COMPACT( 0, 0, 0, 0, 2),  2062,-895,    /* 03 */
@@ -130,10 +139,54 @@ int DLL_FUNC nutation( const double t, double DLLPTR *d_lon,
          NUTATION_COMPACT( 1, 0, 0, 0, 0),    -4,   0,    /* 60 */
          NUTATION_COMPACT( 0, 1, 1, 0, 0),    -3,   0,    /* 61 */
          NUTATION_COMPACT( 0, 0, 1, 2, 0),     3,   0,    /* 62 */
+#ifndef MEEUS
+         NUTATION_COMPACT( 1, 0, 0, 2, 2),     2,  -1,
+         NUTATION_COMPACT( 0, 0, 2, 0, 1),     2,  -1,
+         NUTATION_COMPACT( 0, 1, 1, 2, 2),     2,  -1,
+         NUTATION_COMPACT(-2, 0,-1, 2, 1),    -2,   1,
+         NUTATION_COMPACT(-2,-2, 0, 2, 1),    -2,   1,
+         NUTATION_COMPACT( 4, 0,-1, 2, 2),    -2,   1,
+         NUTATION_COMPACT( 0, 0,-2, 0, 1),    -2,   1,
+         NUTATION_COMPACT( 0, 0, 1, 0, 2),    -2,   1,
+         NUTATION_COMPACT( 0, 0, 3, 0, 0),     2,   0,
+         NUTATION_COMPACT(-2, 0, 2, 2, 1),     1,  -1,
+         NUTATION_COMPACT(-2, 1, 1, 2, 2),     1,  -1,
+         NUTATION_COMPACT( 0, 0,-1, 0, 2),     1,  -1,
+         NUTATION_COMPACT( 2, 0,-2, 2, 2),     1,  -1,
+         NUTATION_COMPACT( 4, 0,-2, 2, 2),    -1,   1,
+         NUTATION_COMPACT( 2, 0, 1, 2, 1),    -1,   1,
+         NUTATION_COMPACT(-4, 0, 1, 0, 0),    -1,   0,
+         NUTATION_COMPACT( 2, 0, 1,-2, 0),    -1,   0,
+         NUTATION_COMPACT( 0, 0, 0,-2, 1),    -1,   0,
+         NUTATION_COMPACT(-2, 0, 1,-2, 0),    -1,   0,
+         NUTATION_COMPACT(-4, 0, 2, 0, 0),    -1,   0,
+         NUTATION_COMPACT(-1, 0, 0, 2, 2),    -1,   0,
+         NUTATION_COMPACT( 2, 1, 0,-2, 0),    -1,   0,
+         NUTATION_COMPACT( 2, 0, 1, 0, 1),    -1,   0,
+         NUTATION_COMPACT( 2, 1, 0, 0, 0),    -1,   0,
+         NUTATION_COMPACT( 2, 0, 2, 2, 2),    -1,   0,
+         NUTATION_COMPACT(-2, 1, 0, 2, 0),    -1,   0,
+         NUTATION_COMPACT(-2, 0, 1, 2, 0),    -1,   0,
+         NUTATION_COMPACT( 0,-1, 0, 2, 1),    -1,   0,
+         NUTATION_COMPACT( 4, 0, 0, 2, 2),    -1,   0,
+         NUTATION_COMPACT(-2, 1, 1, 0, 1),    -1,   0,
+         NUTATION_COMPACT( 2, 0, 0,-2, 1),     1,   0,
+         NUTATION_COMPACT( 0, 1, 0, 2, 1),     1,   0,
+         NUTATION_COMPACT( 2,-1,-1, 0, 1),     1,   0,
+         NUTATION_COMPACT( 0, 0, 2,-2, 1),     1,   0,
+         NUTATION_COMPACT(-2,-1, 1, 0, 0),     1,   0,
+         NUTATION_COMPACT(-2, 0, 3, 2, 2),     1,   0,
+         NUTATION_COMPACT( 0, 0,-1, 4, 2),     1,   0,
+         NUTATION_COMPACT(-2, 0, 0, 4, 2),     1,   0,
+         NUTATION_COMPACT( 0, 1, 0, 0, 2),     1,   0,
+         NUTATION_COMPACT( 2, 0, 2, 0, 0),     1,   0,
+         NUTATION_COMPACT( 1, 0,-1, 0, 1),     1,   0,
+         NUTATION_COMPACT(-2, 1, 2, 0, 0),     1,   0,
+         NUTATION_COMPACT( 1, 1, 0, 0, 0),     1,   0,
+#endif
          0 };
    const int8_t time_dependent[16 + 9] = {
-    -16, -2, 2, -34, 1, 12, -4, 0, -5, 0, 1, 0, 0, 1, 0, -1,
-    -31, -5, 5, -1, 0, -6, 0, -1, 3 };
+            -16, -2, 2, -34, 1, 12, -4, 0, -5, 0, 1, 0, 0, 1, 0, -1  };
 
    double terms[5];
    double t2;
@@ -158,11 +211,11 @@ int DLL_FUNC nutation( const double t, double DLLPTR *d_lon,
    for( i = 0; args[i]; i += 3)
       {
       double total_arg = 0., coeff;
-      int j, mult = args[i];
+      int j, mult = (uint16_t)args[i];
 
-      for( j = 4; j >= 0; j--, mult /= 7)
-         if( mult % 7 != 3)
-            total_arg += (double)( mult % 7 - 3) * terms[j];
+      for( j = 4; j >= 0; j--, mult /= 9)
+         if( mult % 9 != 4)
+            total_arg += (double)( mult % 9 - 4) * terms[j];
 
       coeff = (double)args[i + 1];
       if( i < 16 && time_dependent[i])
@@ -174,9 +227,11 @@ int DLL_FUNC nutation( const double t, double DLLPTR *d_lon,
 
       if( args[i + 2])
          {
+         const int8_t time_coeffs[9] = { -31, -5, 5, -1, 0, -6, 0, -1, 3 };
+
          coeff = (double)args[i + 2];
-         if( i < 9 && time_dependent[i + 16])
-            coeff += (double)time_dependent[i + 16] * t / 10;
+         if( i < 9 && time_coeffs[i])
+            coeff += (double)time_coeffs[i] * t / 10;
          if( d_obliq)
             *d_obliq += coeff * cos( total_arg);
          }
@@ -201,7 +256,18 @@ int main( const int argc, const char **argv)
       year = (year - 2451545.) / 365.25 + 2000.;
 
    nutation( (year - 2000.) / 100., &d_lon, &d_obliq);
-   printf( "%lf %lf\n", d_lon, d_obliq);
+   printf( "%.9lf %.9lf\n", d_lon, d_obliq);
    return( 0);
 }
 #endif
+
+
+/*
+phred@phred:~/lunar$ ./nutation 2458000
+-9.685270220 -6.970770659
+phred@phred:~/lunar$ ./nutation 2459000
+-17.852363976 -0.314304680
+phred@phred:~/lunar$ ./nutation 2409000
+11.621021825 -7.708706984
+*/
+
