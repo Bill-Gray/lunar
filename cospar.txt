@@ -437,10 +437,10 @@ Obj: 9005 # Styx/Pluto V = S/2012 (134340) 1      (n)
    d0= -6.163
    W=11.7 +17.8551357d
 
-Obj: -1     # Ceres
-   a0=291      # +/- 5
-   d0=59       # +/- 5
-   W=170.90 +952.1532d
+Obj: -1      # Ceres  (r)
+   a0=291.418           # Was 291 +/- 5
+   d0=66.764            # Was 59 +/- 5
+   W=170.650 +952.1532d  # Was 170.90 + 952.1532d
 
 Obj: -2     # Pallas
    a0= 33
@@ -540,6 +540,8 @@ Feb 07, 2008:
    period and offset.  I modified Vesta's W to use the value from
    http://astropedia.astrogeology.usgs.gov/download/Docs/WGCCRE/IAU-WGCCRE-Coordinate-System-for-Vesta.pdf
    (pole RA/dec didn't change).
+(r) (2016 Oct 2) Updated Ceres to use Dawn measurements from
+   https://naif.jpl.nasa.gov/pub/naif/DAWN/kernels/pck/dawn_ceres_v05.tpc
 
 Satellites for which no suitable data are yet available have been omitted
 from this table. Nereid is not included in this table because it is not in
