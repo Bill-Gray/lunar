@@ -368,7 +368,7 @@ void DLL_FUNC full_ctimel( char *buff, long double t2k, const int format)
          }
 
       if( format & FULL_CTIME_TWO_DIGIT_YEAR)
-         sprintf( year_str, "%02d", abs( year % 100));
+         sprintf( year_str, "%02d", abs( (int)year % 100));
       else
          sprintf( year_str, (leading_zeroes ? "%04ld" : "%4ld"), year);
 
