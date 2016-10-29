@@ -20,11 +20,11 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 /* The calc_jsat_loc( ) function in this file computes the positions
 of the Galilean satellites.  The algorithm is straight out of Jean
 Meeus' _Astronomical Algorithms_,  second edition;  he,  in turn,
-got it from J. Lieske's E5 theory.  It is therefore a somewhat old
-theory.  However,  I've been unable to detect the error by examining
-mutual occultation data,  so the accuracy appears to be quite good.
+got it from J. Lieske's E5 theory :
 
-   NOTE that I haven't included all the trig terms from Meeus' book!
+http://aas.aanda.org/articles/aas/pdf/1998/08/ds6503.pdf
+
+   NOTE that I haven't included all the trig terms!
 
    A previous version of this code used Lieske's E2x3 theory,
 straight from the first edition of _AA_.  About all that changed
