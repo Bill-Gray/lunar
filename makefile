@@ -39,8 +39,8 @@ all: astcheck$(EXE) astephem$(EXE) calendar$(EXE) cgicheck$(EXE)  \
    colors$(EXE) colors2$(EXE) cosptest$(EXE) dist$(EXE) easter$(EXE) \
    get_test$(EXE) htc20b$(EXE) jd$(EXE) \
    jevent$(EXE) jpl2b32$(EXE) jsattest$(EXE) lun_test$(EXE) \
-   marstime$(EXE) oblitest$(EXE) persian$(EXE) \
-   phases$(EXE) ps_1996$(EXE) ssattest$(EXE) tables$(EXE) \
+   marstime$(EXE) oblitest$(EXE) persian$(EXE) phases$(EXE) \
+   prectest$(EXE) ps_1996$(EXE) ssattest$(EXE) tables$(EXE) \
    test_ref$(EXE) testprec$(EXE) uranus1$(EXE) utc_test$(EXE)
 
 install:
@@ -64,9 +64,10 @@ uninstall:
 	$(CC) $(CFLAGS) -c $<
 
 OBJS= alt_az.o astfuncs.o big_vsop.o classel.o cospar.o date.o delta_t.o \
-   de_plan.o dist_pa.o eart2000.o elp82dat.o getplane.o get_time.o \
+   de_plan.o dist_pa.o eart2000.o elp82dat.o \
+   eop_prec.o getplane.o get_time.o \
    jsats.o lunar2.o miscell.o nutation.o obliquit.o pluto.o precess.o \
-   showelem.o ssats.o triton.o vsopson.o
+   showelem.o spline.o ssats.o triton.o vsopson.o
 
 liblunar.a: $(OBJS)
 	ar crsv liblunar.a $(OBJS)
@@ -77,7 +78,7 @@ clean:
 	$(RM) cosptest.o get_test.o gust86.o htc20b.o jd.o
 	$(RM) jevent.o jpl2b32.o jsattest.o lun_test.o lun_tran.o
 	$(RM) mpcorb.o oblitest.o obliqui2.o persian.o phases.o
-	$(RM) ps_1996.o refract.o refract4.o riseset3.o solseqn.o spline.o
+	$(RM) ps_1996.o refract.o refract4.o riseset3.o solseqn.o
 	$(RM) ssattest.o tables.o test_ref.o testprec.o uranus1.o utc_test.o
 	$(RM) astcheck$(EXE) astephem$(EXE) calendar$(EXE) cgicheck$(EXE) colors$(EXE)
 	$(RM) colors2$(EXE) cosptest$(EXE) dist$(EXE) easter$(EXE) get_test$(EXE)
@@ -140,14 +141,17 @@ lun_test$(EXE): lun_test.o lun_tran.o riseset3.o liblunar.a
 marstime$(EXE): marstime.cpp
 	$(CC) $(CFLAGS) -o marstime$(EXE) marstime.cpp -DTEST_PROGRAM $(LIBSADDED)
 
-oblitest$(EXE): oblitest.o obliqui2.o spline.o liblunar.a
-	$(CC) $(CFLAGS) -o oblitest$(EXE) oblitest.o obliqui2.o spline.o liblunar.a $(LIBSADDED)
+oblitest$(EXE): oblitest.o obliqui2.o liblunar.a
+	$(CC) $(CFLAGS) -o oblitest$(EXE) oblitest.o obliqui2.o liblunar.a $(LIBSADDED)
 
 persian$(EXE): persian.o solseqn.o liblunar.a
 	$(CC) $(CFLAGS) -o persian$(EXE) persian.o solseqn.o liblunar.a $(LIBSADDED)
 
 phases$(EXE): phases.o liblunar.a
 	$(CC) $(CFLAGS) -o phases$(EXE)   phases.o   liblunar.a $(LIBSADDED)
+
+prectest$(EXE): prectest.o liblunar.a
+	$(CC) $(CFLAGS) -o prectest$(EXE) prectest.o liblunar.a $(LIBSADDED)
 
 ps_1996$(EXE): ps_1996.o liblunar.a
 	$(CC) $(CFLAGS) -o ps_1996$(EXE)   ps_1996.o   liblunar.a $(LIBSADDED)

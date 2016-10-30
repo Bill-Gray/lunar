@@ -69,6 +69,9 @@ int DLL_FUNC setup_ecliptic_precession( double DLLPTR *matrix,
                     const double t1, const double t2);
 int DLL_FUNC setup_precession_with_nutation( double DLLPTR *matrix,
                     const double year);         /* precess.c */
+int DLL_FUNC setup_precession_with_nutation_delta( double DLLPTR *matrix,
+                    const double year,          /* precess.c */
+             const double delta_nutation_lon, const double delta_nutation_obliq);
 int DLL_FUNC precess_vector( const double DLLPTR *matrix,
                                       const double DLLPTR *v1,
                                       double DLLPTR *v2);    /* precess.c */
@@ -143,6 +146,23 @@ int DLL_FUNC calc_dist_and_posn_ang( const double *p1, const double *p2,
                                        double *dist, double *posn_ang);
 void DLL_FUNC reverse_dist_and_posn_ang( double *to, const double *from,
                                  const double dist, const double posn_ang);
+
+typedef struct
+{
+   double dX, dY, dPsi, dEps;    /* all in radians */
+   double tdt_minus_ut1;         /* in seconds */
+} earth_orientation_params;
+
+#define EOP_FILE_NOT_FOUND     -1
+#define EOP_FILE_WRONG_FORMAT  -2
+#define EOP_ALLOC_FAILED       -3
+
+int DLL_FUNC load_earth_orientation_params( const char *filename);
+int DLL_FUNC get_earth_orientation_params( const double jd,  /* eop_prec.c */
+                              earth_orientation_params *params);
+int DLL_FUNC setup_precession_with_nutation_eops( double DLLPTR *matrix,
+                    const double year);            /* eop_prec.c */
+
 
 #ifdef __cplusplus
 }

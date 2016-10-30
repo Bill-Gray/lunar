@@ -17,13 +17,15 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301, USA.    */
 
-/* This implements the 'precise precession in ecliptic coords' method from
-Meeus' _Astronomical Algorithms_,  which in turn comes from _Connaissance
-des Temps_ pour 1984,  p. XXX and XL.  I'd previously implemented ecliptic
-precession (in 'precess.cpp') by making the _equatorial_ precession matrix,
-then rotating it by the obliquity.  This works,  but it occurred to me
-that precession "ought to" be done in ecliptic coordinates.  In that frame,
-precession is mostly just a rotation around the ecliptic pole;  doing it
+/* This implements the IAU1976 precession model,  in two forms.
+'setup_equatorial_precession_from_j2000()' sets up a precession matrix in
+equatorial coordinates.  It appears that this is the preferred method in
+most cases,  especially when doing full modelling of earth orientation
+parameters (EOP) with observed offsets included.
+
+   setup_ecliptic_precession_from_j2000() sets up the same sort of matrix,
+but in ecliptic coordinates.  In the ecliptic reference frame,  precession
+is (almost entirely) just a rotation around the ecliptic pole;  doing it
 in equatorial coordinates is a poor fit to the actual physics.
 
    That led me to examine the actual formulae,  and sure enough,  the cubic
@@ -35,18 +37,14 @@ earth's pole do most of a complete precession circle around the ecliptic
 pole;  then it just goes wandering off as the cubic term diverges.)  In the
 ecliptic frame,  the same terms are almost negligible.
 
-   So... the "right" thing to do is the exact opposite of what I initially
-did:  one should just implement ecliptic precession,  then rotate _that_
-matrix by the obliquity.  The new setup_precession() does exactly this,  and
-the results are indeed more reasonable than those from the earlier code.  (I
-don't actually know how _accurate_ they are,  merely that they don't lead as
-rapidly to having the earth tumble end over end... though if you go far
-enough,  eventually,  those cubic terms still diverge,  of course.  But at
-the very least,  the error from neglected terms should be much less.)
-
-   Incidentally,  the previous formulae are preserved in 'testprec.cpp'
-for testing/comparison purposes,  along with some test code to display
-the differences.
+   However,  the two methods lead to slightly different results.  The
+discrepancy is zero at J2000 (where both methods provide identity matrices),
+and of about a nanoradian every three years as one gets away for J2000.
+(This corresponds to a difference in the earth's orientation of about
+one centimeter every five years.)  For long-term stability,  I'd recommend
+the ecliptic method.  But for very precise earth orientation in the near
+term,  you're sort of stuck with having to use the equatorial method.
+Which is why both are provided below.
 
    As originally given,  the formulae provide a way to create precession
 matrices to go directly from any time t1 to another time t2.  The problem
@@ -80,6 +78,10 @@ precession and inverse precession are exactly inverse operations.    */
 
 int DLL_FUNC setup_precession_with_nutation( double DLLPTR *matrix,
                     const double year);         /* precess.c */
+int DLL_FUNC setup_precession_with_nutation_delta( double DLLPTR *matrix,
+                    const double year,          /* precess.c */
+                    const double delta_nutation_lon,
+                    const double delta_nutation_obliq);
 
 static int setup_ecliptic_precession_from_j2000( double DLLPTR *matrix, const double year)
 {
@@ -101,6 +103,40 @@ static int setup_ecliptic_precession_from_j2000( double DLLPTR *matrix, const do
    spin_matrix( matrix + 3, matrix + 6, -eta);
    spin_matrix( matrix + 3, matrix, -p);
    spin_matrix( matrix, matrix + 3, pie);
+   return( 0);
+}
+
+static int DLL_FUNC setup_equatorial_precession_from_j2000(
+                          double DLLPTR *matrix, const double year)
+{
+   const double t_cen = (year - 2000.) / 100.;
+   const double ka = 2306.2181;
+   const double kb = 2004.3109;
+   const double arcsec_to_radians = (PI / 180.) / 3600.;
+   double zeta, z, theta, czeta, cz, ctheta, szeta, sz, stheta;
+
+   zeta  = t_cen * (ka + t_cen * ( .30188 + .017998 * t_cen)) * arcsec_to_radians;
+   z     = t_cen * (ka + t_cen * (1.09468 + .018203 * t_cen)) * arcsec_to_radians;
+   theta = t_cen * (kb + t_cen * (-.42665 - .041833 * t_cen)) * arcsec_to_radians;
+   czeta = cos( zeta);
+   szeta = sin( zeta);
+   cz = cos( z);
+   sz = sin( z);
+   ctheta = cos( theta);
+   stheta = sin( theta);
+
+   *matrix++ = czeta * ctheta * cz - szeta * sz;
+   *matrix++ = -szeta * ctheta * cz - czeta * sz;
+   *matrix++ = -stheta * cz;
+
+   *matrix++ = czeta * ctheta * sz + szeta * cz;
+   *matrix++ = -szeta * ctheta * sz + czeta * cz;
+   *matrix++ = -stheta * sz;
+
+   *matrix++ = czeta * stheta;
+   *matrix++ = -szeta * stheta;
+   *matrix++ = ctheta;
+
    return( 0);
 }
 
@@ -179,22 +215,41 @@ int DLL_FUNC setup_precession( double DLLPTR *matrix, const double year_from, co
 /* For computing the orientation of the earth,  we need something resembling
 the above,  but including the effects of nutation : */
 
-int DLL_FUNC setup_precession_with_nutation( double DLLPTR *matrix,
-                    const double year)
+int DLL_FUNC setup_precession_with_nutation_delta( double DLLPTR *matrix,
+                    const double year,
+                    const double delta_nutation_lon,
+                    const double delta_nutation_obliq)
 {
    const double j2000_obliquity = 23.43929111111111 * PI / 180.;
    const double t_cen = (year - 2000.) / 100.;     /* Julian centuries */
    double obliquity = mean_obliquity( t_cen);      /* from J2000       */
    double d_lon, d_obliq;
+   double equation_of_equinoxes;
 
    nutation( t_cen, &d_lon, &d_obliq);
    d_lon   *= PI / (180. * 3600.);    /* cvt arcsec to radians */
    d_obliq *= PI / (180. * 3600.);
+   d_lon += delta_nutation_lon;
+   d_obliq += delta_nutation_obliq;
+#ifdef OLD_VERSION
    setup_ecliptic_precession_from_j2000( matrix, year);
+#else
+   setup_equatorial_precession_from_j2000( matrix, year);
+   pre_spin_matrix( matrix + 1, matrix + 2, -j2000_obliquity);
+   spin_matrix( matrix + 3, matrix + 6, -obliquity);
+#endif
    spin_matrix( matrix, matrix + 3, d_lon);
    pre_spin_matrix( matrix + 1, matrix + 2, j2000_obliquity);
    spin_matrix( matrix + 3, matrix + 6, obliquity + d_obliq);
+   equation_of_equinoxes = d_lon * cos( obliquity);
+   spin_matrix( matrix + 3, matrix, equation_of_equinoxes);
    return( 0);
+}
+
+int DLL_FUNC setup_precession_with_nutation( double DLLPTR *matrix,
+                    const double year)
+{
+   return( setup_precession_with_nutation_delta( matrix, year, 0., 0.));
 }
 
 static const double sin_obliq_2000 = 0.397777155931913701597179975942380896684;
@@ -271,3 +326,39 @@ int DLL_FUNC precess_ra_dec( const double DLLPTR *matrix,
       p_out[0] += PI * 2.;
    return( 0);
 }
+
+#ifdef TEST_PRECESS
+
+#include <stdio.h>
+#include <stdlib.h>
+
+int main( const int argc, const char **argv)
+{
+   const double year = atof( argv[1]);
+   double matrix[9];
+   int pass, i;
+
+   for( pass = 0; pass < 3; pass++)
+      {
+      const char *titles[3] = { "From ecliptic", "Equatorial 'straight'",
+                     "Difference" };
+
+      printf( "%s\n", titles[pass]);
+      if( pass)
+         setup_precession( matrix, 2000., year);
+      else
+         setup_equatorial_precession_from_j2000( matrix, year);
+      if( pass == 2)
+         {
+         double mat2[9];
+
+         setup_equatorial_precession_from_j2000( mat2, year);
+         for( i = 0; i < 9; i++)
+            matrix[i] -= mat2[i];
+         }
+      for( i = 0; i < 9; i++)
+         printf( "%12.9f%s", matrix[i], i % 3 == 2 ? "\n" : " ");
+      }
+   return( 0);
+}
+#endif
