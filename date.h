@@ -115,6 +115,9 @@ long double DLL_FUNC get_time_from_stringl( long double initial_t2k,
 #define FULL_CTIME_CENTIDAYS     (FULL_CTIME_FORMAT_DAY | FULL_CTIME_2_PLACES)
 #define FULL_CTIME_MILLIDAYS     (FULL_CTIME_FORMAT_DAY | FULL_CTIME_3_PLACES)
 #define FULL_CTIME_MICRODAYS     (FULL_CTIME_FORMAT_DAY | FULL_CTIME_6_PLACES)
+#define FULL_CTIME_NANODAYS      (FULL_CTIME_FORMAT_DAY | FULL_CTIME_9_PLACES)
+#define FULL_CTIME_PICODAYS      (FULL_CTIME_FORMAT_DAY | FULL_CTIME_12_PLACES)
+#define FULL_CTIME_FEMTODAYS     (FULL_CTIME_FORMAT_DAY | FULL_CTIME_15_PLACES)
 
 /* The calendar is stored in the lowest four bits (nibble),  allowing
 for 16 possible calendars;  only 9 are currently assigned,  but there
