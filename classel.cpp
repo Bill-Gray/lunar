@@ -218,9 +218,9 @@ int DLL_FUNC calc_classical_elements( ELEMENTS *elem, const double *r,
 
    if( inv_major_axis && elem->minor_to_major)
       {
+      const bool is_nearly_parabolic = (ecc > .99999 && ecc < 1.00001);
       const double r_cos_true_anom = dot_product( r, e);
       const double r_sin_true_anom = dot_product( r, elem->sideways) / h0;
-      const double cos_E = r_cos_true_anom * inv_major_axis + ecc;
       const double sin_E = r_sin_true_anom * inv_major_axis
                                         / elem->minor_to_major;
 
@@ -229,28 +229,31 @@ int DLL_FUNC calc_classical_elements( ELEMENTS *elem, const double *r,
       assert( isfinite( h0));
       assert( isfinite( r_cos_true_anom));
       assert( isfinite( r_sin_true_anom));
-      assert( isfinite( cos_E));
       assert( isfinite( sin_E));
       if( inv_major_axis > 0.)          /* parabolic case */
          {
+         const double cos_E = r_cos_true_anom * inv_major_axis + ecc;
          const double ecc_anom = atan2( sin_E, cos_E);
 
+         assert( isfinite( cos_E));
          assert( isfinite( ecc_anom));
-         elem->mean_anomaly = ecc_anom * (1 - ecc)
+         if( is_nearly_parabolic)
+            elem->mean_anomaly = ecc_anom * (1 - ecc)
                - ecc * ecc_anom * remaining_terms( -ecc_anom * ecc_anom);
-//       elem->mean_anomaly = ecc_anom - ecc * sin( ecc_anom);
+         else
+            elem->mean_anomaly = ecc_anom - ecc * sin_E;
          assert( isfinite( elem->mean_anomaly));
          elem->perih_time = t - elem->mean_anomaly * elem->t0;
          }
       else                             /* hyperbolic case */
          {
-         const double ecc_anom = atanh( sin_E / cos_E);
+         const double ecc_anom = asinh( sin_E);
 
-         assert( fabs( sin_E) < fabs( cos_E));
-         assert( isfinite( ecc_anom));
-         elem->mean_anomaly = ecc_anom * (1 - ecc)
+         if( is_nearly_parabolic)
+            elem->mean_anomaly = ecc_anom * (1 - ecc)
                - ecc * ecc_anom * remaining_terms( ecc_anom * ecc_anom);
-//       elem->mean_anomaly = ecc_anom - ecc * sinh( ecc_anom);
+         else
+            elem->mean_anomaly = ecc_anom - ecc * sin_E;
          assert( isfinite( elem->mean_anomaly));
          assert( elem->t0 <= 0.);
          elem->perih_time = t - elem->mean_anomaly * fabs( elem->t0);
