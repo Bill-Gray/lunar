@@ -194,8 +194,8 @@ int main( int argc, char **argv)
                }
             }
 
-         printf( "%-20s %3d%3d%c%4ld\n", calendar_names[calendar],
-                        day, month, is_intercalary, year);
+         printf( "%-20s %4ld%3d%c%3d\n", calendar_names[calendar],
+                        year, month, is_intercalary, day);
          }
       }
    jd = (double)( t2k + j2000);
