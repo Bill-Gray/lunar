@@ -51,27 +51,34 @@ int main( const int argc, const char **argv)
    int i, pass;
    const double J2000 = 2451545.;  /* JD 2451545 = 2000 Jan 1.5 */
    double year = 2000. + (tdt - J2000) / 365.25;
+   int eop_rval = load_earth_orientation_params( "../eop/finals.all");
+   earth_orientation_params eo_params;
+   char tbuff[80];
 
-   if( load_earth_orientation_params( "../eop/finals.all"))
-      printf( "Couldn't get any EOPs\n");
+   if( eop_rval <= 0)
+      printf( "Problem loading EOPs:  rval %d\n", eop_rval);
    else
       {
-      earth_orientation_params eo_params;
-      int rval = get_earth_orientation_params( tdt, &eo_params);
-
-      printf( "Polar motion: %f x, %f y (arcseconds)\n",
-                  eo_params.dX / arcsec_to_radians,
-                  eo_params.dY / arcsec_to_radians);
-      printf( "TDT - UT1 = %f seconds\n", eo_params.tdt_minus_ut1);
-      printf( "TDT - UT1 = %f seconds (from 'standard' function)\n",
-                  td_minus_ut( tdt));
-      printf( "dPsi %f; dEps %f (milliarcseconds)\n",
-                  eo_params.dPsi / marcsec_to_radians,
-                  eo_params.dEps / marcsec_to_radians);
-      printf( "UT1 - UTC = %f\n", td_minus_utc( tdt) - eo_params.tdt_minus_ut1);
-      if( rval)
-         printf( "Couldn't get some/all EOPs for that date : %d\n", rval);
+      full_ctime( tbuff, 2400000.5 + (double)eop_rval,
+                  FULL_CTIME_DATE_ONLY | FULL_CTIME_YMD);
+      printf( "EOPs run to MJD %d = %s (including predictions)\n",
+               eop_rval, tbuff);
       }
+   full_ctime( tbuff, utc, FULL_CTIME_YMD);
+   printf( "For JD %f = %s UTC\n", utc, tbuff);
+   eop_rval = get_earth_orientation_params( tdt, &eo_params);
+   printf( "Polar motion: %f x, %f y (arcseconds)\n",
+               eo_params.dX / arcsec_to_radians,
+               eo_params.dY / arcsec_to_radians);
+   printf( "TDT - UT1 = %f seconds\n", eo_params.tdt_minus_ut1);
+   printf( "TDT - UT1 = %f seconds (from 'standard' function)\n",
+               td_minus_ut( tdt));
+   printf( "dPsi %f; dEps %f (milliarcseconds)\n",
+               eo_params.dPsi / marcsec_to_radians,
+               eo_params.dEps / marcsec_to_radians);
+   printf( "UT1 - UTC = %f\n", td_minus_utc( tdt) - eo_params.tdt_minus_ut1);
+   if( eop_rval)
+      printf( "Couldn't get some/all EOPs for that date : %d\n", eop_rval);
 
    for( pass = 0; pass < 3; pass++)
       {

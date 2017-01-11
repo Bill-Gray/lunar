@@ -46,14 +46,18 @@ of predictions.  'data' starts on 1992 January 1,  and 'all' on 1973
 January 2,  each with a year of predictions.
 
    The EOP files give UT1-UTC.  This has one-second jumps and is not
-suited to splining,  so we actually store Delta-T = TDT-UT1.  We could
-do that by subtracting the given UT1-UTC value from the result of the
-td_minus_utc( ) function.  To speed matters up a bit,  we do that _once_
-for the first value.  After that,  we just make sure each subsequent value
-is within 0.5 seconds of the preceding value.
+suited to splining,  so we actually store Delta-T = TDT-UT1,  a continuous
+function that _is_ suited to splining.  We could compute it by subtracting
+the given UT1-UTC value from the result of the td_minus_utc( ) function.
+To speed matters up a bit,  we do that _once_ for the first value.  After
+that,  we just make sure each subsequent value is within 0.5 seconds of
+the preceding value.
 
    The only errors that can be generated are that the file wasn't found,
-or that it wasn't in the correct format.  Otherwise,  0 is returned.
+or wasn't in the correct format,  or memory wasn't allocated for the data.
+Otherwise,  the MJD for the last day of EOPs,  including the predictions,
+is returned.  One can use that to tell the user,  "time to get new EOPs"
+(or to automatically download them without even telling the user).
 
    In a multi-threaded environment,  call load_earth_orientation_params()
 before forking/threading;  the following static values will then be set
@@ -139,6 +143,8 @@ int DLL_FUNC load_earth_orientation_params( const char *filename)
             rval = EOP_FILE_WRONG_FORMAT;           /* this many lines */
          if( rval)   /* slightly tricky method to free up eop_data,  if */
             load_earth_orientation_params( NULL);  /* it's been alloced */
+         else                            /* get MJD for preceding day */
+            rval = atoi( buff + 7) - 1;
          }
       if( ifile)
          fclose( ifile);
@@ -183,10 +189,9 @@ int DLL_FUNC get_earth_orientation_params( const double jd,
          }
       }
    else
-      {
       rval = -1;
-      results[2] = td_minus_ut( jd);
-      }
+   if( !results[2])        /* fill in using default Delta-T formula if we */
+      results[2] = td_minus_ut( jd);   /* don't get a value from EOP data */
    params->dX = results[0];
    params->dY = results[1];
    params->tdt_minus_ut1 = results[2];
