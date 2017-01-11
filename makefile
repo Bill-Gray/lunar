@@ -75,16 +75,16 @@ liblunar.a: $(OBJS)
 clean:
 	$(RM) $(OBJS)
 	$(RM) astcheck.o astephem.o calendar.o cgicheck.o cgi_func.o
-	$(RM) cosptest.o get_test.o gust86.o htc20b.o jd.o
+	$(RM) cosptest.o get_test.o gust86.o htc20b.o integrat.o jd.o
 	$(RM) jevent.o jpl2b32.o jsattest.o lun_test.o lun_tran.o
 	$(RM) mpcorb.o oblitest.o obliqui2.o persian.o phases.o
-	$(RM) ps_1996.o refract.o refract4.o riseset3.o solseqn.o
+	$(RM) prectest.o ps_1996.o refract.o refract4.o riseset3.o solseqn.o
 	$(RM) ssattest.o tables.o test_ref.o testprec.o uranus1.o utc_test.o
 	$(RM) astcheck$(EXE) astephem$(EXE) calendar$(EXE) cgicheck$(EXE) colors$(EXE)
 	$(RM) colors2$(EXE) cosptest$(EXE) dist$(EXE) easter$(EXE) get_test$(EXE)
-	$(RM) htc20b$(EXE) jd$(EXE) jevent$(EXE) jpl2b32$(EXE) jsattest$(EXE)
-	$(RM) lun_test$(EXE) marstime$(EXE) oblitest$(EXE) persian$(EXE) phases$(EXE)
-	$(RM) ps_1996$(EXE) relativi$(EXE) ssattest$(EXE) tables$(EXE)
+	$(RM) htc20b$(EXE) integrat$(EXE) jd$(EXE) jevent$(EXE) jpl2b32$(EXE) jsattest$(EXE)
+	$(RM) lun_test$(EXE) marstime$(EXE) oblitest$(EXE) persian$(EXE) phases$(EXE) prectest$(EXE)
+	$(RM) ps_1996$(EXE) relativi$(EXE) solseqn$(EXE) ssattest$(EXE) tables$(EXE)
 	$(RM) test_ref$(EXE) testprec$(EXE) uranus1$(EXE) utc_test$(EXE) liblunar.a
 
 astcheck$(EXE): astcheck.o mpcorb.o liblunar.a
