@@ -30,6 +30,7 @@
 astcheck
 astephem
 calendar
+cgicheck
 colors
 colors2
 cosptest
@@ -47,6 +48,7 @@ marstime
 oblitest
 persian
 phases
+prectest
 ps_1996
 ssattest
 tables
