@@ -82,3 +82,6 @@ EXPORTS
    full_ctimel                            @81
    get_time_from_stringl                  @82
    setup_precession_with_nutation         @83
+   setup_precession_with_nutation_eops    @84
+   get_earth_orientation_params           @85
+   load_earth_orientation_params          @86

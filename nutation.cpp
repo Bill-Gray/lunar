@@ -185,7 +185,7 @@ int DLL_FUNC nutation( const double t, double DLLPTR *d_lon,
          NUTATION_COMPACT( 1, 1, 0, 0, 0),     1,   0,
 #endif
          0 };
-   const int8_t time_dependent[16 + 9] = {
+   const int8_t time_dependent[16] = {
             -16, -2, 2, -34, 1, 12, -4, 0, -5, 0, 1, 0, 0, 1, 0, -1  };
 
    double terms[5];

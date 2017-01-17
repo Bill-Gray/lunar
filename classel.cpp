@@ -99,9 +99,9 @@ static double remaining_terms( const double ival)
 
 #ifdef _MSC_VER
 #if _MSC_VER <= 1100
-static double atanh( const double x)
+static double asinh( const double x)
 {
-   return( .5 * log( (1. + x) / (1. - x)));
+   return( log( x + sqrt( x * x + 1.)));
 }
 #endif
 #endif
