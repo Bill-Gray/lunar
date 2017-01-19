@@ -1,103 +1,131 @@
-# Basic astronomical functions library - OpenWatcom C/C++ version
+# Basic astronomical functions library.  Use
+# wmake -f watmake
+# to build a version that is either 32 or 64 bit;
+# and which either builds the library as a DLL or statically
 
-all: astcheck.exe astephem.exe calendar.exe  &
-   cosptest.exe dist.exe easter.exe get_test.exe jevent.exe jpl2b32.exe  &
-   jd.exe jsattest.exe lun_test.exe marstime.exe oblitest.exe persian.exe &
-   phases.exe ps_1996.exe relativi.exe ssattest.exe tables.exe testprec.exe &
-   testprec.exe uranus1.exe utc_test.exe
+EXES= astcheck.exe astephem.exe calendar.exe cosptest.exe dist.exe &
+      easter.exe get_test.exe htc20b.exe jd.exe jevent.exe &
+      jpl2b32.exe jsattest.exe lun_test.exe marstime.exe oblitest.exe &
+      persian.exe phases.exe prectest.exe ps_1996.exe &
+      relativi.exe ssattest.exe tables.exe &
+      testprec.exe test_ref.exe uranus1.exe utc_test.exe
 
-astephem.exe:         astephem.obj mpcorb.obj wafuncs.lib
-   wcl386 -zq -k10000 astephem.obj mpcorb.obj wafuncs.lib
+all: $(EXES)
 
-astcheck.exe: astcheck.obj mpcorb.obj wafuncs.lib
-   wcl386 -zq -k10000 astcheck.obj mpcorb.obj wafuncs.lib
+LIB_OBJS= alt_az.obj astfuncs.obj big_vsop.obj classel.obj com_file.obj &
+      cospar.obj date.obj de_plan.obj delta_t.obj dist_pa.obj elp82dat.obj &
+      eop_prec.obj &
+      getplane.obj get_time.obj jsats.obj lunar2.obj  &
+      miscell.obj nutation.obj obliquit.obj pluto.obj precess.obj  &
+      refract.obj refract4.obj rocks.obj showelem.obj &
+      spline.obj ssats.obj triton.obj vislimit.obj vsopson.obj
 
-calendar.exe:         calendar.obj wafuncs.lib
-   wcl386 -zq -k10000 calendar.obj wafuncs.lib
+LINK=wcl386 -zq -k10000
 
-cosptest.exe:         cosptest.obj wafuncs.lib
-   wcl386 -zq -k10000 cosptest.obj wafuncs.lib
+BASE_FLAGS=-w4 -oxt -4r -s -j -zq
+LIBNAME=wafuncs
+RM=-rm
 
-dist.exe:             dist.cpp
-   wcl386 -zq -k10000 dist.cpp
-
-easter.exe:           easter.cpp
-   wcl386 -zq -k10000 easter.cpp -DTEST_CODE
-
-get_test.exe:         get_test.obj wafuncs.lib
-   wcl386 -zq -k10000 get_test.obj wafuncs.lib
-
-htc20b.exe:           htc20b.obj wafuncs.lib
-   wcl386 -zq -k10000 htc20b.obj wafuncs.lib -DTEST_MAIN
-
-jd.exe:               jd.obj wafuncs.lib
-   wcl386 -zq -k10000 jd.obj wafuncs.lib
-
-jevent.exe:           jevent.cpp wafuncs.lib
-   wcl386 -zq -k10000 jevent.cpp wafuncs.lib
-
-jpl2b32.exe:          jpl2b32.cpp
-   wcl386 -zq -k10000 jpl2b32.cpp
-
-jsattest.exe:         jsattest.obj wafuncs.lib
-   wcl386 -zq -k10000 jsattest.obj wafuncs.lib
-
-lun_test.exe:         lun_test.obj lun_tran.obj riseset3.obj wafuncs.lib
-   wcl386 -zq -k10000 lun_test.obj lun_tran.obj riseset3.obj wafuncs.lib
-
-marstime.exe:         marstime.cpp
-   wcl386 -zq -k10000 marstime.cpp -DTEST_PROGRAM
-
-oblitest.exe:         oblitest.obj obliqui2.obj spline.obj wafuncs.lib
-   wcl386 -zq -k10000 oblitest.obj obliqui2.obj spline.obj wafuncs.lib
-
-persian.exe:          persian.obj solseqn.obj wafuncs.lib
-   wcl386 -zq -k10000 persian.obj solseqn.obj wafuncs.lib
-
-phases.exe:           phases.obj wafuncs.lib
-   wcl386 -zq -k10000 phases.obj wafuncs.lib
-
-ps_1996.exe:          ps_1996.obj wafuncs.lib
-   wcl386 -zq -k10000 ps_1996.obj wafuncs.lib
-
-relativi.exe:         relativi.cpp wafuncs.lib
-   wcl386 -zq -k10000 relativi.cpp wafuncs.lib -DTEST_CODE
-
-ssattest.exe:         ssattest.obj wafuncs.lib
-   wcl386 -zq -k10000 ssattest.obj wafuncs.lib
-
-tables.exe:           tables.obj riseset3.obj wafuncs.lib
-   wcl386 -zq -k10000 tables.obj riseset3.obj wafuncs.lib
-
-testprec.exe:         testprec.obj wafuncs.lib
-   wcl386 -zq -k10000 testprec.obj wafuncs.lib
-
-test_ref.exe:         test_ref.obj refract4.obj refract.obj
-   wcl386 -zq -k10000 test_ref.obj refract4.obj refract.obj
-
-uranus1.exe:          uranus1.obj gust86.obj
-   wcl386 -zq -k10000 uranus1.obj gust86.obj
-
-utc_test.exe:         utc_test.obj wafuncs.lib
-   wcl386 -zq -k10000 utc_test.obj wafuncs.lib
-
-wafuncs.lib: alt_az.obj astfuncs.obj big_vsop.obj classel.obj com_file.obj cospar.obj      &
-             date.obj delta_t.obj de_plan.obj dist_pa.obj        &
-             eart2000.obj elp82dat.obj getplane.obj get_time.obj &
-             jsats.obj lunar2.obj triton.obj miscell.obj nutation.obj       &
-             obliquit.obj pluto.obj precess.obj refract.obj       &
-             refract4.obj rocks.obj showelem.obj &
-             ssats.obj vislimit.obj vsopson.obj
-   wlib -q wafuncs.lib +alt_az.obj +astfuncs.obj +big_vsop.obj +classel.obj +com_file.obj +cospar.obj
-   wlib -q wafuncs.lib +date.obj +delta_t.obj +de_plan.obj +dist_pa.obj
-   wlib -q wafuncs.lib +eart2000.obj +elp82dat.obj +getplane.obj +get_time.obj
-   wlib -q wafuncs.lib +jsats.obj +lunar2.obj +triton.obj +miscell.obj +nutation.obj
-   wlib -q wafuncs.lib +obliquit.obj +pluto.obj +precess.obj +refract.obj
-   wlib -q wafuncs.lib +refract4.obj +rocks.obj +showelem.obj
-   wlib -q wafuncs.lib +ssats.obj +vislimit.obj +vsopson.obj
-
-CC=wcc386
-CFLAGS=-w4 -oxt -4r -s -j -zq -za99
+!ifdef DLL
+COMMON_FLAGS = $(BASE_FLAGS) -EHsc -LD -DNDEBUG
+!else
+COMMON_FLAGS = $(BASE_FLAGS)
+!endif
 
 .cpp.obj:
-   $(CC) $(CFLAGS) $<
+   wcc386 $(COMMON_FLAGS) -za99 $<
+
+$(LIBNAME).lib : $(LIB_OBJS)
+   %write wlunar.lrf $(LIB_OBJS)
+   wlib -q -n -t $@ @wlunar.lrf
+   -del wlunar.lrf
+
+clean:
+   $(RM) *.obj
+   $(RM) *.exe
+   $(RM) *.err
+   $(RM) *.map
+   $(RM) *.exp
+   $(RM) $(LIBNAME).lib
+   $(RM) $(LIBNAME).dll
+
+astcheck.exe: astcheck.obj eart2000.obj mpcorb.obj $(LIBNAME).lib
+   $(LINK)    astcheck.obj eart2000.obj mpcorb.obj $(LIBNAME).lib
+
+astephem.exe: astephem.obj eart2000.obj mpcorb.obj $(LIBNAME).lib
+   $(LINK)    astephem.obj eart2000.obj mpcorb.obj $(LIBNAME).lib
+
+calendar.exe: calendar.obj $(LIBNAME).lib
+   $(LINK)    calendar.obj $(LIBNAME).lib
+
+cosptest.exe: cosptest.obj $(LIBNAME).lib
+   $(LINK)    cosptest.obj $(LIBNAME).lib
+
+dist.exe:  dist.obj
+   $(LINK) dist.obj
+
+easter.exe: easter.cpp
+   $(LINK) -DTEST_CODE $(BASE_FLAGS) easter.cpp
+
+get_test.exe: get_test.obj $(LIBNAME).lib
+   $(LINK)    get_test.obj $(LIBNAME).lib
+
+htc20b.exe: htc20b.cpp
+   $(LINK) -DTEST_MAIN $(BASE_FLAGS) htc20b.cpp
+
+jevent.exe: jevent.obj $(LIBNAME).lib
+   $(LINK)  jevent.obj $(LIBNAME).lib
+
+jd.exe:    jd.obj $(LIBNAME).lib
+   $(LINK) jd.obj $(LIBNAME).lib
+
+jpl2b32.exe: jpl2b32.obj
+   $(LINK)   jpl2b32.obj
+
+jsattest.exe: jsattest.obj $(LIBNAME).lib
+   $(LINK)    jsattest.obj $(LIBNAME).lib
+
+lun_test.exe: lun_test.obj lun_tran.obj riseset3.obj $(LIBNAME).lib
+   $(LINK)    lun_test.obj lun_tran.obj riseset3.obj $(LIBNAME).lib
+
+marstime.exe: marstime.cpp
+   $(LINK) -DTEST_PROGRAM $(BASE_FLAGS) marstime.cpp
+
+oblitest.exe: oblitest.obj obliqui2.obj spline.obj $(LIBNAME).lib
+   $(LINK)    oblitest.obj obliqui2.obj spline.obj $(LIBNAME).lib
+
+persian.exe: persian.obj solseqn.obj $(LIBNAME).lib
+   $(LINK)   persian.obj solseqn.obj $(LIBNAME).lib
+
+phases.exe: phases.obj $(LIBNAME).lib
+   $(LINK)  phases.obj $(LIBNAME).lib
+
+prectest.exe: prectest.obj $(LIBNAME).lib
+   $(LINK)    prectest.obj $(LIBNAME).lib
+
+ps_1996.exe: ps_1996.obj $(LIBNAME).lib
+   $(LINK)   ps_1996.obj $(LIBNAME).lib
+
+relativi.exe: relativi.obj $(LIBNAME).lib
+   $(LINK)    relativi.obj $(LIBNAME).lib
+
+relativi.obj:
+   wcc386 $(BASE_FLAGS) -DTEST_CODE relativi.cpp
+
+ssattest.exe: ssattest.obj $(LIBNAME).lib
+   $(LINK)    ssattest.obj $(LIBNAME).lib
+
+tables.exe: tables.obj riseset3.obj $(LIBNAME).lib
+   $(LINK)  tables.obj riseset3.obj $(LIBNAME).lib
+
+testprec.exe: testprec.obj $(LIBNAME).lib
+   $(LINK)    testprec.obj $(LIBNAME).lib
+
+test_ref.exe: test_ref.obj refract.obj refract4.obj
+   $(LINK)    test_ref.obj refract.obj refract4.obj
+
+uranus1.exe: uranus1.obj gust86.obj
+   $(LINK)   uranus1.obj gust86.obj
+
+utc_test.exe: utc_test.obj $(LIBNAME).lib
+   $(LINK)    utc_test.obj $(LIBNAME).lib
