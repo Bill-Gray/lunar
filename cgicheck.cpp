@@ -32,7 +32,9 @@ int main( const int unused_argc, const char **unused_argv)
    int argc = 2;
    FILE *lock_file = fopen( "lock.txt", "w");
    size_t bytes_written = 0;
+#ifndef _WIN32
    extern char **environ;
+#endif
    extern int verbose;
    double search_radius = 2.;    /* default to looking two degrees */
 
@@ -51,8 +53,10 @@ int main( const int unused_argc, const char **unused_argv)
       return( 0);
       }
    fprintf( lock_file, "We're in\n");
+#ifndef _WIN32
    for( size_t i = 0; environ[i]; i++)
       fprintf( lock_file, "%s\n", environ[i]);
+#endif
    if( !fgets( boundary, sizeof( boundary), stdin))
       {
       printf( "<b> No info read from stdin</b>");
