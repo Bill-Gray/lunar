@@ -30,8 +30,8 @@ double cubic_spline_interpolate_within_table(      /* spline.cpp */
          const double *table, const int n_entries, double x, int *err_code);
 
 #define PI 3.1415926535897932384626433832795028841971693993751058209749445923
-static const double arcsec_to_radians = PI / (180. * 3600.);
-static const double marcsec_to_radians = PI / (180. * 3600.e+3);
+const double arcsec_to_radians = PI / (180. * 3600.);
+const double marcsec_to_radians = PI / (180. * 3600.e+3);
 
 #define TBLSIZE 4
 
