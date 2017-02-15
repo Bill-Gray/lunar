@@ -19,12 +19,23 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 
 #include <math.h>
 #include <assert.h>
+#ifndef __cplusplus
+   #include <stdbool.h>
+#endif
 #include "watdefs.h"
 #include "afuncs.h"
 #include "comets.h"
-#ifndef isfinite
-   #include <float.h>
-   #define isfinite _finite
+
+/* MS only got around to adding 'isfinite',  asinh in VS2013 : */
+
+#if defined( _MSC_VER) && (_MSC_VER < 1800)
+#include <float.h>
+#define isfinite _finite
+
+static double asinh( const double x)
+{
+   return( log( x + sqrt( x * x + 1.)));
+}
 #endif
 
 #define PI 3.1415926535897932384626433832795028841971693993751058209749445923
@@ -95,17 +106,6 @@ static double remaining_terms( const double ival)
    return( rval);
 }
 
-/* Old MSVCs lack inverse hyperbolic functions: */
-
-#ifdef _MSC_VER
-#if _MSC_VER <= 1100
-static double asinh( const double x)
-{
-   return( log( x + sqrt( x * x + 1.)));
-}
-#endif
-#endif
-
 int DLL_FUNC calc_classical_elements( ELEMENTS *elem, const double *r,
                              const double t, const int ref)
 {
@@ -163,9 +163,9 @@ int DLL_FUNC calc_classical_elements( ELEMENTS *elem, const double *r,
    else        /* at eccentricities near one,  the above suffers  */
       {        /* a loss of precision problem,  and we switch to: */
       const double gm_over_h0 = elem->gm / h0;
-//    const double perihelion_speed = gm_over_h0 +
-//                 sqrt( fabs( gm_over_h0 * gm_over_h0 - inv_major_axis * elem->gm));
-      const double perihelion_speed = gm_over_h0 *
+/*    const double perihelion_speed = gm_over_h0 +
+                   sqrt( fabs( gm_over_h0 * gm_over_h0 - inv_major_axis * elem->gm));
+*/    const double perihelion_speed = gm_over_h0 *
                (1. + sqrt( 1. - inv_major_axis * h0 * h0 / elem->gm));
 
       assert( h0 != 0.);

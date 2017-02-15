@@ -134,16 +134,13 @@ void DLL_FUNC derive_quantities( ELEMENTS DLLPTR *e, const double gm)
   setup_orbit_vectors( e);
 }
 
-/* 'asinh' = 'arc-hyperbolic sine.'  Most compilers now implement this.
-I _think_ older Microsoft compilers are the only ones with this problem. */
+/* MS only got around to adding asinh in VS2013 : */
 
-#ifdef _MSC_VER
-#if _MSC_VER <= 1100
+#if defined( _MSC_VER) && (_MSC_VER < 1800)
 static double asinh( const double z)
 {
    return( log( z + sqrt( z * z + 1.)));
 }
-#endif
 #endif
 
 /* If the eccentricity is very close to parabolic,  and the eccentric
