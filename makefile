@@ -139,6 +139,9 @@ htc20b$(EXE): htc20b.cpp liblunar.a
 integrat$(EXE): integrat.o liblunar.a
 	$(CC) $(CFLAGS) -o integrat$(EXE) integrat.o liblunar.a $(LIBSADDED) -L $(INSTALL_DIR)/lib -ljpl
 
+integrat.o: integrat.cpp
+	$(CC) $(CFLAGS) -c -I $(INSTALL_DIR)/include $<
+
 jd$(EXE): jd.o liblunar.a
 	$(CC) $(CFLAGS) -o jd$(EXE) jd.o liblunar.a $(LIBSADDED)
 
