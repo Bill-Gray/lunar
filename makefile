@@ -17,6 +17,17 @@ LIBSADDED=
 EXE=
 CFLAGS=-Wextra -Wall -O3 -pedantic -Wno-unused-parameter
 
+# You can have your include files in ~/include and libraries in
+# ~/lib,  in which case only the current user can use them;  or
+# (with root privileges) you can install them to /usr/local/include
+# and /usr/local/lib for all to enjoy.
+
+ifdef GLOBAL
+	INSTALL_DIR=/usr/local
+else
+	INSTALL_DIR=~
+endif
+
 ifdef CLANG
 	CC=clang
 endif
@@ -44,21 +55,26 @@ all: astcheck$(EXE) astephem$(EXE) calendar$(EXE) cgicheck$(EXE)  \
    test_ref$(EXE) testprec$(EXE) uranus1$(EXE) utc_test$(EXE)
 
 install:
-	cp afuncs.h   /usr/local/include
-	cp comets.h   /usr/local/include
-	cp showelem.h /usr/local/include
-	cp date.h     /usr/local/include
-	cp lunar.h    /usr/local/include
-	cp watdefs.h  /usr/local/include
-	cp liblunar.a /usr/local/lib
+	-mkdir $(INSTALL_DIR)/include
+	cp afuncs.h   $(INSTALL_DIR)/include
+	cp comets.h   $(INSTALL_DIR)/include
+	cp showelem.h $(INSTALL_DIR)/include
+	cp date.h     $(INSTALL_DIR)/include
+	cp lunar.h    $(INSTALL_DIR)/include
+	cp watdefs.h  $(INSTALL_DIR)/include
+	-mkdir $(INSTALL_DIR)/lib
+	cp liblunar.a $(INSTALL_DIR)/lib
+	-mkdir $(HOME)/bin
+	cp astcheck $(HOME)/bin
+	-cp integrat $(HOME)/bin
 
 uninstall:
-	rm -f /usr/local/include/afuncs.h
-	rm -f /usr/local/include/comets.h
-	rm -f /usr/local/include/showelem.h
-	rm -f /usr/local/include/date.h
-	rm -f /usr/local/include/watdefs.h
-	rm -f /usr/local/lib/liblunar.a
+	rm -f $(INSTALL_DIR)/include/afuncs.h
+	rm -f $(INSTALL_DIR)/include/comets.h
+	rm -f $(INSTALL_DIR)/include/showelem.h
+	rm -f $(INSTALL_DIR)/include/date.h
+	rm -f $(INSTALL_DIR)/include/watdefs.h
+	rm -f $(INSTALL_DIR)/lib/liblunar.a
 
 .cpp.o:
 	$(CC) $(CFLAGS) -c $<
@@ -121,7 +137,7 @@ htc20b$(EXE): htc20b.cpp liblunar.a
 	$(CC) $(CFLAGS) -o htc20b$(EXE) -DTEST_MAIN htc20b.cpp liblunar.a $(LIBSADDED)
 
 integrat$(EXE): integrat.o liblunar.a
-	$(CC) $(CFLAGS) -o integrat$(EXE) integrat.o liblunar.a $(LIBSADDED) -ljpl
+	$(CC) $(CFLAGS) -o integrat$(EXE) integrat.o liblunar.a $(LIBSADDED) -L $(INSTALL_DIR)/lib -ljpl
 
 jd$(EXE): jd.o liblunar.a
 	$(CC) $(CFLAGS) -o jd$(EXE) jd.o liblunar.a $(LIBSADDED)
