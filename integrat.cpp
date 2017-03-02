@@ -180,11 +180,11 @@ static void compute_perturber( int perturber_no, double jd,
 
       if( jd0 != jd)
          {
-         int list[12];
+         int list[14];
          const double ratio = 1. + jpl_get_double( jpl_ephemeris,
                                           JPL_EPHEM_EARTH_MOON_RATIO);
 
-         for( i = 0; i < 12; i++)
+         for( i = 0; i < 14; i++)
             list[i] = (i < 10);
          jpl_state( jpl_ephemeris, jd, list, posns, NULL, 0);
          for( i = 0; i < 3; ++i)
