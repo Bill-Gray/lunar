@@ -879,12 +879,11 @@ int main( int argc, const char **argv)
                /* to refer to that date in the current year).            */
    dest_jd = floor( curr_jd) + .5;
    *buff = '\0';
-   for( i = 3; i < argc; i++)
-      if( argv[i][0] != '-')
-         {
-         strcat( buff, " ");
-         strcat( buff, argv[i]);
-         }
+   for( i = 3; i < argc && argv[i][0] != '-'; i++)
+      {
+      strcat( buff, " ");
+      strcat( buff, argv[i]);
+      }
    if( !memcmp( buff, " today", 6))
       dest_jd += atof( buff + 6);
    else
@@ -919,6 +918,8 @@ int main( int argc, const char **argv)
                break;
             case 'f':
                ephem_filename = argv[i] + 2;
+               if( !*ephem_filename && i < argc - 1)
+                  ephem_filename = argv[i + 1];
                break;
             case 'n':
                max_asteroids = atoi( argv[i] + 2);
