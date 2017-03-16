@@ -62,6 +62,7 @@ install:
 	cp date.h     $(INSTALL_DIR)/include
 	cp lunar.h    $(INSTALL_DIR)/include
 	cp watdefs.h  $(INSTALL_DIR)/include
+	cp vislimit.h $(INSTALL_DIR)/include
 	-mkdir $(INSTALL_DIR)/lib
 	cp liblunar.a $(INSTALL_DIR)/lib
 	-mkdir $(HOME)/bin
@@ -74,6 +75,7 @@ uninstall:
 	rm -f $(INSTALL_DIR)/include/showelem.h
 	rm -f $(INSTALL_DIR)/include/date.h
 	rm -f $(INSTALL_DIR)/include/watdefs.h
+	rm -f $(INSTALL_DIR)/include/vislimit.h
 	rm -f $(INSTALL_DIR)/lib/liblunar.a
 
 .cpp.o:
