@@ -117,8 +117,8 @@ static unsigned gcd( unsigned a, unsigned b)
 #include <stdio.h>
 #include <stdlib.h>
 
-#ifdef _MSC_VER
-     /* Microsoft Visual C/C++ has no snprintf.  Yes,  you read that      */
+#if defined(_MSC_VER) && _MSC_VER < 1900
+     /* MSVC/C++ (up to VS2015) has no snprintf.  Yes,  you read that     */
      /* correctly.  MSVC has an _snprintf which doesn't add a '\0' at the */
      /* end if max_len bytes are written.  You can't pass a NULL string   */
      /* to determine the necessary buffer size.  The following, however,  */
@@ -129,7 +129,9 @@ static unsigned gcd( unsigned a, unsigned b)
      /* many bytes "should" have been written.                            */
      /*   Somewhat ancient MSVCs don't even have vsnprintf;  you have to  */
      /* use vsprintf and work things out so you aren't overwriting the    */
-     /* end of the buffer.                                                */
+     /* end of the buffer.  So be advised:  if using old MSVCs,  be sure  */
+     /* your buffer is big enough for the 'full' result,  even though it  */
+     /* will then get truncated correctly.                                */
 #include <stdarg.h>
 
 int snprintf( char *string, const size_t max_len, const char *format, ...)
