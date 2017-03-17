@@ -23,5 +23,13 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 
 /* REMEMBER:  set 'central_obj', 'epoch', 'abs_mag', 'slope_param' fields */
 
+#ifdef __cplusplus
+extern "C" {
+#endif /* #ifdef __cplusplus */
+
 int DLL_FUNC elements_in_mpc_format( char *obuff, const ELEMENTS *elem,
                 const char *obj_id, const int is_cometary, const int format);
+
+#ifdef __cplusplus
+}
+#endif  /* #ifdef __cplusplus */
