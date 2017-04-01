@@ -108,8 +108,9 @@ double DLL_FUNC reverse_saasta_refraction( const double true_alt,
 
 #ifdef TEST_PROGRAM
 #include <stdio.h>
+#include <stdlib.h>
 
-void main( int argc, char **argv)
+int main( const int argc, const char **argv)
 {
    int i;
    double ang, ref, scale = 1.;
@@ -148,5 +149,6 @@ void main( int argc, char **argv)
                                          ref * 180. / PI);
          }
       }
+   return( 0);
 }
 #endif
