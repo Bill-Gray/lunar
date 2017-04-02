@@ -20,6 +20,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 #include <math.h>
 #include <stddef.h>
 #include <stdint.h>
+#include <assert.h>
 #include <stdbool.h>
 #include "watdefs.h"
 #include "comets.h"
@@ -213,6 +214,7 @@ static double kepler( const double ecc, double mean_anom)
       if( ecc < .9)     /* low-eccentricity formula from Meeus,  p. 195 */
          {
          curr = atan2( sin( mean_anom), cos( mean_anom) - ecc);
+               /* (usually) one or two correction steps,  and we're done */
          do
             {
             err = (curr - ecc * sin( curr) - mean_anom) / (1. - ecc * cos( curr));
@@ -236,17 +238,14 @@ static double kepler( const double ecc, double mean_anom)
                /* get below a certain minimum threshhold anyway:        */
    if( thresh < MIN_THRESH)
       thresh = MIN_THRESH;
-   if( (ecc > .8 && mean_anom < PI / 3.) || ecc > 1.)    /* up to 60 degrees */
+   if( ecc > 1. && mean_anom / ecc > 3.)    /* hyperbolic, large-mean-anomaly */
+      curr = log( mean_anom / ecc) + 0.85;
+   else if( (ecc > .8 && mean_anom < PI / 3.) || ecc > 1.)    /* up to 60 degrees */
       {
       double trial = mean_anom / fabs( 1. - ecc);
 
       if( trial * trial > 6. * fabs(1. - ecc))   /* cubic term is dominant */
-         {
-         if( mean_anom < PI)
-            trial = CUBE_ROOT( 6. * mean_anom);
-         else        /* hyperbolic w/ 5th & higher-order terms predominant */
-            trial = asinh( mean_anom / ecc);
-         }
+         trial = CUBE_ROOT( 6. * mean_anom);
       curr = trial;
       if( thresh > THRESH)       /* happens if e > 2. */
          thresh = THRESH;
@@ -261,16 +260,18 @@ static double kepler( const double ecc, double mean_anom)
             err = curr - ecc * sin( curr) - mean_anom;
          delta_curr = -err / (1. - ecc * cos( curr));
          curr += delta_curr;
+         assert( n_iter < 15);
          }
    else
       while( fabs( delta_curr) > thresh)
          {
-         if( n_iter++ > MAX_ITERATIONS)
+         if( n_iter++ > MAX_ITERATIONS && ecc < 1.01)
             err = -near_parabolic( curr, ecc) - mean_anom;
          else
             err = ecc * sinh( curr) - curr - mean_anom;
          delta_curr = -err / (ecc * cosh( curr) - 1.);
          curr += delta_curr;
+         assert( n_iter < 15);
          }
    return( is_negative ? offset - curr : offset + curr);
 }
