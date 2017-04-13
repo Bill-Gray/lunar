@@ -17,12 +17,9 @@ Algorithms_,  pp 80-82.
 
    The second method just uses plain spherical trigonometry,  as if
 the earth really was round.  This can cause an error of about .5
-percent.  As written,  it also loses precision for very short
-distances and those near the antipodes,  where cos_d is almost
-exactly 1 or -1.  In some cases,  roundoff might push you beyond
-those limits, causing a domain error.  If you really want a
-round-earth version that is bulletproof,  see 'dist_pa.cpp' on
-the projectpluto.com Web site.
+percent.  As written,  it also loses precision for distances near
+the antipodes,  and could get a domain error in some cases.  If you
+want a round-earth version that is bulletproof,  see 'dist_pa.cpp'.
 
    The third method is due to Thaddeus Vincenty,  and is documented at
 http://www.ngs.noaa.gov/PUBS_LIB/inverse.pdf .  An implementation in
@@ -81,22 +78,41 @@ double earth_dist( const double lat1, const double lon1,
    return( rval);
 }
 
-/* This implementation for the spherical earth is mathematically exact,
-but because the acos( ) function loses precision for cos_d near to
-+/- 1,  the precision of the distance is apt to be poor for points
-that are either close together (cos_d near 1) or near the antipodes
-(cos_d near -1).  If you want to evade this problem,  and/or want to
-compute the bearing,  too,  see dist_pa.cpp.  (Contrary to popular
-belief,  switching to haversines will _not_ cure all ills,  though
-it helps.)                  */
+/* This uses the 'haversine' method for solving the spherical triangle.
+ It's mathematically exact,  but you could (at least in theory) see
+roundoff problems near the antipodes,  such that the final line would
+involve taking the arcsine of a value greater than 1.  If you want to
+evade this problem,  and/or want to compute the bearing, too,  see
+dist_pa.cpp.  (Contrary to popular belief,  use of haversines will
+_not_ cure all ills,  though it helps.  In particular,  there's less
+loss of precision over small distances.)
+
+Note that hav(x) = sin^2(x / 2) = (1-cos(x)) / 2,  and that
+x = 2 * asin( sqrt( hav(x))).
+
+I think one could get around the problems,  mostly,  by saying: If the
+return value would be more than about 2/3 of the way around the earth,
+then try again with lat2 negated and adding 180 degrees to lon2.  That
+is to say,  move the second point to its antipode.  Return 180 degrees
+minus the result.  In other words,  convert the problem from "two
+points near the antipodes" to one of "two points that are near each
+other".  But I've not had any good reason to implement this fix. */
 
 double spherical_earth_dist( const double lat1, const double lon1,
                              const double lat2, const double lon2)
 {
-   const double cos_d = sin( lat1) * sin( lat2) +
-                                cos( lat1) * cos( lat2) * cos( lon1 - lon2);
+   double x, y, z;
 
-   return( acos( cos_d));
+   x = sin( (lon1 - lon2) / 2);
+   x *= x;                          /* x = hav( lon1 - lon2) */
+   y = sin ((lat1 - lat2) / 2);
+   y *= y;                          /* y = hav( lat1 - lat2) */
+
+   /* Seem to be more precise : */
+   z = cos ((lat1 + lat2) / 2);
+   z*=z;                            /* z = hav( lat1 + lat2) */
+
+   return 2 * asin( sqrt( x * (z - y) + y));
 }
 
 /* Some modifications were made in this implementation of the
