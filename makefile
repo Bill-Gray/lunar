@@ -34,10 +34,16 @@ endif
 
 RM=rm -f
 
+# I'm using 'mkdir -p' to avoid error messages if the directory exists.
+# It may fail on very old systems,  and will probably fail on non-POSIX
+# systems.  If so,  change to '-mkdir' and ignore errors.
+
 ifdef MSWIN
 	EXE=.exe
+	MKDIR=-mkdir
 else
 	LIBSADDED=-lm
+	MKDIR=mkdir -p
 endif
 
 ifdef XCOMPILE
@@ -55,7 +61,7 @@ all: astcheck$(EXE) astephem$(EXE) calendar$(EXE) cgicheck$(EXE)  \
    test_ref$(EXE) testprec$(EXE) uranus1$(EXE) utc_test$(EXE)
 
 install:
-	-mkdir $(INSTALL_DIR)/include
+	$(MKDIR) $(INSTALL_DIR)/include
 	cp afuncs.h   $(INSTALL_DIR)/include
 	cp comets.h   $(INSTALL_DIR)/include
 	cp showelem.h $(INSTALL_DIR)/include
@@ -63,9 +69,9 @@ install:
 	cp lunar.h    $(INSTALL_DIR)/include
 	cp watdefs.h  $(INSTALL_DIR)/include
 	cp vislimit.h $(INSTALL_DIR)/include
-	-mkdir $(INSTALL_DIR)/lib
+	$(MKDIR) $(INSTALL_DIR)/lib
 	cp liblunar.a $(INSTALL_DIR)/lib
-	-mkdir $(HOME)/bin
+	$(MKDIR) $(HOME)/bin
 	cp astcheck $(HOME)/bin
 	-cp integrat $(HOME)/bin
 
