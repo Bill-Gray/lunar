@@ -96,7 +96,21 @@ then try again with lat2 negated and adding 180 degrees to lon2.  That
 is to say,  move the second point to its antipode.  Return 180 degrees
 minus the result.  In other words,  convert the problem from "two
 points near the antipodes" to one of "two points that are near each
-other".  But I've not had any good reason to implement this fix. */
+other".  But I've not had any good reason to implement this fix.
+
+The usual 'law of haversines' for a spherical triangle with sides
+a, b, c and angles A, B, C is
+
+hav(a) = hav(b - c) + sin( b) sin( c) hav( A)
+
+   However, sin( b) sin( c) = 1/2 (cos( b-c) - cos( b+c)) =
+hav( b+c) - hav( b-c).  So the above can be rewritten as
+
+hav(a) = hav(b - c) + (hav(b + c) - hav( b - c)) hav( A)
+
+   which is the form used below.  Note that while I've used it here to
+determine a side given two sides and an included angle,  it could be
+trivially rearranged if you wanted to get an angle from three sides. */
 
 double spherical_earth_dist( const double lat1, const double lon1,
                              const double lat2, const double lon2)
