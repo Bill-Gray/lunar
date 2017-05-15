@@ -46,7 +46,12 @@ But you do need to have that data if you intend to call the
 compute_limiting_mag( ) function.
 
 All of what follows is adapted from Brad Schaefer's article and code
-on pages 57-60,  May 1998 _Sky & Telescope_,  "To the Visual Limits".
+on pages 57-60,  May 1998 _Sky & Telescope_,  "To the Visual Limits",
+which is in turn based on his articles in _Publications of the Astronomical
+Society of the Pacific_ :
+
+http://articles.adsabs.harvard.edu/full/1990PASP..102..212S
+http://articles.adsabs.harvard.edu/full/1991PASP..103.1033K
 
 NOTICE that I modified his test conditions.  He had the moon and sun
 well below the horizon;  I found that this didn't make testing
