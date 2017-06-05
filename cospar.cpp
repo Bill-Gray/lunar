@@ -31,6 +31,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 #define NO_OBJECT_SELECTED       -99999
 #define PLANET_SELECTED          -99998
 
+const char *cospar_filename = "cospar.txt";
+
 /* Mostly complete code to compute COSPAR planetary,  satellite,  and
 asteroid orientations using data extracted from 'cospar.txt'.  Thus far,
 it can take the Guide-style object number and a JD and compute the pole
@@ -66,7 +68,7 @@ static int get_cospar_data_from_text_file( int object_number,
 
    if( !cospar_text)       /* must load file */
       {
-      FILE *ifile = fopen( "cospar.txt", "rb");
+      FILE *ifile = fopen( cospar_filename, "rb");
       int pass;
 
       if( !ifile)
