@@ -126,11 +126,13 @@ static FILE *err_fopen( const char *filename, const char *permits)
    return( rval);
 }
 
+#ifdef FORKING
 static char *chunk_filename( char *filename, const int chunk_number)
 {
    sprintf( filename, "chunk%d.ugh", chunk_number);
    return( filename);
 }
+#endif
 
 static void set_differential_acceleration( const double *posnvel,
                       const double *delta, double *accel)
@@ -772,14 +774,21 @@ static double try_to_integrate( char *buff, const double dest_jd,
    return( elem.epoch);
 }
 
+/* If we're updating a previous result,  we check to see if the designation,
+H, G,  reference,  number of observations,  etc.  have changed.  If they
+have, the data underlying the orbit have presumably changed,  and we need to
+re-integrate that object's orbit.  But if our previous result does contain an
+object with the same name and other details,  we don't have to do all the
+math to integrate it all over again just to get the same result as before. */
+
 static long compute_hash( const char *buff)
 {
    long rval = 0;
-   const long big_prime = 314159265359L;
+   const long big_prime = 2141592701L;
    int i;
 
    for( i = 0; *buff; i++, buff++)
-      if( i < 20 || i > 105)
+      if( i < 20 || i > 105)        /* skip cols containing orbital elems */
          rval = rval * big_prime + (long)*buff;
    return( rval);
 }
