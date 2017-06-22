@@ -787,7 +787,7 @@ static long compute_hash( const char *buff)
    const long big_prime = 2141592701L;
    int i;
 
-   for( i = 0; *buff; i++, buff++)
+   for( i = 0; *buff >= ' '; i++, buff++)
       if( i < 20 || i > 105)        /* skip cols containing orbital elems */
          rval = rval * big_prime + (long)*buff;
    return( rval);
