@@ -202,6 +202,14 @@ int DLL_FUNC get_earth_orientation_params( const double jd,
 
 const double J2000 = 2451545.;
 
+/* Note that the matrix returned by this function gives the instantaneous
+orientation of the earth,  with
+
+matrix[0, 1, 2] = vector pointing at equator, 0 lon,  in J2000/ICRF
+matrix[3, 4, 5] = vector pointing at equator, 90 E lon,  also J2000/ICRF
+matrix[6, 7, 8] = vector pointing at north pole (+90 lat),  also J2000/ICRF
+*/
+
 int DLL_FUNC setup_precession_with_nutation_eops( double DLLPTR *matrix,
                     const double year)
 {
