@@ -433,6 +433,18 @@ long double DLL_FUNC get_time_from_stringl( long double initial_t2k,
          *is_ut = 1;
       }
 
+   if( !memcmp( str, "gps ", 4))                 /* GPS WWWWD scheme */
+      {
+      int week_and_day = 0;
+      const double jan_6_1980 = 2444244.5;  /* zero point of GPS system */
+
+      for( i = 4; i < 9 && str[i] >= '0' && str[i] <= '9'; i++)
+         week_and_day = week_and_day * 10 + str[i] - '0';
+      if( i == 9)    /* yes,  there were five digits */
+         rval = (double)( (week_and_day / 10) * 7 + week_and_day % 10)
+                        + jan_6_1980 - J2000;
+      }
+
    if( !memcmp( str, "now", 3))
       {
       static const long double jan_1970 = 2440587.5;
