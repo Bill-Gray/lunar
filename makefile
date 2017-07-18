@@ -46,10 +46,13 @@ else
 	MKDIR=mkdir -p
 endif
 
+LIB_DIR=$(INSTALL_DIR)/lib
+
 ifdef XCOMPILE
    CC=x86_64-w64-mingw32-g++
    EXE=.exe
-   LIBSADDED=
+   LIB_DIR=$(INSTALL_DIR)/win_lib
+   LIBSADDED=-L $(LIB_DIR) -mwindows
 endif
 
 all: astcheck$(EXE) astephem$(EXE) calendar$(EXE) cgicheck$(EXE)  \
@@ -69,8 +72,8 @@ install:
 	cp lunar.h    $(INSTALL_DIR)/include
 	cp watdefs.h  $(INSTALL_DIR)/include
 	cp vislimit.h $(INSTALL_DIR)/include
-	$(MKDIR) $(INSTALL_DIR)/lib
-	cp liblunar.a $(INSTALL_DIR)/lib
+	$(MKDIR) $(LIB_DIR)
+	cp liblunar.a $(LIB_DIR)
 	$(MKDIR) $(HOME)/bin
 	cp astcheck $(HOME)/bin
 	-cp integrat $(HOME)/bin
