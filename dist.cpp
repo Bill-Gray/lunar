@@ -17,9 +17,7 @@ Algorithms_,  pp 80-82.
 
    The second method just uses plain spherical trigonometry,  as if
 the earth really was round.  This can cause an error of about .5
-percent.  As written,  it also loses precision for distances near
-the antipodes,  and could get a domain error in some cases.  If you
-want a round-earth version that is bulletproof,  see 'dist_pa.cpp'.
+percent.
 
    The third method is due to Thaddeus Vincenty,  and is documented at
 http://www.ngs.noaa.gov/PUBS_LIB/inverse.pdf .  An implementation in
@@ -79,43 +77,49 @@ double earth_dist( const double lat1, const double lon1,
 }
 
 /* This uses the 'haversine' method for solving the spherical triangle.
- It's mathematically exact,  but you could (at least in theory) see
-roundoff problems near the antipodes,  such that the final line would
-involve taking the arcsine of a value greater than 1.  If you want to
-evade this problem,  and/or want to compute the bearing, too,  see
-dist_pa.cpp.  (Contrary to popular belief,  use of haversines will
-_not_ cure all ills,  though it helps.  In particular,  there's less
-loss of precision over small distances.)
+The commonly-used method of computing distance over a spherical earth is
 
-Note that hav(x) = sin^2(x / 2) = (1-cos(x)) / 2,  and that
+(1) cos( dist) = sin(lat1) sin(lat2) + cos( lat1) cos(lat2) cos( delta_lon)
+
+   The problem is that if the points are close to each other,  cos( dist)
+is very close to 1.  If they're near the antipodes,  it's very close to
+-1.  So any roundoff may push you outside the domain of the cosine function,
+or at the very least produce a horrendously magnified error when you take
+the arccosine.
+
+   The haversine formula doesn't lose precision for the two-point-near-
+each-other case.  It still would have trouble near the antipodes,
+where you'd get hav(dist) close to 1.  I say "would" because if hav(dist)
+is greater than 0.9,  you'll see that we turn it into 180 degrees minus
+a short-distance problem.
+
+   Note that hav(x) = sin^2(x / 2) = (1-cos(x)) / 2,  and that
 x = 2 * asin( sqrt( hav(x))).
-
-I think one could get around the problems,  mostly,  by saying: If the
-return value would be more than about 2/3 of the way around the earth,
-then try again with lat2 negated and adding 180 degrees to lon2.  That
-is to say,  move the second point to its antipode.  Return 180 degrees
-minus the result.  In other words,  convert the problem from "two
-points near the antipodes" to one of "two points that are near each
-other".  But I've not had any good reason to implement this fix.
 
 The usual 'law of haversines' for a spherical triangle with sides
 a, b, c and angles A, B, C is
 
-hav(a) = hav(b - c) + sin( b) sin( c) hav( A)
+(2) hav(a) = hav(b - c) + sin( b) sin( c) hav( A)
 
-   However, sin( b) sin( c) = 1/2 (cos( b-c) - cos( b+c)) =
-hav( b+c) - hav( b-c).  So the above can be rewritten as
+   (this is actually a rearrangement of (1).)  However, sin( b) sin( c)
+= 1/2 (cos( b-c) - cos( b+c)) = hav( b+c) - hav( b-c).  So (2) can
+be rewritten as
 
-hav(a) = hav(b - c) + (hav(b + c) - hav( b - c)) hav( A)
+(3) hav(a) = hav(b - c) + (hav(b + c) - hav( b - c)) hav( A)
 
    which is the form used below.  Note that while I've used it here to
 determine a side given two sides and an included angle,  it could be
-trivially rearranged if you wanted to get an angle from three sides. */
+trivially rearranged if you wanted to get an angle from three sides.
+You'd have to do similar "flip to the antipodes" tricks to handle the
+case where hav( A) is close to 1,  i.e.,  A is nearly 180 degrees. */
+
+const double pi = 3.14159265358979323846264338327950288419716939937510582;
 
 double spherical_earth_dist( const double lat1, const double lon1,
                              const double lat2, const double lon2)
 {
    double x, y, z;
+   double hav_rval;
 
    x = sin( (lon1 - lon2) / 2);
    x *= x;                          /* x = hav( lon1 - lon2) */
@@ -126,7 +130,11 @@ double spherical_earth_dist( const double lat1, const double lon1,
    z = cos ((lat1 + lat2) / 2);
    z*=z;                            /* z = hav( lat1 + lat2) */
 
-   return 2 * asin( sqrt( x * (z - y) + y));
+   hav_rval = x * (z - y) + y;
+   if( hav_rval > 0.9)              /* close to antipodes */
+      return( pi - spherical_earth_dist( lat1, lon1,
+                     -lat2, lon2 + pi));
+   return 2 * asin( sqrt( hav_rval));
 }
 
 /* Some modifications were made in this implementation of the
@@ -211,7 +219,6 @@ double vincenty_earth_dist( const double lat1, const double lon1,
    const double u2 = cvt_lat( b, lat2);
    const double cos_u1 = cos( u1), sin_u1 = sin( u1);
    const double cos_u2 = cos( u2), sin_u2 = sin( u2);
-   const double pi = 3.14159265358979323846264338327950288419716939937510582;
    double lambda, delta_lambda = 2.;
    double prev_lambda[2], prev_delta[2];
    double low_lambda = 0., high_lambda = pi;
@@ -453,5 +460,7 @@ int main( const int argc, const char **argv)
       printf( "Vincenty direct: %.10f %.10f\n",
                lat2 * 180. / pi, lon2 * 180. / pi);
       }
+   else
+      printf( "usage: dist lat1 lon1 lat2 lon2\n");
    return( 0);
 }
