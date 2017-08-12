@@ -2,6 +2,8 @@
 
 double cubic_spline_interpolate_within_table(      /* spline.cpp */
          const double *table, const int n_entries, double x, int *err_code);
+double lagrange_interpolate_within_table( const double *table,
+         const int n_entries, double x, const int n_pts);     /* spline.c */
 
 /* The following cubic_spline_interpolate_within_table( ) function
 assumes you have a table of n_entries values in an array table[]
@@ -88,3 +90,107 @@ double cubic_spline_interpolate_within_table(
    const double b = y1 - a - c;
    return( table[0] + x * (c + x * (b + x * a)));
 }
+
+double lagrange_interpolate_within_table( const double *table,
+         const int n_entries, double x, const int n_pts)     /* spline.c */
+{
+   int idx = (int)floor( x - (double)n_pts / 2.) + 1;
+   const int max_idx = n_entries - n_pts;
+   double t = 1., c = 1., rval;
+   int i;
+
+   if( idx < 0)      /* extrapolate from front of table */
+      idx = 0;
+   else if( idx > max_idx)
+      idx = max_idx;             /* extrapolate beyond end of table */
+   table += idx;
+   x -= (double)idx;
+
+   for( i = 0; i < n_pts; i++)
+      {
+      c *= x - (double)i;
+      if( i)
+         t *= -(double)i;
+      }
+   if( !c)        /* we're on an abscissa */
+      rval = table[(int)( x + .5)];
+   else
+      {
+      const double y0 = table[n_pts / 2];
+
+      rval = 0.;
+      for( i = 0; i < n_pts; i++)
+         {
+         if( i)
+            t *= (double)i / (double)( i - n_pts);
+         rval += (table[i] - y0) / (t * (x - (double)i));
+         }
+      rval *= c;
+      rval += y0;
+      }
+   return( rval);
+}
+
+#ifdef TEST_CODE
+
+#include <math.h>
+#include <stdio.h>
+
+static void show_explanation( void)
+{
+   printf(
+       "See 'spline.cpp' comments for mathematical details.  This test code\n"
+       "creates a table of sixteen points spaced at 0.1 radians of the sine\n"
+       "function,  and shows the result of cubic splines and Lagrange\n"
+       "interpolation within that table.  The interpolation is done at ten\n"
+       "degree intervals,  i.e.,  it doesn't line up with the table points.\n"
+       "The table covers 0 to 1.5 radians (about 85 degrees).  The interpolation\n"
+       "starts at -30 degrees and runs to 260 degrees to show the effects of\n"
+       "extrapolation.  As you'd expect,  accuracy is good to excellent within\n"
+       "the table and deteriorates as you extrapolate.\n\n");
+}
+
+#define NPTS 16
+
+int main( const int argc, const char **argv)
+{
+   double table[NPTS];
+   const double scale = 10.;
+   int i, j;
+   bool show_differences = false;
+   const char *header =
+     "Ang    sin(ang)         cubic            4-point           6-point         8-point        10-point";
+
+   for( i = 1; i < argc; i++)
+      if( argv[i][0] == '-')
+         switch( argv[i][1])
+            {
+            case 'd':
+               printf( "Showing differences\n");
+               show_differences = true;
+               break;
+            }
+   show_explanation( );
+   for( i = 0; i < NPTS; i++)
+      table[i] = sin( (double)i / scale);
+   printf( "%s\n", header);
+   for( i = -30; i < 270; i += 10)
+      {
+      const double PI =
+           3.1415926535897932384626433832795028841971693993751058209749445923;
+      const double angle = (double)i * PI / 180.;
+      const double x = angle * scale;
+      const double subtract = (show_differences ? sin( angle) : 0.);
+
+      printf( "%3d %16.13f %16.13f", i, sin( angle),
+                cubic_spline_interpolate_within_table( table, NPTS, x, NULL)
+                                 - subtract);
+      for( j = 4; j < 12; j += 2)
+         printf( " %16.13f",
+                lagrange_interpolate_within_table( table, NPTS, x, j)
+                                 - subtract);
+      printf( "\n");
+      }
+   printf( "%s\n", header);
+}
+#endif
