@@ -150,6 +150,17 @@ static void show_explanation( void)
        "the table and deteriorates as you extrapolate.\n\n");
 }
 
+
+static void show_header( const int order1, const int order2, const int order_step)
+{
+   int j;
+
+   printf( "Ang    sin(ang)         cubic   ");
+   for( j = order1; j <= order2; j += order_step)
+      printf( "         %2d-order", j);
+   printf( "\n");
+}
+
 #define NPTS 16
 
 int main( const int argc, const char **argv)
@@ -157,9 +168,8 @@ int main( const int argc, const char **argv)
    double table[NPTS];
    const double scale = 10.;
    int i, j;
+   int order1 = 4, order2 = 12, order_step = 2;
    bool show_differences = false;
-   const char *header =
-     "Ang    sin(ang)         cubic            4-point           6-point         8-point        10-point";
 
    for( i = 1; i < argc; i++)
       if( argv[i][0] == '-')
@@ -169,11 +179,14 @@ int main( const int argc, const char **argv)
                printf( "Showing differences\n");
                show_differences = true;
                break;
+            case 'o':
+               sscanf( argv[i] + 2, "%d,%d,%d", &order1, &order2, &order_step);
+               break;
             }
    show_explanation( );
    for( i = 0; i < NPTS; i++)
       table[i] = sin( (double)i / scale);
-   printf( "%s\n", header);
+   show_header( order1, order2, order_step);
    for( i = -30; i < 270; i += 10)
       {
       const double PI =
@@ -185,12 +198,12 @@ int main( const int argc, const char **argv)
       printf( "%3d %16.13f %16.13f", i, sin( angle),
                 cubic_spline_interpolate_within_table( table, NPTS, x, NULL)
                                  - subtract);
-      for( j = 4; j < 12; j += 2)
+      for( j = order1; j <= order2; j += order_step)
          printf( " %16.13f",
                 lagrange_interpolate_within_table( table, NPTS, x, j)
                                  - subtract);
       printf( "\n");
       }
-   printf( "%s\n", header);
+   show_header( order1, order2, order_step);
 }
 #endif
