@@ -1,9 +1,11 @@
 #include <math.h>       /* for floor() prototype */
+#include <stddef.h>     /* for NULL definition   */
 
 double cubic_spline_interpolate_within_table(      /* spline.cpp */
          const double *table, const int n_entries, double x, int *err_code);
 double lagrange_interpolate_within_table( const double *table,
-         const int n_entries, double x, const int n_pts);     /* spline.c */
+         const int n_entries, double x, const int n_pts,
+         double *deriv);                 /* spline.c */
 
 /* The following cubic_spline_interpolate_within_table( ) function
 assumes you have a table of n_entries values in an array table[]
@@ -91,43 +93,70 @@ double cubic_spline_interpolate_within_table(
    return( table[0] + x * (c + x * (b + x * a)));
 }
 
+/* One can pass a NULL 'deriv' if one doesn't actually need the first
+derivative of the interpolated polynomial.  For a non-NULL value,  the
+usual method for computing that derivative breaks down if you're exactly
+on a grid point (divisions by zero occur).  In such cases,  numerical
+differentiation is used instead.       */
+
 double lagrange_interpolate_within_table( const double *table,
-         const int n_entries, double x, const int n_pts)     /* spline.c */
+         const int n_entries, double x, const int n_pts,
+         double *deriv)                  /* spline.c */
 {
    int idx = (int)floor( x - (double)n_pts / 2.) + 1;
-   const int max_idx = n_entries - n_pts;
-   double t = 1., c = 1., rval;
-   int i;
+   double t = 1., c = 1., rval = 0., sum_recips = 0., y0;
+   int i = (int)x;
 
+   if( x == (double)i && i >= 0 && i < n_pts)
+      {              /* we're exactly on a grid point */
+      if( deriv)
+         {
+         const double epsilon = 1e-7;      /* numerically compute deriv */
+         double y1, y2;
+
+         y1 = lagrange_interpolate_within_table( table, n_entries, x - epsilon,
+                              n_pts, NULL);
+         y2 = lagrange_interpolate_within_table( table, n_entries, x + epsilon,
+                              n_pts, NULL);
+         *deriv = (y2 - y1) / (2. * epsilon);
+         }
+      return( table[i]);
+      }
    if( idx < 0)      /* extrapolate from front of table */
       idx = 0;
-   else if( idx > max_idx)
-      idx = max_idx;             /* extrapolate beyond end of table */
+   else if( idx > n_entries - n_pts)
+      idx = n_entries - n_pts;   /* extrapolate beyond end of table */
    table += idx;
    x -= (double)idx;
+   y0 = table[n_pts / 2];
 
    for( i = 0; i < n_pts; i++)
       {
-      c *= x - (double)i;
+      const double dx = x - (double)i;
+
+      if( deriv)
+         sum_recips += 1. / dx;
+      c *= dx;
       if( i)
          t *= -(double)i;
       }
-   if( !c)        /* we're on an abscissa */
-      rval = table[(int)( x + .5)];
-   else
-      {
-      const double y0 = table[n_pts / 2];
 
-      rval = 0.;
-      for( i = 0; i < n_pts; i++)
-         {
-         if( i)
-            t *= (double)i / (double)( i - n_pts);
-         rval += (table[i] - y0) / (t * (x - (double)i));
-         }
-      rval *= c;
-      rval += y0;
+   if( deriv)
+      *deriv = 0.;
+   for( i = 0; i < n_pts; i++)
+      {
+      const double dx = x - (double)i;
+
+      if( i)
+         t *= (double)i / (double)( i - n_pts);
+      rval += (table[i] - y0) / (t * dx);
+      if( deriv)
+         *deriv += (sum_recips - 1. / dx) * table[i] / (t * dx);
       }
+   rval *= c;
+   rval += y0;
+   if( deriv)
+      *deriv *= c;
    return( rval);
 }
 
@@ -169,7 +198,9 @@ int main( const int argc, const char **argv)
    const double scale = 10.;
    int i, j;
    int order1 = 4, order2 = 12, order_step = 2;
-   bool show_differences = false;
+   bool show_differences = false, test_derivs = false;
+   const double PI =
+           3.1415926535897932384626433832795028841971693993751058209749445923;
 
    for( i = 1; i < argc; i++)
       if( argv[i][0] == '-')
@@ -178,6 +209,10 @@ int main( const int argc, const char **argv)
             case 'd':
                printf( "Showing differences\n");
                show_differences = true;
+               break;
+            case '1':
+               printf( "Testing first derivatives\n");
+               test_derivs = true;
                break;
             case 'o':
                sscanf( argv[i] + 2, "%d,%d,%d", &order1, &order2, &order_step);
@@ -189,8 +224,6 @@ int main( const int argc, const char **argv)
    show_header( order1, order2, order_step);
    for( i = -30; i < 270; i += 10)
       {
-      const double PI =
-           3.1415926535897932384626433832795028841971693993751058209749445923;
       const double angle = (double)i * PI / 180.;
       const double x = angle * scale;
       const double subtract = (show_differences ? sin( angle) : 0.);
@@ -199,9 +232,15 @@ int main( const int argc, const char **argv)
                 cubic_spline_interpolate_within_table( table, NPTS, x, NULL)
                                  - subtract);
       for( j = order1; j <= order2; j += order_step)
-         printf( " %16.13f",
-                lagrange_interpolate_within_table( table, NPTS, x, j)
-                                 - subtract);
+         {
+         double value_to_show, deriv;
+
+         value_to_show = lagrange_interpolate_within_table( table, NPTS, x, j,
+                        &deriv) - subtract;
+         if( test_derivs)
+            value_to_show = deriv * scale - (show_differences ? cos( angle) : 0.);
+         printf( " %16.13f", value_to_show);
+         }
       printf( "\n");
       }
    show_header( order1, order2, order_step);
