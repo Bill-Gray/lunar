@@ -115,7 +115,9 @@ static int get_cospar_data_from_text_file( int object_number,
          cospar_text[line] = NULL;
          }
       fclose( ifile);
-      }
+      if( !pole_ra)        /* just loading coefficients;  not actually */
+         return( 0);       /* computing orientations quite yet (see    */
+      }                    /* load_cospar_file( ) below)               */
    *is_retrograde = false;
    for( line = 0; cospar_text[line] && !done && !err; line++)
       {
@@ -252,6 +254,24 @@ static int get_cospar_data_from_text_file( int object_number,
       printf( "ERROR %d: %s\n", err, buff);
 #endif
    return( err);
+}
+
+/* Some programs (e.g.,  Find_Orb) put 'cospar.txt' in some directory
+other than the working one.  They can use the following function to
+unload the COSPAR data (if any) and then direct that it be loaded from
+a specified file.          */
+
+int DLL_FUNC load_cospar_file( const char *filename)
+{
+   const char *temp_name = cospar_filename;
+   int rval, pass;
+
+   cospar_filename = filename;
+   for( pass = 0; pass < 2; pass++)
+      rval = get_cospar_data_from_text_file( (pass ? 0 : FREE_INTERNAL_DATA),
+                    0, 0., NULL, NULL, NULL, NULL);
+   cospar_filename = temp_name;
+   return( rval);
 }
 
 /* The returned matrix contains three J2000 equatorial unit vectors :
