@@ -12,12 +12,14 @@
       /* just to verify that only the things that were _supposed_ */
       /* to change,  actually changed.                            */
 
-int main( int intentionally_unused_argc, char **intentionally_unused_argv)
+int main( const int argc, const char **argv)
 {
    double matrix[9], prev_matrix[9];
    int i, j, system_number, rval;
    clock_t t0 = clock( );
 
+   if( argc == 2)          /* you can specify the COSPAR file name from */
+      load_cospar_file( argv[1]);         /* the command line */
    setvbuf( stdout, NULL, _IONBF, 0);
    for( i = 0; i < 9; i++)
       prev_matrix[i] = 0.;
