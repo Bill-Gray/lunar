@@ -75,6 +75,7 @@ int DLL_FUNC compute_planet( const char FAR *vsop_data, const int planet_no,
             const double t_c, double DLLPTR *ovals);
 int DLL_FUNC calc_planet_orientation( const int planet_no, const int system_no,
                const double jd, double *matrix);
+int DLL_FUNC load_cospar_file( const char *filename);
 int DLL_FUNC evaluate_rock( const double jd, const int jpl_id,
                                                   double *output_vect);
 
