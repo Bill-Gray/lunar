@@ -200,7 +200,7 @@ int DLL_FUNC get_earth_orientation_params( const double jd,
    return( rval);
 }
 
-const double J2000 = 2451545.;
+static const double J2000 = 2451545.;
 
 /* Note that the matrix returned by this function gives the instantaneous
 orientation of the earth,  with
