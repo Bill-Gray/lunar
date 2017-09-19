@@ -38,7 +38,7 @@ COMMON_FLAGS = $(BASE_FLAGS)
 $(LIBNAME).lib : $(LIB_OBJS)
    %write wlunar.lrf $(LIB_OBJS)
    wlib -q -n -t $@ @wlunar.lrf
-   -del wlunar.lrf
+   $(RM) wlunar.lrf
 
 clean:
    $(RM) *.obj
