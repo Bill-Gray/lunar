@@ -106,7 +106,7 @@ static int setup_ecliptic_precession_from_j2000( double DLLPTR *matrix, const do
    return( 0);
 }
 
-static int DLL_FUNC setup_equatorial_precession_from_j2000(
+int DLL_FUNC setup_equatorial_precession_from_j2000(
                           double DLLPTR *matrix, const double year)
 {
    const double t_cen = (year - 2000.) / 100.;

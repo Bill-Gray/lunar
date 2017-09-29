@@ -60,7 +60,7 @@ all: astcheck$(EXE) astephem$(EXE) calendar$(EXE) cgicheck$(EXE)  \
    get_test$(EXE) htc20b$(EXE) jd$(EXE) \
    jevent$(EXE) jpl2b32$(EXE) jsattest$(EXE) lun_test$(EXE) \
    marstime$(EXE) oblitest$(EXE) persian$(EXE) phases$(EXE) \
-   prectest$(EXE) ps_1996$(EXE) ssattest$(EXE) tables$(EXE) \
+   prectest$(EXE) prectes2$(EXE) ps_1996$(EXE) ssattest$(EXE) tables$(EXE) \
    test_ref$(EXE) testprec$(EXE) uranus1$(EXE) utc_test$(EXE)
 
 install:
@@ -105,12 +105,13 @@ clean:
 	$(RM) cosptest.o get_test.o gust86.o htc20b.o integrat.o jd.o
 	$(RM) jevent.o jpl2b32.o jsattest.o lun_test.o lun_tran.o
 	$(RM) mpcorb.o oblitest.o obliqui2.o persian.o phases.o
-	$(RM) prectest.o ps_1996.o refract.o refract4.o riseset3.o solseqn.o
+	$(RM) prectes2.o prectest.o ps_1996.o refract.o refract4.o riseset3.o solseqn.o
 	$(RM) ssattest.o tables.o test_ref.o testprec.o uranus1.o utc_test.o
 	$(RM) astcheck$(EXE) astephem$(EXE) calendar$(EXE) cgicheck$(EXE) colors$(EXE)
 	$(RM) colors2$(EXE) cosptest$(EXE) dist$(EXE) easter$(EXE) get_test$(EXE)
 	$(RM) htc20b$(EXE) integrat$(EXE) jd$(EXE) jevent$(EXE) jpl2b32$(EXE) jsattest$(EXE)
-	$(RM) lun_test$(EXE) marstime$(EXE) oblitest$(EXE) persian$(EXE) phases$(EXE) prectest$(EXE)
+	$(RM) lun_test$(EXE) marstime$(EXE) oblitest$(EXE) persian$(EXE)
+	$(RM) phases$(EXE) prectest$(EXE) prectes2$(EXE)
 	$(RM) ps_1996$(EXE) relativi$(EXE) solseqn$(EXE) ssattest$(EXE) tables$(EXE)
 	$(RM) test_ref$(EXE) testprec$(EXE) uranus1$(EXE) utc_test$(EXE) liblunar.a
 
@@ -182,6 +183,9 @@ phases$(EXE): phases.o liblunar.a
 
 prectest$(EXE): prectest.o liblunar.a
 	$(CC) $(CFLAGS) -o prectest$(EXE) prectest.o liblunar.a $(LIBSADDED)
+
+prectes2$(EXE): prectes2.o liblunar.a
+	$(CC) $(CFLAGS) -o prectes2$(EXE) prectes2.o liblunar.a $(LIBSADDED)
 
 ps_1996$(EXE): ps_1996.o liblunar.a
 	$(CC) $(CFLAGS) -o ps_1996$(EXE)   ps_1996.o   liblunar.a $(LIBSADDED)
