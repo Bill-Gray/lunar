@@ -18,19 +18,28 @@ suggests a pretty simple root-finder that has some convergence issues.
 In the following,  Newton-Raphson is used.  Fortunately, it's quite easy
 to compute f(s) and f'(s) at the same time.
 
-   I also noticed that the above series will diverge for s > 1/sqrt(|y|),
-and as you approach that limit,  convergence will be absurdly slow.
-And there's no way around _that_ convergence issue.  Which is why I don't
-see this method as being actually useful;  it's slow and doesn't always
-work.  Maybe it was once useful,  long ago (pre-1985 or so)  on machines
-without built-in math coprocessors to handle trig functions?         */
+   Theoretically,  the result will always converge for all hyperbolic
+cases and for all elliptical cases until you reach the ends of the
+semimajor axes (equivalently,  the eccentric anomaly is +/- 90 degrees),
+which occurs at 'max_t',  or if s > 1/sqrt(y).  In practice,  a tremendous
+number of iterations is required as you approach that point.         */
+
+/* Paul Schlyter's approximation for near-parabolic orbits,  from
+
+http://stjarnhimlen.se/comp/ppcomp.html#19
+
+revised to do one cube root instead of two.  While it doesn't always
+provide a good "end solution",  it does seem to always provide a good
+starting value for the Landgraf iteration used below.  Though since it
+only eliminates one or two iterations compared to the simpler parabolic
+starting guess,  it's probably not really worth it.  */
 
 static double paul_schlyter_soln( const double e, const double q, const double dt)
 {
    const double k = 0.01720209895;
    const double a = 0.75 * dt * k * sqrt( (1 + e) / (q*q*q) );
-   const double b = sqrt( 1 + a*a );
-   const double W = cbrt(b + a) - cbrt(b - a);
+   const double tval = cbrt( sqrt( 1 + a*a ) + a);
+   const double W = tval - 1. / tval;
    const double W2 = W * W;
    const double f = (1 - e) / (1 + e);
 
@@ -56,58 +65,67 @@ int main( const int argc, const char **argv)
    const double ecc = atof( argv[1]);
    const double q = atof( argv[2]);
    const double t = atof( argv[3]);
-   const double q1 = k * sqrt( (1 + ecc) / q) / (2. * q);
+   const double Qt = fabs( t) * k * sqrt( (1 + ecc) / q) / (2. * q);
    const double gamma = (1. - ecc) / (1. + ecc);
-   const double q2 = q1 * t;
    const double max_s = 1. / sqrt( fabs( gamma));
+   const double g = 1.5 * Qt;         /* (34.6) in Meeus */
+   const double y = cbrt( g + sqrt( g * g + 1.));
    double true_anomaly, radius, prev_s;
-   double s = 2. / (3. * fabs( q2));
-   double pauls_v = paul_schlyter_soln( ecc, q, t);
+   double s = y - 1. / y;
+   const double pauls_v = paul_schlyter_soln( ecc, q, t);
 
-   printf( "Paul Schlyter soln: %lf\n", (180. / pi) * pauls_v);
-   if( argc == 4)
+   if( ecc < 1.)
       {
-      s = 2. / tan( 2. * atan( exp( log( tan( atan( s) / 2.)) / 3.)));
-      if( t < 0)
-         s = -s;
+      const double a = q / (1. - ecc);
+      const double t0 =  a * sqrt( a) / k;
+
+      printf( "max_t = %f\n", t0 * (pi / 2. - ecc));
       }
-   else
+
+   printf( "Paul Schlyter true anomaly: %f\n", (180. / pi) * pauls_v);
+   if( argc > 4)
+      {
       s = tan( pauls_v / 2.);
-   printf( "Max s = %lf; initial s %lf\n", max_s, s);
+      printf( "Using Paul Schlyter's initial value\n");
+      }
+   printf( "Max s = %f; initial s %g\n", max_s, s);
    if( s > max_s * .999)
       s = max_s * .999;
-   if( ecc != 1.)
+   if( s)
       do
          {
-         double term = 1., s_power = -s * s * s, f, f_prime;
+         double s_power = -s * s * s, f = Qt - s, f_prime = -1.;
          const double multiplier = -s * s * gamma;
          int i;
-         const int max_iter = 10000;
+         const int max_iter = 1000000;
+         bool keep_iterating = true;
 
          prev_s = s;
-         f = q1 * t - s;
-         f_prime = -1.;
-         for( i = 1; i < max_iter && fabs( term) > tolerance; i++)
+         for( i = 1; i < max_iter && keep_iterating; i++)
             {
-            term = ((double)i - (double)(i + 1) * gamma) * s_power;
+            double term = ((double)i - (double)(i + 1) * gamma) * s_power;
+
             f_prime += term / s;
             term /= (double)( i + i + 1);
             f += term;
             s_power *= multiplier;
+            if( fabs( term) < tolerance)
+               keep_iterating = false;
+            if( i > 3 && fabs( term / f) < .001)
+               keep_iterating = false;
             }
-         if( i == max_iter)
-            f *= .3;
          s -= f / f_prime;
-         printf( "prev_s = %lf, s = %lf, f = %lf, i = %d\n", prev_s, s, f, i);
-         if( i == max_iter)
-            printf( "Last term = %lf\n", term);
-         if( s > (max_s + prev_s) / 2.)
-            s = (max_s + prev_s) / 2.;
+         printf( "prev_s = %g, s = %g, f = %g, f_prime = %g, i = %d\n",
+                        prev_s, s, f, f_prime, i);
+         if( s > (8. * max_s + prev_s) / 9.)
+            s = (8. * max_s + prev_s) / 9.;
          }
       while( fabs( prev_s - s) > tolerance);
+   if( t < 0.)
+      s = -s;
    true_anomaly = 2. * atan( s);
    radius = q * (1. + ecc) / (1. + ecc * cos( true_anomaly));
-   printf( "True anomaly: %lf\n", true_anomaly * 180. / pi);
-   printf( "Radius vector (AU): %lf\n", radius);
+   printf( "True anomaly: %f\n", true_anomaly * 180. / pi);
+   printf( "Radius vector (AU): %f\n", radius);
    return( 0);
 }
