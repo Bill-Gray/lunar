@@ -38,7 +38,10 @@ COEFFS
 /*
 Lifted from p 247, Meeus, Astro Algorithms.  Note that this provides
 excellent accuracy for years 1885-2099,  but is not really intended
-for use outside that range. */
+for use outside that range.  NOTE that this will fail on big-Endian
+machines,  and on some little-Endians that require byte alignment.
+Let me know if you have such a machine.  The fix is simple,  but I'm
+reluctant to try it without a means of verifying that it works. */
 
 int DLL_FUNC calc_pluto_loc( const void FAR *data, double DLLPTR *loc,
                                           const double t, const long precision)

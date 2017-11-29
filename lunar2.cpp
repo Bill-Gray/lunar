@@ -25,13 +25,19 @@ you call these functions.  At the time I wrote all this -- early
 as possible.  I suppose all this would still be a good idea on some
 embedded systems.  It's probably not the way I would do things now.
 The code is not easy to follow.  But it _does_ all work,  and runs
-fast and has a small footprint.     */
+fast and has a small footprint.
+
+NOTE that this will fail on big-Endian machines,  and on some
+little-Endians that require byte alignment.  Let me know if you have
+such a machine.  The fix is simple,  but I'm reluctant to try it
+without a means of verifying that it works. */
 
 #include <math.h>
 #include <stdlib.h>
 #include <stdint.h>
 #include "watdefs.h"
 #include "lunar.h"
+#include "get_bin.h"
 
 #define Lp  fund[0]
 #define D   fund[1]
@@ -81,10 +87,11 @@ int DLL_FUNC lunar_fundamentals( const void FAR *data, const double t,
 
    for( i = 0; i < 5; i++)
       {
-      fund[i] = *tptr++;
+      fund[i] = get_double( tptr);
+      tptr++;
       tpow = t;
-      for( j = 4; j; j--, tpow *= t)
-         fund[i] += tpow * (*tptr++);
+      for( j = 4; j; j--, tpow *= t, tptr++)
+         fund[i] += tpow * get_double( tptr);
       }
 
    A1 = 119.75 + 131.849 * t;
@@ -104,11 +111,9 @@ int DLL_FUNC lunar_lon_and_dist( const void FAR *data, const double DLLPTR *fund
                  double DLLPTR *lon, double DLLPTR *r, const long precision)
 {
    int i, j;
-   const TERM1 FAR *term1 = (const TERM1 FAR *)((const char FAR *)data + 59354U);
-   const TERM1 FAR *tptr;
+   const TERM1 FAR *tptr = (const TERM1 FAR *)((const char FAR *)data + 59354U);
    double sl = 0., sr = 0., e;
 
-   tptr = term1;
    e = 1. - .002516 * T - .0000074 * T * T;
    for( i = N_TERM1; i; i--, tptr++)
       if( labs( tptr->sl) > precision || labs( tptr->sr) > precision)

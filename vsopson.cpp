@@ -20,8 +20,10 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 #include <math.h>
 #include <stdio.h>
 #include <stdint.h>
+#include <assert.h>
 #include "watdefs.h"
 #include "lunar.h"
+#include "get_bin.h"
 
 #define PI 3.1415926535897932384626433832795028841971693993751058209749445923
 #define TWO_PI (PI + PI)
@@ -39,8 +41,8 @@ small terms in the VSOP expansion.  Once upon a time,  when math
 coprocessors were rare,  I occasionally made use of this fact.  Nowadays,
 almost all my code sets prec=0 (i.e.,  include all terms.)
 
-   NOTE that this function relies on direct reading of binary data,
-and will fail on non-Intel order machines (such as PowerPCs).   */
+   This function relies on direct reading of binary data.   See
+'get_bin.h' for details on this. */
 
 double DLL_FUNC calc_vsop_loc( const void FAR *data, const int planet,
                           const int value, double t, double prec)
@@ -53,21 +55,40 @@ double DLL_FUNC calc_vsop_loc( const void FAR *data, const int planet,
    if( !planet)
       return( 0.);       /* the sun */
 
+   assert( planet > 0 && planet < 9);
+   assert( value >= 0 && value <= 2);
+   assert( data);                         /* now check VSOP data is correct */
+   assert( ((char *)data)[2] == '&');     /* verify a few bytes at random   */
+   assert( ((char *)data)[20] == 'x');
+   assert( ((char *)data)[0xea0a] == 'q');
+   assert( get16bits( (char *)data + 0x10c) == 0x93e);
    t /= 10.;         /* convert to julian millennia */
    loc = (int16_t FAR *)data + (planet - 1) * 18 + value * 6;
    for( i = 6; i; i--, loc++)
       {
+      const int16_t loc0 = get16bits( loc);
+      const int16_t loc1 = get16bits( loc + 1);
+
+      assert( loc0 >= 0);
+      assert( loc1 >= loc0);
+      assert( loc1 <= 0x97e);
       sum = 0.;
       if( prec < 0.)
          prec = -prec;
-      tptr = (double FAR *)((int16_t FAR *)data + 8 * 18 + 1) + (unsigned)*loc * 3U;
-      for( j = loc[1] - loc[0]; j; j--, tptr += 3)
-         if( tptr[0] > prec || tptr[0] < -prec)
-            {
-            const double argument = tptr[1] + tptr[2] * t;
+      tptr = (double FAR *)((int16_t FAR *)data + 8 * 18 + 1) + loc0 * 3U;
 
-            sum += tptr[0] * cos( argument);
+      for( j = loc1 - loc0; j; j--, tptr += 3)
+         {
+         const double amplitude = get_double( tptr);
+
+         if( amplitude > prec || amplitude < -prec)
+            {
+            const double argument =
+                             get_double( tptr + 1) + get_double( tptr + 2) * t;
+
+            sum += amplitude * cos( argument);
             }
+         }
       rval += sum * power;
       power *= t;
       if( t != 0.)
