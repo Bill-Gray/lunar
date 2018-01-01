@@ -295,11 +295,23 @@ void DLL_FUNC full_ctimel( char *buff, long double t2k, const int format)
    long units, i;
    const int leading_zeroes = (format & FULL_CTIME_LEADING_ZEROES);
    long year, int_t2k, day_of_week;
-   long double add_on = .05 / seconds_per_day;
+   long double add_on = 1.;
    long double remains;
 
+   if( output_format == FULL_CTIME_FORMAT_SECONDS)
+      units = seconds_per_day;
+   else if( output_format == FULL_CTIME_FORMAT_HH_MM)
+      units = minutes_per_day;
+   else if( output_format == FULL_CTIME_FORMAT_HH)
+      units = hours_per_day;
+   else                   /* output in days */
+      units = 1;
    for( i = precision; i; i--)
       add_on /= 10.;
+   if( format & FULL_CTIME_ROUNDING)
+      add_on *= 0.5 / (double)units;
+   else
+      add_on *= 0.05 / seconds_per_day;
    t2k += add_on;
 
    if( output_format == FULL_CTIME_FORMAT_YEAR)
@@ -392,12 +404,6 @@ void DLL_FUNC full_ctimel( char *buff, long double t2k, const int format)
          *buff++ = ' ';
       }
 
-   if( output_format == FULL_CTIME_FORMAT_SECONDS)
-      units = seconds_per_day;
-   else if( output_format == FULL_CTIME_FORMAT_HH_MM)
-      units = minutes_per_day;
-   else                  /* output_format == FULL_CTIME_FORMAT_HH */
-      units = hours_per_day;
    remains *= (double)units;
    i = (long)remains;
    if( i == units)   /* keep things from rounding up incorrectly */
