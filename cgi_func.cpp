@@ -1,25 +1,23 @@
 #include <stdio.h>
 #include <string.h>
+#include "cgi_func.h"
 
-/* Functions used for server-based versions of Find_Orb,  sat_id,  and
-astcheck (see 'fo_serve.cpp',  'sat_id2.cpp',  cgicheck.cpp' respectively),
-and which will probably be used for future server-based code.  For all
-of these,  I wanted an avoid_runaway_process() function to ensure that if
-something went wrong and the code got hung up,  it would abort after a
+/* Server-based versions of Find_Orb,  sat_id,  and astcheck (see
+'fo_serve.cpp',  'sat_id2.cpp',  cgicheck.cpp' respectively) all use
+get_multipart_form_data( ) to parse CGI data.  I use multipart for
+these because those services require the option of file uploads.
+
+   The server-based code to list GNSS (navigation) satellites,
+or satellite elements for a specific date,  however,  can (and do)
+use enctype="application/x-www-form-urlencoded".  This is a little
+simpler and makes it easy for people to construct URLs to access
+particular bits.
+
+   All of my server-based code uses avoid_runaway_process() to ensure that
+if something went wrong and the code got hung up,  it would abort after a
 decent length of time and give an error message.  (Which really should be
 different for each program;  at present,  you get the Find_Orb message.)
-
-   get_multipart_form_data() reads and parses CGI form data,  including
-getting uploaded file data.  See the aforementioned three files for
-examples of usage.
 */
-
-void avoid_runaway_process( const int max_time_to_run);   /* cgi_func.c */
-int get_urlencoded_form_data( const char **idata,       /* cgi_func.c */
-                              char *field, const size_t max_field,
-                              char *buff, const size_t max_buff);
-int get_multipart_form_data( const char *boundary, char *field,
-                char *buff, char *filename, const size_t max_len);
 
 #if defined( __linux) || defined( __unix__) || defined( __APPLE__)
 #include <sys/time.h>         /* these allow resource limiting */
