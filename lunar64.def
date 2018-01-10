@@ -85,3 +85,4 @@ EXPORTS
    setup_precession_with_nutation_eops    @84
    get_earth_orientation_params           @85
    load_earth_orientation_params          @86
+   load_cospar_file                       @87
