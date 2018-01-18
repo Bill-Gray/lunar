@@ -39,6 +39,10 @@ is defined can be modified.      */
 #else             /* Can't directly read binary data */
    #define get16bits(d) ((((uint32_t)(((const uint8_t *)(d))[1])) << 8)\
                        +(uint32_t)(((const uint8_t *)(d))[0]) )
+   #define get32bits(d) ((((uint32_t)(((const uint8_t *)(d))[3])) << 24)\
+                        +(((uint32_t)(((const uint8_t *)(d))[2])) << 16)\
+                        +(((uint32_t)(((const uint8_t *)(d))[1])) << 8)\
+                       +(uint32_t)(((const uint8_t *)(d))[0]) )
 
 static inline double get_double( const void *iptr)
 {
