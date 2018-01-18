@@ -24,6 +24,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 #include <stdint.h>
 #include "watdefs.h"
 #include "lunar.h"
+#include "get_bin.h"
 
 #define POISSON struct poisson
 #define POISSON_HEADER struct poisson_header
@@ -72,7 +73,7 @@ file,  and therefore should be 'static inline'.          */
 static inline int unpack_six_doubles( double *ovals, const char *ibuff)
 {
    int i;
-   uint16_t flags = *(uint16_t *)ibuff;
+   uint16_t flags = get16bits( ibuff);
    const char *iptr = ibuff + 2;
 
    for( i = 0; i < 6; i++, flags >>= 2)
@@ -82,15 +83,15 @@ static inline int unpack_six_doubles( double *ovals, const char *ibuff)
             *ovals++ = (double)*iptr++;
             break;
          case 1:
-            *ovals++ = (double)(*(int16_t *)iptr);
+            *ovals++ = (double)((int16_t)get16bits( iptr));
             iptr += 2;
             break;
          case 2:
-            *ovals++ = (double)(*(int32_t *)iptr);
+            *ovals++ = (double)((int32_t)get32bits( iptr));
             iptr += 4;
             break;
          case 3:
-            *ovals++ = *((double *)iptr);
+            *ovals++ = get_double( iptr);
             iptr += 8;
             break;
          }
