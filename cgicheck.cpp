@@ -26,7 +26,7 @@ int main( const int unused_argc, const char **unused_argv)
 {
    const char *argv[20];
    const size_t max_buff_size = 40000;       /* room for 500 obs */
-   char *buff = (char *)malloc( max_buff_size + 100);
+   char *buff;
    char boundary[100], field[30];
    const char *temp_obs_filename = "temp_obs.txt";
    int argc = 2;
@@ -63,6 +63,7 @@ int main( const int unused_argc, const char **unused_argv)
       printf( "This isn't supposed to happen.\n");
       return( 0);
       }
+   buff = (char *)malloc( max_buff_size + 100);
    while( get_multipart_form_data( boundary, field, buff, NULL, max_buff_size) >= 0)
       {
       if( !strcmp( field, "TextArea") || !strcmp( field, "upfile"))
