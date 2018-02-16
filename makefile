@@ -70,6 +70,7 @@ install:
 	cp comets.h   $(INSTALL_DIR)/include
 	cp showelem.h $(INSTALL_DIR)/include
 	cp date.h     $(INSTALL_DIR)/include
+	cp get_bin.h  $(INSTALL_DIR)/include
 	cp lunar.h    $(INSTALL_DIR)/include
 	cp watdefs.h  $(INSTALL_DIR)/include
 	cp vislimit.h $(INSTALL_DIR)/include
@@ -85,6 +86,7 @@ uninstall:
 	rm -f $(INSTALL_DIR)/include/comets.h
 	rm -f $(INSTALL_DIR)/include/showelem.h
 	rm -f $(INSTALL_DIR)/include/date.h
+	rm -f $(INSTALL_DIR)/include/get_bin.h
 	rm -f $(INSTALL_DIR)/include/watdefs.h
 	rm -f $(INSTALL_DIR)/include/vislimit.h
 	rm -f $(INSTALL_DIR)/lib/liblunar.a
@@ -196,7 +198,7 @@ relativi$(EXE): relativi.cpp liblunar.a
 	$(CC) $(CFLAGS) -o relativi$(EXE) -DTEST_CODE relativi.cpp liblunar.a $(LIBSADDED)
 
 spline$(EXE): spline.cpp
-	$(CC) $(CFLAGS) -DTEST_CODE -o spline$(EXE) spline.cpp
+	$(CC) $(CFLAGS) -DTEST_CODE -o spline$(EXE) spline.cpp -lm
 
 ssattest$(EXE): ssattest.o liblunar.a
 	$(CC) $(CFLAGS) -o ssattest$(EXE) ssattest.o liblunar.a $(LIBSADDED)
