@@ -112,8 +112,8 @@ static int get_cospar_data_from_text_file( int object_number,
                         + bytes_read);
             cospar_text[0] = (char *)(cospar_text + line + 1);
             }
-         cospar_text[line] = NULL;
          }
+      cospar_text[line] = NULL;
       fclose( ifile);
       if( !pole_ra)        /* just loading coefficients;  not actually */
          return( 0);       /* computing orientations quite yet (see    */
