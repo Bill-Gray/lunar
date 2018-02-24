@@ -12,10 +12,11 @@ EXES= astcheck.exe astephem.exe calendar.exe cosptest.exe dist.exe \
 
 all: $(EXES)
 
-LIB_OBJS= alt_az.obj astfuncs.obj big_vsop.obj classel.obj com_file.obj \
-      cospar.obj date.obj de_plan.obj delta_t.obj dist_pa.obj elp82dat.obj \
-      eop_prec.obj \
-      getplane.obj get_time.obj jsats.obj lunar2.obj  \
+LIB_OBJS= alt_az.obj astfuncs.obj big_vsop.obj classel.obj  \
+      cgi_func.obj com_file.obj cospar.obj date.obj \
+      de_plan.obj delta_t.obj dist_pa.obj  \
+      elp82dat.obj eop_prec.obj getplane.obj \
+      get_time.obj jsats.obj lunar2.obj  \
       miscell.obj nutation.obj obliquit.obj pluto.obj precess.obj  \
       refract.obj refract4.obj rocks.obj showelem.obj \
       spline.obj ssats.obj triton.obj vislimit.obj vsopson.obj
@@ -147,3 +148,19 @@ uranus1.exe: uranus1.obj gust86.obj
 
 utc_test.exe: utc_test.obj $(LIBNAME).lib
    $(LINK)    utc_test.obj $(LIBNAME).lib
+
+INSTALL_DIR=..\myincl
+
+install:
+   copy afuncs.h   $(INSTALL_DIR)
+   copy cgi_func.h $(INSTALL_DIR)
+   copy colors.h   $(INSTALL_DIR)
+   copy comets.h   $(INSTALL_DIR)
+   copy date.h     $(INSTALL_DIR)
+   copy gust86.h   $(INSTALL_DIR)
+   copy lunar.h    $(INSTALL_DIR)
+   copy lun_tran.h $(INSTALL_DIR)
+   copy riseset3.h $(INSTALL_DIR)
+   copy showelem.h $(INSTALL_DIR)
+   copy vislimit.h $(INSTALL_DIR)
+   copy watdefs.h  $(INSTALL_DIR)
