@@ -135,6 +135,8 @@ static void error_exit( void)
 int main( int argc, char **argv)
 {
    int calendar, err_code, i, is_ut;
+   const double tdt_minus_tai = 32.184;
+   const double tai_minus_gps = 19.;
    const long double j2000 = 2451545.;
    const long double jan_1970 = 2440587.5 - j2000;
                /* Set default initial time to "right now": */
@@ -203,6 +205,10 @@ int main( int argc, char **argv)
                             td_minus_ut( jd),
                             td_minus_utc( jd),
                             td_minus_utc( jd) - td_minus_ut( jd));
+   printf( "TDB - TDT = %f milliseconds   TAI-UTC = %.3f    GPS-UTC = %.3f\n",
+         (double)tdb_minus_tdt( t2k / 36525.) * 1000.,
+         td_minus_utc( jd) - tdt_minus_tai,
+         td_minus_utc( jd) - tdt_minus_tai - tai_minus_gps);
    load_chinese_calendar_data( NULL);
    return( 0);
 }
