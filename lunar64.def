@@ -86,3 +86,6 @@ EXPORTS
    get_earth_orientation_params           @85
    load_earth_orientation_params          @86
    load_cospar_file                       @87
+   tdb_minus_tdt                          @88
+   split_timel                            @89
+   set_day_of_week_name                   @90

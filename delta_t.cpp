@@ -309,8 +309,7 @@ them here for reference.
    static const double phase[4] = { 357.5287 * deg2rad,
              246.199 * deg2rad, 355.057 * deg2rad, 243.451 * deg2rad };  */
 
-#ifdef NOT_CURRENTLY_USED_OR_EVEN_TESTED
-long double tdb_minus_tdt( const long double t_centuries)
+long double DLL_FUNC tdb_minus_tdt( const long double t_centuries)
 {
    static const long double amplitude[6] = { 1656.6894e-6,
             22.4175e-6, 13.8399e-6, 4.7701e-6, 4.6767e-6, 2.2566e-6 };
@@ -323,9 +322,8 @@ long double tdb_minus_tdt( const long double t_centuries)
 
    for( i = 0; i < sizeof( phase) / sizeof( phase[0]); i++)
       rval += amplitude[i] * sinl( freq[i] * t_centuries + phase[i]);
-   return( rval);     /* cvt microseconds to days */
+   return( rval);     /* difference is in _seconds_  */
 }
-#endif
 
 /* These macros determine the MJD of the given date in 'YEAR'.  */
 /* They're valid for _non-negative_ years in the _Gregorian_ calendar. */
