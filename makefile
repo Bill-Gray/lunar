@@ -68,12 +68,13 @@ install:
 	cp afuncs.h   $(INSTALL_DIR)/include
 	cp cgi_func.h $(INSTALL_DIR)/include
 	cp comets.h   $(INSTALL_DIR)/include
-	cp showelem.h $(INSTALL_DIR)/include
 	cp date.h     $(INSTALL_DIR)/include
 	cp get_bin.h  $(INSTALL_DIR)/include
 	cp lunar.h    $(INSTALL_DIR)/include
-	cp watdefs.h  $(INSTALL_DIR)/include
+	cp mpc_func.h $(INSTALL_DIR)/include
+	cp showelem.h $(INSTALL_DIR)/include
 	cp vislimit.h $(INSTALL_DIR)/include
+	cp watdefs.h  $(INSTALL_DIR)/include
 	$(MKDIR) $(LIB_DIR)
 	cp liblunar.a $(LIB_DIR)
 	$(MKDIR) $(HOME)/bin
@@ -84,11 +85,13 @@ uninstall:
 	rm -f $(INSTALL_DIR)/include/afuncs.h
 	rm -f $(INSTALL_DIR)/include/cgi_func.h
 	rm -f $(INSTALL_DIR)/include/comets.h
-	rm -f $(INSTALL_DIR)/include/showelem.h
 	rm -f $(INSTALL_DIR)/include/date.h
 	rm -f $(INSTALL_DIR)/include/get_bin.h
-	rm -f $(INSTALL_DIR)/include/watdefs.h
+	rm -f $(INSTALL_DIR)/include/lunar.h
+	rm -f $(INSTALL_DIR)/include/mpc_func.h
+	rm -f $(INSTALL_DIR)/include/showelem.h
 	rm -f $(INSTALL_DIR)/include/vislimit.h
+	rm -f $(INSTALL_DIR)/include/watdefs.h
 	rm -f $(INSTALL_DIR)/lib/liblunar.a
 
 .cpp.o:
@@ -96,8 +99,8 @@ uninstall:
 
 OBJS= alt_az.o astfuncs.o big_vsop.o cgi_func.o classel.o cospar.o  \
    date.o delta_t.o de_plan.o dist_pa.o eart2000.o elp82dat.o \
-   eop_prec.o getplane.o get_time.o \
-   jsats.o lunar2.o miscell.o nutation.o obliquit.o pluto.o precess.o \
+   eop_prec.o getplane.o get_time.o jsats.o lunar2.o miscell.o  \
+   mpc_code.o mpc_fmt.o nutation.o obliquit.o pluto.o precess.o \
    showelem.o spline.o ssats.o triton.o vislimit.o vsopson.o
 
 liblunar.a: $(OBJS)

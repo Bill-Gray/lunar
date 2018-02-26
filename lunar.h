@@ -78,6 +78,8 @@ int DLL_FUNC calc_planet_orientation( const int planet_no, const int system_no,
 int DLL_FUNC load_cospar_file( const char *filename);
 int DLL_FUNC evaluate_rock( const double jd, const int jpl_id,
                                                   double *output_vect);
+double planet_radius_in_meters( const int planet_idx);   /* mpc_code.cpp */
+double planet_axis_ratio( const int planet_idx);         /* mpc_code.cpp */
 
 #ifdef __cplusplus
 }
