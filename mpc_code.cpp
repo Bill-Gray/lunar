@@ -3,7 +3,6 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <stdio.h>
-#include <ctype.h>
 #include "watdefs.h"
 #include "mpc_func.h"
 #include "lunar.h"
@@ -174,7 +173,7 @@ int get_mpc_code_info( mpc_code_t *cinfo, const char *buff)
 {
    int i = 0, rval = -1;
 
-   while( isalnum( buff[i]))
+   while( buff[i] > ' ' && buff[i] <= '~')
       i++;
 
    cinfo->lat = cinfo->lon = cinfo->alt
