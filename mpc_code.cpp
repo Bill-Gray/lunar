@@ -173,12 +173,12 @@ int get_mpc_code_info( mpc_code_t *cinfo, const char *buff)
 {
    int i = 0, rval = -1;
 
-   while( buff[i] > ' ' && buff[i] <= '~')
+   while( buff[i] > ' ' && buff[i] <= '~' && buff[i] != '!')
       i++;
 
    cinfo->lat = cinfo->lon = cinfo->alt
                   = cinfo->rho_sin_phi = cinfo->rho_cos_phi = 0.;
-   if( i == 3 && strlen( buff) > 33 && buff[3] == ' ')
+   if( i >= 3 && i <= 4 && strlen( buff) > 33)
       {
       rval = 3;         /* assume earth */
 
@@ -216,7 +216,7 @@ int get_mpc_code_info( mpc_code_t *cinfo, const char *buff)
             }
          }
       else if( buff[7] == '.' && (buff[21] == '+' || buff[21] == '-')
-               && buff[14] == '.' && buff[23] == '.')
+               && buff[14] == '.' && buff[23] == '.' && buff[3] == ' ')
          {                 /* 'standard' MPC format */
          if( sscanf( buff + 3, "%lf%lf%lf", &cinfo->lon,
                   &cinfo->rho_cos_phi, &cinfo->rho_sin_phi) != 3)
@@ -242,8 +242,11 @@ int get_mpc_code_info( mpc_code_t *cinfo, const char *buff)
    if( rval != -1)
       {
       cinfo->planet = rval;
-      memcpy( cinfo->code, buff, 3);
-      cinfo->code[3] = '\0';
+      memcpy( cinfo->code, buff, 4);
+      if( buff[3] == ' ')        /* standard 3-character code */
+         cinfo->code[3] = '\0';
+      else                       /* 'extended' 4-character code */
+         cinfo->code[4] = '\0';
       if( cinfo->lon < 0.)
          cinfo->lon += PI + PI;
       }
@@ -271,7 +274,7 @@ int main( const int argc, const char **argv)
    printf( "%s\n", header);
    while( fgets( buff, sizeof( buff), ifile))
       if( get_mpc_code_info( &code, buff) >= 0)
-         printf( "%s %10.6f %+10.6f %10.3f %9.7f %+10.7f %s",
+         printf( "%-4s %10.6f %+10.6f %10.3f %9.7f %+10.7f %s",
                   code.code, code.lon * 180. / PI, code.lat * 180. / PI,
                   code.alt, code.rho_cos_phi, code.rho_sin_phi, code.name);
    printf( "%s\n", header);
