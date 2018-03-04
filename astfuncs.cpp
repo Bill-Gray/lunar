@@ -35,7 +35,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 #define SOLAR_GM (GAUSS_K * GAUSS_K)
 #define SQRT_2 1.4142135623730950488016887242096980785696718753769480731766797
 #define THRESH 1.e-12
-#define MIN_THRESH 1.e-15
+#define MIN_THRESH 1.e-14
 #define CUBE_ROOT( X)  (exp( log( X) / 3.))
 
 static double kepler( const double ecc, double mean_anom);
@@ -260,7 +260,7 @@ static double kepler( const double ecc, double mean_anom)
             err = curr - ecc * sin( curr) - mean_anom;
          delta_curr = -err / (1. - ecc * cos( curr));
          curr += delta_curr;
-         assert( n_iter < 15);
+         assert( n_iter < 20);
          }
    else
       while( fabs( delta_curr) > thresh)
@@ -271,7 +271,7 @@ static double kepler( const double ecc, double mean_anom)
             err = ecc * sinh( curr) - curr - mean_anom;
          delta_curr = -err / (ecc * cosh( curr) - 1.);
          curr += delta_curr;
-         assert( n_iter < 15);
+         assert( n_iter < 20);
          }
    return( is_negative ? offset - curr : offset + curr);
 }
