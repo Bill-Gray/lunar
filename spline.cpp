@@ -1,5 +1,6 @@
 #include <math.h>       /* for floor() prototype */
 #include <stddef.h>     /* for NULL definition   */
+#include <stdio.h>
 
 double cubic_spline_interpolate_within_table(      /* spline.cpp */
          const double *table, const int n_entries, double x, int *err_code);
@@ -105,13 +106,13 @@ double lagrange_interpolate_within_table( const double *table,
 {
    int idx = (int)floor( x - (double)n_pts / 2.) + 1;
    double t = 1., c = 1., rval = 0., sum_recips = 0., y0;
-   int i = (int)x;
+   int i = (int)( x + .5);
 
-   if( x == (double)i && i >= 0 && i < n_pts)
+   if( x == (double)i && i >= 0 && i < n_entries)
       {              /* we're exactly on a grid point */
       if( deriv)
          {
-         const double epsilon = 1e-7;      /* numerically compute deriv */
+         const double epsilon = 1e-5;      /* numerically compute deriv */
          double y1, y2;
 
          y1 = lagrange_interpolate_within_table( table, n_entries, x - epsilon,
@@ -195,12 +196,12 @@ static void show_header( const int order1, const int order2, const int order_ste
 int main( const int argc, const char **argv)
 {
    double table[NPTS];
-   const double scale = 10.;
    int i, j;
    int order1 = 4, order2 = 12, order_step = 2;
    bool show_differences = false, test_derivs = false;
    const double PI =
            3.1415926535897932384626433832795028841971693993751058209749445923;
+   const double scale = PI / 30.;
 
    for( i = 1; i < argc; i++)
       if( argv[i][0] == '-')
@@ -220,12 +221,12 @@ int main( const int argc, const char **argv)
             }
    show_explanation( );
    for( i = 0; i < NPTS; i++)
-      table[i] = sin( (double)i / scale);
+      table[i] = sin( (double)i * scale);
    show_header( order1, order2, order_step);
    for( i = -30; i < 270; i += 10)
       {
       const double angle = (double)i * PI / 180.;
-      const double x = angle * scale;
+      const double x = angle / scale;
       const double subtract = (show_differences ? sin( angle) : 0.);
 
       printf( "%3d %16.13f %16.13f", i, sin( angle),
@@ -238,7 +239,7 @@ int main( const int argc, const char **argv)
          value_to_show = lagrange_interpolate_within_table( table, NPTS, x, j,
                         &deriv) - subtract;
          if( test_derivs)
-            value_to_show = deriv * scale - (show_differences ? cos( angle) : 0.);
+            value_to_show = deriv / scale - (show_differences ? cos( angle) : 0.);
          printf( " %16.13f", value_to_show);
          }
       printf( "\n");
