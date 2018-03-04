@@ -147,6 +147,8 @@ int DLL_FUNC calc_classical_elements( ELEMENTS *elem, const double *r,
    for( i = 0; i < 3; i++)             /* plane to avoid roundoff; see   */
       e[i] -= h[i] * tval;             /* above comments                 */
    ecc2 = dot_product( e, e);
+   if( fabs( ecc2 - 1.) < 1.e-14)      /* avoid roundoff issues w/nearly */
+      ecc2 = 1.;                       /* parabolic orbits               */
    elem->minor_to_major = sqrt( fabs( 1. - ecc2));
    ecc = elem->ecc = sqrt( ecc2);
 
