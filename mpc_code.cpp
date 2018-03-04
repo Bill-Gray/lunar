@@ -50,7 +50,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
       /* Other sizes are from http://adsabs.harvard.edu/abs/2011CeMDA.109..101A */
       /* or http://astropedia.astrogeology.usgs.gov/alfresco/d/d/workspace/SpacesStore/28fd9e81-1964-44d6-a58b-fbbf61e64e15/WGCCRE2009reprint.pdf */
 
-static const double equatorial_radii[15] = {
+#define N_EQUATORIAL_RADII 15
+
+static const double equatorial_radii[N_EQUATORIAL_RADII] = {
       SUN_RADIUS, MERCURY_RADIUS, VENUS_RADIUS, EARTH_MAJOR_AXIS,
       MARS_MAJOR_AXIS, JUPITER_MAJOR_AXIS, SATURN_MAJOR_AXIS,
       URANUS_MAJOR_AXIS, NEPTUNE_MAJOR_AXIS, PLUTO_RADIUS,
@@ -59,8 +61,10 @@ static const double equatorial_radii[15] = {
 
 double planet_radius_in_meters( const int planet_idx)
 {
-   assert( planet_idx >= 0 && planet_idx < 15);
-   return( equatorial_radii[planet_idx]);
+   if( planet_idx >= 0 && planet_idx < N_EQUATORIAL_RADII)
+      return( equatorial_radii[planet_idx]);
+   else
+      return( 0.);
 }
 
 /* NOTE that for the Earth,  I'm using the WGS84 ellipsoid.  The
