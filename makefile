@@ -179,6 +179,9 @@ lun_test$(EXE): lun_test.o lun_tran.o riseset3.o liblunar.a
 marstime$(EXE): marstime.cpp
 	$(CC) $(CFLAGS) -o marstime$(EXE) marstime.cpp -DTEST_PROGRAM $(LIBSADDED)
 
+mpc_code$(EXE): mpc_code.cpp
+	$(CC) $(CFLAGS) -o mpc_code$(EXE) mpc_code.cpp -DTEST_CODE
+
 oblitest$(EXE): oblitest.o obliqui2.o liblunar.a
 	$(CC) $(CFLAGS) -o oblitest$(EXE) oblitest.o obliqui2.o liblunar.a $(LIBSADDED)
 
