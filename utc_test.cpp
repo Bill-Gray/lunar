@@ -42,7 +42,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 int main( const int argc, const char **argv)
 {
    int year = (argc > 1 ? atoi( argv[1]) : 1970);
-   const int end_year = (argc > 2 ? atoi( argv[2]) : 2020);
+   const int end_year = (argc > 2 ? atoi( argv[2]) : 2040);
    unsigned count = 0;
 
    printf( "Leap seconds for years %d to %d\n", year, end_year);
