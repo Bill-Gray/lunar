@@ -38,8 +38,7 @@ the year is before 1620,  one of four polynomial approximations is used
 a linear extrapolation is used,  with a quadratic term added to that
 which assumes an acceleration of 32.5 seconds/century^2.
 
-   Updated 2 June 2001, 4 Jan 2005, 1 Nov 2007, 9 Jul 2008, 2010 Sep 19,
-2012 May 3, early 2014 to include new Delta-t data from:
+   Updated at two-year intervals to add a new Delta-T table entry from
 
 ftp://maia.usno.navy.mil/ser7/deltat.data
 ftp://maia.usno.navy.mil/ser7/deltat.preds
@@ -326,24 +325,25 @@ long double DLL_FUNC tdb_minus_tdt( const long double t_centuries)
    return( rval);     /* difference is in _seconds_  */
 }
 
-/* These macros determine the MJD of the given date in 'YEAR'.  */
-/* They're valid for _non-negative_ years in the _Gregorian_ calendar. */
+/* These macros determine the MJD of the given date in 'YEAR'.  They're
+valid for years after -9999 in the _Gregorian_ calendar.  Note that
+we use the fact that February 1 is always 31 days after January 1,
+but work backward from January 1 of the following year to get
+March to December without having to consider leap days. */
 
-#define JAN_1( YEAR) (((YEAR) * 365 + ((YEAR) - 1) / 4 - ((YEAR) - 1) / 100 \
-                         + ((YEAR) - 1) / 400) - 678940)
+#define JAN_1( YEAR) (((YEAR) * 365 + ((YEAR) + 9999) / 4 - ((YEAR) + 9999) / 100 \
+                         + ((YEAR) + 9999) / 400) - 681365)
 #define FEB_1( YEAR) (JAN_1( YEAR) + 31)
-#define MAR_1( YEAR) (((YEAR)*365 + (YEAR)/4 - (YEAR)/100 + (YEAR)/400) - 678881)
-#define APR_1( YEAR) (MAR_1( YEAR) + 31)
-#define MAY_1( YEAR) (APR_1( YEAR) + 30)
-#define JUN_1( YEAR) (MAY_1( YEAR) + 31)
-#define JUL_1( YEAR) (JUN_1( YEAR) + 30)
-#define AUG_1( YEAR) (JUL_1( YEAR) + 31)
-#define SEP_1( YEAR) (AUG_1( YEAR) + 31)
-#define OCT_1( YEAR) (SEP_1( YEAR) + 30)
-#define NOV_1( YEAR) (OCT_1( YEAR) + 31)
-/* Following macro is valid,  but not currently used;
-#define DEC_1( YEAR) (NOV_1( YEAR) + 30)
-it's included for reference,  and commented out */
+#define DEC_1( YEAR) (JAN_1( (YEAR)+1) - 31)
+#define NOV_1( YEAR) (DEC_1( YEAR) - 30)
+#define OCT_1( YEAR) (NOV_1( YEAR) - 31)
+#define SEP_1( YEAR) (OCT_1( YEAR) - 30)
+#define AUG_1( YEAR) (SEP_1( YEAR) - 31)
+#define JUL_1( YEAR) (AUG_1( YEAR) - 31)
+#define JUN_1( YEAR) (JUL_1( YEAR) - 30)
+#define MAY_1( YEAR) (JUN_1( YEAR) - 31)
+#define APR_1( YEAR) (MAY_1( YEAR) - 30)
+#define MAR_1( YEAR) (APR_1( YEAR) - 31)
 
 #define utc0  (JAN_1( 1972))
       /*  'utc0' = MJD of date when the UTC leap seconds began */
