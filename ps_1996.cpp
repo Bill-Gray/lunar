@@ -20,6 +20,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 #include <stdlib.h>
 #include <string.h>
 #include "watdefs.h"
+#include "mpc_func.h"
 #include "lunar.h"
 #include "afuncs.h"
 #include "date.h"
@@ -172,21 +173,8 @@ static double make_ra_dec_string( double *vect, char *buff)
    return( dist);
 }
 
-static int lat_alt_to_parallax( const double lat, const double ht_in_meters,
-            double *rho_cos_phi, double *rho_sin_phi)
-{
-   const double earth_major_axis = 6378140.;
-   const double earth_minor_axis = 6356755.;
-   const double earth_axis_ratio = (earth_minor_axis / earth_major_axis);
-   const double u = atan( sin( lat) * earth_axis_ratio / cos( lat));
-
-   *rho_sin_phi = earth_axis_ratio * sin( u) +
-                            (ht_in_meters / earth_major_axis) * sin( lat);
-   *rho_cos_phi = cos( u) + (ht_in_meters / earth_major_axis) * cos( lat);
-   *rho_sin_phi *= earth_major_axis / AU_IN_METERS;
-   *rho_cos_phi *= earth_major_axis / AU_IN_METERS;
-   return( 0);
-}
+#define EARTH_MAJOR_AXIS    6378137.
+#define EARTH_MINOR_AXIS    6356752.
 
 static void compute_topocentric_offset( double *earth_vect, const double lat,
                const double lon, const double alt_in_meters, const double jd_ut)
@@ -195,7 +183,10 @@ static void compute_topocentric_offset( double *earth_vect, const double lat,
    double rho_cos_phi, rho_sin_phi;
    int i;
 
-   lat_alt_to_parallax( lat, alt_in_meters, &rho_cos_phi, &rho_sin_phi);
+   lat_alt_to_parallax( lat, alt_in_meters, &rho_cos_phi, &rho_sin_phi,
+            EARTH_MAJOR_AXIS, EARTH_MINOR_AXIS);
+   rho_cos_phi *= EARTH_MAJOR_AXIS / AU_IN_METERS;
+   rho_sin_phi *= EARTH_MAJOR_AXIS / AU_IN_METERS;
    calc_planet_orientation( 3, 0, jd_ut, precess_matrix);
    spin_matrix( precess_matrix, precess_matrix + 3, lon);
    for( i = 0; i < 3; i++)
@@ -256,6 +247,8 @@ int main( const int argc, const char **argv)
       xyz_topo[i] = xyz[i] - topo_offset[i];         /* earth-moon vector */
    make_ra_dec_string( xyz_topo, buff);
    printf( "Topocentric Lunar position: %s\n", buff);
+   printf( "Topocentric lunar distance: %f km\n",
+               vector3_length( xyz_topo) * AU_IN_KM);
    fclose( ifile);
 
                /* We first earth_vect with the position of the         */
