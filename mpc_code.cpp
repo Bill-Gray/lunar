@@ -236,7 +236,7 @@ int get_mpc_code_info( mpc_code_t *cinfo, const char *buff)
                }
             }
          }
-      else if( buff[7] == '.' && (buff[21] == '+' || buff[21] == '-')
+      else if( buff[7] == '.' && strchr( "+- ", buff[21])
                && buff[14] == '.' && buff[23] == '.' && buff[3] == ' ')
          {                 /* 'standard' MPC format */
          if( sscanf( buff + 3, "%lf%lf%lf", &cinfo->lon,
@@ -247,8 +247,11 @@ int get_mpc_code_info( mpc_code_t *cinfo, const char *buff)
             cinfo->name = buff + 30;
             cinfo->format = MPC_CODE_PARALLAXES;
             cinfo->lon *= PI / 180.;
-            cinfo->lat = point_to_ellipse( 1., EARTH_MINOR_AXIS / EARTH_MAJOR_AXIS,
+            if( cinfo->rho_cos_phi || cinfo->rho_sin_phi)
+               cinfo->lat = point_to_ellipse( 1., EARTH_MINOR_AXIS / EARTH_MAJOR_AXIS,
                     cinfo->rho_cos_phi, cinfo->rho_sin_phi, &cinfo->alt);
+            else
+               cinfo->lat = cinfo->alt = 0.;
             cinfo->alt *= EARTH_MAJOR_AXIS;
             }
          }
