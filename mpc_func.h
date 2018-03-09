@@ -44,5 +44,8 @@ typedef struct
 int get_mpc_code_info( mpc_code_t *cinfo, const char *buff);
 double point_to_ellipse( const double a, const double b,
                          const double x, const double y, double *dist);
-
+int lat_alt_to_parallax( const double lat, const double ht_in_meters,
+            double *rho_cos_phi, double *rho_sin_phi,
+            const double major_axis_in_meters,
+            const double minor_axis_in_meters);    /* mpc_code.cpp */
 #endif
