@@ -268,11 +268,11 @@ static int get_elp_values( FILE *ifile, const double t_cen,
    ELP_DATA_HEADER *hdr = (ELP_DATA_HEADER *)malloc( sizeof( ELP_DATA_HEADER));
 
    if( !hdr)
-      return( 0);
+      return( -1);
    if( !fread( hdr, sizeof( ELP_DATA_HEADER), 1, ifile))
       {
       free( hdr);
-      return( 0);
+      return( -2);
       }
    compute_lunar_polynomials( t_cen, fund, hdr->poly_coeffs);
 
@@ -327,12 +327,8 @@ static int get_elp_values( FILE *ifile, const double t_cen,
 int DLL_FUNC compute_elp_xyz( FILE *ifile, const double t_cen,
                    const double prec, double *ecliptic_xyz_2000)
 {
-   static const double p_coeff[5] = { P_4, P_3, P_2, P_1, P_0 };
-   static const double q_coeff[5] = { Q_4, Q_3, Q_2, Q_1, Q_0 };
    double uvr[3];
-   double x, y, z, p = 0., q = 0., twice_root_pq_term;
-   double matrix[9];
-   int i, close_file = 0;
+   int i, close_file = 0, rval;
    const double adjusted_t_cen = t_cen + elp_time_offset( t_cen);
 
    if( !ifile)
@@ -343,33 +339,44 @@ int DLL_FUNC compute_elp_xyz( FILE *ifile, const double t_cen,
       close_file = 1;
       }
    fseek( ifile, 0L, SEEK_SET);
-   get_elp_values( ifile, adjusted_t_cen, prec, uvr);
-   x = uvr[2] * cos( uvr[0]) * cos( uvr[1]);
-   y = uvr[2] * sin( uvr[0]) * cos( uvr[1]);
-   z = uvr[2] *           sin( uvr[1]);
-   for( i = 0; i < 5; i++)
-      {
-      p = p * adjusted_t_cen + p_coeff[i];
-      q = q * adjusted_t_cen + q_coeff[i];
-      }
-   p *= adjusted_t_cen;
-   q *= adjusted_t_cen;
-   twice_root_pq_term = 2. * sqrt( 1. - p * p - q * q);
-   matrix[0] = 1. - 2. * p * p;
-   matrix[1] = matrix[3] = 2. * p * q;
-   matrix[2] = p * twice_root_pq_term;
-   matrix[6] = -matrix[2];
-   matrix[7] = q * twice_root_pq_term;
-   matrix[5] = -matrix[7];
-   matrix[4] = 1. - 2. * q * q;
-   matrix[8] = matrix[0] - 2. * q * q;
-   for( i = 0; i < 9; i += 3)
-      *ecliptic_xyz_2000++ =
-                     matrix[i] * x + matrix[i + 1] * y + matrix[i + 2] * z;
-   *ecliptic_xyz_2000++ = uvr[2];         /* give the radius,  too */
+   rval = get_elp_values( ifile, adjusted_t_cen, prec, uvr);
+   if( rval)
+      for( i = 0; i < 4; i++)
+         *ecliptic_xyz_2000++ = 0.;
+      else
+         {
+         const double x = uvr[2] * cos( uvr[0]) * cos( uvr[1]);
+         const double y = uvr[2] * sin( uvr[0]) * cos( uvr[1]);
+         const double z = uvr[2] *           sin( uvr[1]);
+         double p = 0., q = 0., twice_root_pq_term;
+         static const double p_coeff[5] = { P_4, P_3, P_2, P_1, P_0 };
+         static const double q_coeff[5] = { Q_4, Q_3, Q_2, Q_1, Q_0 };
+         double matrix[9];
+
+         for( i = 0; i < 5; i++)
+            {
+            p = p * adjusted_t_cen + p_coeff[i];
+            q = q * adjusted_t_cen + q_coeff[i];
+            }
+         p *= adjusted_t_cen;
+         q *= adjusted_t_cen;
+         twice_root_pq_term = 2. * sqrt( 1. - p * p - q * q);
+         matrix[0] = 1. - 2. * p * p;
+         matrix[1] = matrix[3] = 2. * p * q;
+         matrix[2] = p * twice_root_pq_term;
+         matrix[6] = -matrix[2];
+         matrix[7] = q * twice_root_pq_term;
+         matrix[5] = -matrix[7];
+         matrix[4] = 1. - 2. * q * q;
+         matrix[8] = matrix[0] - 2. * q * q;
+         for( i = 0; i < 9; i += 3)
+            *ecliptic_xyz_2000++ =
+                           matrix[i] * x + matrix[i + 1] * y + matrix[i + 2] * z;
+         *ecliptic_xyz_2000++ = uvr[2];         /* give the radius,  too */
+         }
    if( close_file)
       fclose( ifile);
-   return( 0);
+   return( rval);
 }
 
 #ifdef TEST_CODE
