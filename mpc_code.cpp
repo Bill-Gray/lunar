@@ -212,7 +212,7 @@ int get_mpc_code_info( mpc_code_t *cinfo, const char *buff)
             rval = -1;
          else
             {
-            const char *tptr = strchr( buff, '@');
+            const char *tptr = strchr( buff + 4, '@');
 
             if( fabs( cinfo->lon) > 361. || fabs( cinfo->lat) > 91.)
                {
@@ -259,6 +259,7 @@ int get_mpc_code_info( mpc_code_t *cinfo, const char *buff)
          {
          cinfo->name = buff + 30;
          cinfo->format = MPC_CODE_SATELLITE;
+         rval = -2;
          }
       else
          rval = -1;
