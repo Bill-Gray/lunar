@@ -22,6 +22,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <assert.h>
 #include "watdefs.h"
 #include "date.h"
 #include "comets.h"
@@ -828,6 +829,8 @@ int main( const int argc, const char **argv)
             const int16_t tolerance2 = tolerance;
 #endif
 
+            assert( day_data[0]);
+            assert( day_data[1]);
             if( is_between( day_data[0][i].ra, day_data[1][i].ra, int_ra, tolerance2 + 5))
                if( is_between( day_data[0][i].dec, day_data[1][i].dec, int_dec, tolerance2 + 5))
                   {

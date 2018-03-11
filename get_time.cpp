@@ -22,6 +22,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <assert.h>
 #include <string.h>
 #include <ctype.h>
 #include <math.h>
@@ -576,6 +577,7 @@ long double DLL_FUNC get_time_from_stringl( long double initial_t2k,
          memcpy( tstr, str, (size_t)i);
          tstr[i] = '\0';
          ival = month_name_to_index( tstr);
+         ivals[0] = ivals[1] = ivals[2] = 0.;
          if( ival)         /* month given first, such as 'jan 25' */
             {
             month_found = 1;
@@ -724,6 +726,9 @@ long double DLL_FUNC get_time_from_stringl( long double initial_t2k,
                day_found = 6 - year_found - month_found;
             else if( !month_found)
                month_found = 6 - year_found - day_found;
+            assert( year_found > 0 && year_found < 4);
+            assert( month_found > 0 && month_found < 4);
+            assert( day_found > 0 && day_found < 4);
             year = (int)floorl( ivals[year_found - 1] + .5);
             dday = ivals[day_found - 1];
             month = (int)( ivals[month_found - 1] + .5);

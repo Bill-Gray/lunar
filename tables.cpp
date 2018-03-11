@@ -167,14 +167,14 @@ int main( int argc, char **argv)
                strcpy( buff + offsets[j], "--:--");
             else
                {
-               int minutes;
+               unsigned minutes;
                double fraction;
 
                fraction = rise_set[j] + .5 + (double)time_zone / 24.;
-               minutes = (int)( (fraction - floor( fraction)) * 1440.0);
+               minutes = (unsigned)( (fraction - floor( fraction)) * 1440.0);
 
-               snprintf( buff + offsets[j], 6, "%02d:%02d",
-                                            minutes / 60, minutes % 60);
+               snprintf( buff + offsets[j], 6, "%02u:%02u",
+                                   (minutes / 60) % 24, minutes % 60);
                }
             }
 
