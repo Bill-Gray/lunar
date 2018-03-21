@@ -239,21 +239,18 @@ int get_mpc_code_info( mpc_code_t *cinfo, const char *buff)
       else if( buff[7] == '.' && strchr( "+- ", buff[21])
                && buff[14] == '.' && buff[23] == '.' && buff[3] == ' ')
          {                 /* 'standard' MPC format */
-         if( sscanf( buff + 3, "%lf%lf%lf", &cinfo->lon,
-                  &cinfo->rho_cos_phi, &cinfo->rho_sin_phi) != 3)
-            rval = -1;
+         cinfo->lon = atof( buff + 4);
+         cinfo->rho_cos_phi = atof( buff + 13);
+         cinfo->rho_sin_phi = atof( buff + 21);
+         cinfo->name = buff + 30;
+         cinfo->format = MPC_CODE_PARALLAXES;
+         cinfo->lon *= PI / 180.;
+         if( cinfo->rho_cos_phi || cinfo->rho_sin_phi)
+            cinfo->lat = point_to_ellipse( 1., EARTH_MINOR_AXIS / EARTH_MAJOR_AXIS,
+                 cinfo->rho_cos_phi, cinfo->rho_sin_phi, &cinfo->alt);
          else
-            {
-            cinfo->name = buff + 30;
-            cinfo->format = MPC_CODE_PARALLAXES;
-            cinfo->lon *= PI / 180.;
-            if( cinfo->rho_cos_phi || cinfo->rho_sin_phi)
-               cinfo->lat = point_to_ellipse( 1., EARTH_MINOR_AXIS / EARTH_MAJOR_AXIS,
-                    cinfo->rho_cos_phi, cinfo->rho_sin_phi, &cinfo->alt);
-            else
-               cinfo->lat = cinfo->alt = 0.;
-            cinfo->alt *= EARTH_MAJOR_AXIS;
-            }
+            cinfo->lat = cinfo->alt = 0.;
+         cinfo->alt *= EARTH_MAJOR_AXIS;
          }
       else if( i == 30)
          {
@@ -280,6 +277,45 @@ int get_mpc_code_info( mpc_code_t *cinfo, const char *buff)
 
 #ifdef TEST_CODE
 
+#define is_between( x, x1, x2) ((x < x1 && x > x2) || (x < x2 && x > x1))
+#define center_ang( x)  (fmod( (x) + 180. * 9., 360.) - 180.)
+
+static bool extract_region_data_for_mpc_station( char *buff,
+            const double lat, const double lon)
+{
+   FILE *ifile = fopen( "geo_rect.txt", "rb");
+   const double lat_in_degrees = (180. / PI) * lat;
+   const double lon_in_degrees = (180. / PI) * lon;
+
+   *buff = '\0';
+   if( ifile)
+      {
+      char tbuff[90];
+      size_t i = 0;
+
+      while( !*buff && fgets( tbuff, sizeof( tbuff), ifile))
+         if( *tbuff != '#')
+            {
+            double lon1 = center_ang( atof( tbuff) - lon_in_degrees);
+            double lat1 = atof( tbuff + 10);
+            double lon2 = center_ang( atof( tbuff + 20) - lon_in_degrees);
+            double lat2 = atof( tbuff + 30);
+
+            if( is_between( 0., lon1, lon2) &&
+                is_between( lat_in_degrees, lat1, lat2))
+               {
+               strcpy( buff, tbuff + 40);
+               while( buff[i] >= ' ')
+                  i++;
+               buff[i] = '\0';   /* remove trailing CR/LF */
+               }
+            }
+      fclose( ifile);
+      }
+   return( *buff ? true : false);
+}
+
+
 int main( const int argc, const char **argv)
 {
    FILE *ifile = fopen( (argc == 1 ? "ObsCodes.htm" : argv[1]), "rb");
@@ -287,7 +323,7 @@ int main( const int argc, const char **argv)
    mpc_code_t code;
 
    const char *header =
-            "Cod Longitude  Latitude     Altitude rho_cos   rho_sin_phi";
+            "Pl Code Longitude  Latitude     Altitude rho_cos   rho_sin_phi  region";
 
    if( !ifile)
       ifile = fopen( "ObsCodes.html", "rb");
@@ -298,10 +334,20 @@ int main( const int argc, const char **argv)
       }
    printf( "%s\n", header);
    while( fgets( buff, sizeof( buff), ifile))
-      if( get_mpc_code_info( &code, buff) >= 0)
-         printf( "%-4s %10.6f %+10.6f %10.3f %9.7f %+10.7f %s",
+      if( get_mpc_code_info( &code, buff) != -1)
+         {
+         char region[100];
+
+         if( code.planet == 3)
+            extract_region_data_for_mpc_station( region, code.lat, code.lon);
+         else
+            *region = '\0';
+         printf( "%2d %-4s %10.6f %+10.6f %10.3f %9.7f %+10.7f %-15s %s",
+                  code.planet,
                   code.code, code.lon * 180. / PI, code.lat * 180. / PI,
-                  code.alt, code.rho_cos_phi, code.rho_sin_phi, code.name);
+                  code.alt, code.rho_cos_phi, code.rho_sin_phi,
+                  region, code.name);
+         }
    printf( "%s\n", header);
    fclose( ifile);
    return( 0);
