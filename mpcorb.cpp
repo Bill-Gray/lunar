@@ -61,6 +61,8 @@ static long extract_mpc_epoch( const char *epoch_buff)
 
 static void do_remaining_element_setup( ELEMENTS *elem)
 {
+   double ma;
+
    elem->mean_anomaly  *= PI / 180.;
    elem->arg_per       *= PI / 180.;
    elem->asc_node      *= PI / 180.;
@@ -68,7 +70,10 @@ static void do_remaining_element_setup( ELEMENTS *elem)
    elem->q = elem->major_axis * (1. - elem->ecc);
    derive_quantities( elem, SOLAR_GM);
    elem->angular_momentum = sqrt( SOLAR_GM * elem->q * (1. + elem->ecc));
-   elem->perih_time = elem->epoch - elem->mean_anomaly * elem->t0;
+   ma = elem->mean_anomaly;
+   if( ma > PI)            /* find _nearest_ perihelion time */
+      ma -= PI + PI;
+   elem->perih_time = elem->epoch - ma * elem->t0;
    elem->is_asteroid = 1;
    elem->central_obj = 0;
    elem->gm = SOLAR_GM;
