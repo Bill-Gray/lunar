@@ -59,7 +59,7 @@ all: astcheck$(EXE) astephem$(EXE) calendar$(EXE) cgicheck$(EXE)  \
    colors$(EXE) colors2$(EXE) cosptest$(EXE) dist$(EXE) easter$(EXE) \
    get_test$(EXE) htc20b$(EXE) jd$(EXE) \
    jevent$(EXE) jpl2b32$(EXE) jsattest$(EXE) lun_test$(EXE) \
-   marstime$(EXE) oblitest$(EXE) persian$(EXE) phases$(EXE) \
+   marstime$(EXE) mpc2sof$(EXE) oblitest$(EXE) persian$(EXE) phases$(EXE) \
    prectest$(EXE) prectes2$(EXE) ps_1996$(EXE) ssattest$(EXE) tables$(EXE) \
    test_ref$(EXE) testprec$(EXE) uranus1$(EXE) utc_test$(EXE)
 
@@ -117,7 +117,7 @@ clean:
 	$(RM) astcheck$(EXE) astephem$(EXE) calendar$(EXE) cgicheck$(EXE) colors$(EXE)
 	$(RM) colors2$(EXE) cosptest$(EXE) dist$(EXE) easter$(EXE) get_test$(EXE)
 	$(RM) htc20b$(EXE) integrat$(EXE) jd$(EXE) jevent$(EXE) jpl2b32$(EXE) jsattest$(EXE)
-	$(RM) lun_test$(EXE) marstime$(EXE) oblitest$(EXE) persian$(EXE)
+	$(RM) lun_test$(EXE) marstime$(EXE) mpc2sof$(EXE) oblitest$(EXE) persian$(EXE)
 	$(RM) phases$(EXE) prectest$(EXE) prectes2$(EXE)
 	$(RM) ps_1996$(EXE) relativi$(EXE) solseqn$(EXE) ssattest$(EXE) tables$(EXE)
 	$(RM) test_ref$(EXE) testprec$(EXE) uranus1$(EXE) utc_test$(EXE) liblunar.a
@@ -178,6 +178,9 @@ lun_test$(EXE): lun_test.o lun_tran.o riseset3.o liblunar.a
 
 marstime$(EXE): marstime.cpp
 	$(CC) $(CFLAGS) -o marstime$(EXE) marstime.cpp -DTEST_PROGRAM $(LIBSADDED)
+
+mpc2sof$(EXE): mpc2sof.cpp
+	$(CC) $(CFLAGS) -o mpc2sof$(EXE) mpc2sof.cpp mpcorb.o liblunar.a $(LIBSADDED)
 
 mpc_code$(EXE): mpc_code.cpp
 	$(CC) $(CFLAGS) -o mpc_code$(EXE) mpc_code.cpp -DTEST_CODE
