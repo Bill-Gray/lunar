@@ -1,62 +1,18 @@
-/* Code to read in 'mpcorb.dat' and output it in SOF (Standard Orbit Format) */
+/* Code to read in 'mpcorb.dat' and 'ELEMENTS.COMET' and output them in a
+unified SOF (Standard Orbit Format) file.  See
 
-/*
-Name        |Tp      .       |Te      |q         |i  .      |Om .      |om .      |e         |n_u  |n_o  |rms. |Tfirst     |Tlast      |H . |G   |Twritten.   ^
-2007-004D    20180228.3848196 20180301 0.00005244   5.152407 129.778465 231.289170 0.84641240    47    64 114.4 20171215.50 20180322.31 29.5 0.15 20180323.5315
-2007-004D    20180228.3844381 20180301 0.00005244   5.149930 129.736959 231.295297 0.84640404    47    64  25.1 20171215.50 20180322.31 29.5 0.15 20180323.5315
-2007-004D    20180228.3844262 20180301 0.00005245   5.149526 129.731472 231.300170 0.84638816    47    64  25.3 20171215.50 20180322.31 29.5 0.15 20180323.5316
-2007-004D    20180228.3844405 20180301 0.00005244   5.148085 129.708775 231.323259 0.84640780    47    64  25.7 20171215.50 20180322.31 29.5 0.15 20180323.5317
-2007-004D    20180228.3844405 20180301 0.00005244   5.148085 129.708775 231.323259 0.84640780    47    64  25.7 20171215.50 20180322.31 29.5 0.15 20180323.5317
-2007-004D    20180228.3839530 20180301 0.00005249   5.144738 129.679739 231.328781 0.84627818    47    64 132.1 20171215.50 20180322.31 29.5 0.15 20180323.5318
-2007-004D    20180228.3842310 20180301 0.00005248   5.146041 129.709024 231.340491 0.84630835    47    64 263.5 20171215.50 20180322.31 29.5 0.15 20180323.5319
-     DT18F01 20180106.6803484 20180323 0.99069757   4.303797 193.346727 277.806403 0.31570611     5     5   0.0 20180322.53 20180323.16 24.4 0.15 20180323.6303
-     DT18F01 20180106.6804709 20180323 0.99069727   4.303793 193.346733 277.806465 0.31570735     5     5   0.0 20180322.53 20180323.16 24.4 0.15 20180323.6314
-     DT18F01 20180106.6827582 20180323 0.99069173   4.303690 193.346841 277.807615 0.31572781     5     5   0.0 20180322.53 20180323.16 24.4 0.15 20180323.6319
-     DT18F01 20180106.6805732 20180323 0.99069684   4.303816 193.346746 277.806512 0.31571044     5     5   0.0 20180322.53 20180323.16 24.4 0.15 20180323.6320
-     DT18F01 20180106.6805960 20180323 0.99069679   4.303813 193.346747 277.806524 0.31571049     5     5   0.0 20180322.53 20180323.16 24.4 0.15 20180323.6329
-     DT18F01 20180106.6803484 20180323 0.99069757   4.303797 193.346727 277.806403 0.31570611     5     5   0.0 20180322.53 20180323.16 24.4 0.15 20180323.6334
-     DT18F01 20180106.3017621 20180323 0.99154013   4.331622 193.332302 277.613819 0.31317930     5     5   0.0 20180322.53 20180323.16 24.4 0.15 20180323.6335
-     DT18F01 20180106.3093406 20180323 0.99152162   4.331356 193.332673 277.617652 0.31325170     5     5   0.0 20180322.53 20180323.16 24.4 0.15 20180323.6335
-     DT18F01 20180106.3085641 20180323 0.99152220   4.331600 193.332699 277.617234 0.31326093     5     5   0.0 20180322.53 20180323.16 24.4 0.15 20180323.6335
-     DT18F01 20180106.3076778 20180323 0.99152574   4.331406 193.332589 277.616812 0.31323515     5     5   0.0 20180322.53 20180323.16 24.4 0.15 20180323.6335
-     DT18F01 20180106.6816984 20180323 0.99069445   4.303715 193.346788 277.807084 0.31571657     5     5   0.0 20180322.53 20180323.16 24.4 0.15 20180323.6335
-     DT18F01 20180106.6805879 20180323 0.99069680   4.303816 193.346747 277.806519 0.31571060     5     5   0.0 20180322.53 20180323.16 24.4 0.15 20180323.6335
-     DT18F01 20180106.6805398 20180323 0.99069694   4.303815 193.346744 277.806496 0.31570993     5     5   0.0 20180322.53 20180323.16 24.4 0.15 20180323.6336
-     DT18F01 20180106.6803380 20180323 0.99069760   4.303797 193.346726 277.806398 0.31570598     5     5   0.0 20180322.53 20180323.16 24.4 0.15 20180323.6341
-     DT18F01 20180106.6803422 20180323 0.99069758   4.303797 193.346727 277.806400 0.31570607     5     5   0.0 20180322.53 20180323.16 24.4 0.15 20180323.6341
-     DT18F01 20180106.6803395 20180323 0.99069759   4.303797 193.346726 277.806399 0.31570602     5     5   0.0 20180322.53 20180323.16 24.4 0.15 20180323.6342
-     DT18F01 20180106.6803396 20180323 0.99069759   4.303797 193.346726 277.806399 0.31570602     5     5   0.0 20180322.53 20180323.16 24.4 0.15 20180323.6342
-     DT18F01 20180106.6803396 20180323 0.99069759   4.303797 193.346726 277.806399 0.31570602     5     5   0.0 20180322.53 20180323.16 24.4 0.15 20180323.6349
-     DT18F01 20170924.7806367 20180323 1.01043345  35.613667 195.626720 235.659955 0.46326129     5     5   1.2 20180322.53 20180323.16 20.3 0.15 20180323.6349
-     DT18F01 20170924.7806367 20180323 1.01043345  35.613667 195.626720 235.659955 0.46326129     5     5   1.2 20180322.53 20180323.16 20.3 0.15 20180323.6349
-     DT18F01 20171006.7699972 20180323 2.21170189  89.814309 197.441196 299.205239 1.06138292     5     5   1.3 20180322.53 20180323.16 18.1 0.15 20180323.6349
-     DT18F01 20171006.7699972 20180323 2.21170189  89.814309 197.441196 299.205239 1.06138292     5     5   1.3 20180322.53 20180323.16 18.1 0.15 20180323.6350
-     DT18F01 20171006.7699972 20180323 2.21170189  89.814309 197.441196 299.205239 1.06138292     5     5   1.3 20180322.53 20180323.16 18.1 0.15 20180323.6354
-     DT18F01 20180308.4253488 20180323 9.85298281 136.604460 200.008646 349.300503 222.005427     5     5   1.5 20180322.53 20180323.16 12.5 0.15 20180323.6355
-     DT18F01 20180308.4253488 20180323 9.85298281 136.604460 200.008646 349.300503 222.005427     5     5   1.5 20180322.53 20180323.16 12.5 0.15 20180323.6372
-     DT18F01 20180218.4099902 20180323 5.78023285 129.276733 199.273755 343.771855 32.1686222     5     5   1.5 20180322.53 20180323.16 14.8 0.15 20180323.6373
-     DT18F01 20180218.4099902 20180323 5.78023285 129.276733 199.273755 343.771855 32.1686222     5     5   1.5 20180322.53 20180323.16 14.8 0.15 20180323.6435
-     DT18F01 20180308.4253488 20180323 9.85298281 136.604460 200.008646 349.300503 222.005427     5     5   1.5 20180322.53 20180323.16 12.5 0.15 20180323.6435
-     DT18F01 20171019.6038852 20180323 1.72576009  85.285633 197.525257 286.273530 1.43172920     5     5 222.3 20180322.53 20180323.16 18.2 0.15 20180323.6436
-     DT18F01 20180102.3563385 20180323 0.95941970   9.543675 194.542371 274.203745 0.63167030     5     5 155.0 20180322.53 20180323.16 22.7 0.15 20180323.6436
-     DT18F01 20180102.3563385 20180323 0.95941970   9.543675 194.542371 274.203745 0.63167030     5     5 155.0 20180322.53 20180323.16 22.7 0.15 20180323.6437
-     DT18F01 20180308.4253486 20180323 9.85298281 136.604460 200.008646 349.300503 222.005428     5     5   1.5 20180322.53 20180323.16 12.5 0.15 20180323.6437
-     DT18F01 20180308.4253486 20180323 9.85298281 136.604460 200.008646 349.300503 222.005428     5     5   1.5 20180322.53 20180323.16 12.5 0.15 20180323.6439
-     DT18F01 20180311.0567981 20180323 0.46811479   4.092808 215.880179 260.347846 43.5958257     5     5   1.9 20180322.53 20180323.16 20.2 0.15 20180323.6439
-     DT18F01 20180311.0567981 20180323 0.46811479   4.092808 215.880179 260.347846 43.5958257     5     5   1.9 20180322.53 20180323.16 20.2 0.15 20180323.6445
-     DT18F01 20180109.1789793 20180323 0.79393666  26.408978 196.594261 271.299911 1.84093957     5     5   1.2 20180322.53 20180323.16 20.3 0.15 20180323.6445
-Des'n     H     G   Epoch     M        Peri.      Node       Incl.       e            n           a        Reference #Obs #Opp    Arc    rms  Perts   Computer
+http://ssd.jpl.nasa.gov/dat/ELEMENTS.COMET
+https://www.projectpluto.com/orb_form.htm
+https://minorplanetcenter.net/iau/MPCORB.html
 
-----------------------------------------------------------------------------------------------------------------------------------------------------------------
-00001    3.34  0.12 K183N 352.23052   73.11528   80.30992   10.59351  0.0755347  0.21413094   2.7670463  0 MPO431490  6689 114 1801-2018 0.60 M-v 30h MPCLINUX   0000      (1) Ceres              20180120
-00002    4.13  0.11 K183N 334.32318  310.00631  173.08380   34.83687  0.2305056  0.21346869   2.7727662  0 MPO435694  7950 108 1821-2018 0.58 M-v 28h MPCLINUX   0000      (2) Pallas             20180210
-00003    5.33  0.32 K183N 304.48004  248.18190  169.85871   12.98973  0.2568879  0.22605675   2.6688514  0 MPO431490  6901 104 1821-2017 0.59 M-v 38h MPCLINUX   0000      (3) Juno               20171126
-00004    3.20  0.32 K183N 347.18586  150.76142  103.81517    7.14071  0.0890680  0.27149114   2.3621036  0 MPO410073  6903 100 1821-2017 0.60 M-p 18h MPCLINUX   0000      (4) Vesta              20170323
-00005    6.85  0.15 K183N 186.83093  358.74618  141.58366    5.36774  0.1913586  0.23873781   2.5734866  0 MPO425796  2447  75 1845-2017 0.55 M-v 38h MPCLINUX   0000      (5) Astraea            20171122
-*/
+The plan is that astcheck, Find_Orb,  astephem,  etc. will all be able to
+use SOF,  thereby evading the numberless limitations baked into the MPCORB
+and ASTORB formats, and allowing comets and asteroids to be expressed in a
+unified format. */
 
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 #include <assert.h>
 #include "watdefs.h"
 #include "date.h"
@@ -66,43 +22,158 @@ long extract_mpcorb_dat( ELEMENTS *elem, const char *buff);
 
 const double PI =
    3.1415926535897932384626433832795028841971693993751058209749445923;
+#define GAUSS_K .01720209895
+#define SOLAR_GM (GAUSS_K * GAUSS_K)
 
-const char *header =
+static int parse_elements_dot_comet( ELEMENTS *elem, const char *buff)
+{
+   int rval = -1;
+
+   if( strlen( buff) > 116 && buff[113] == '.')
+      {
+      char t_perih[15];
+
+      memset( elem, 0, sizeof( ELEMENTS));
+      elem->q = atof( buff + 51);
+      elem->epoch = atof( buff + 44) + 2400000.5;
+      elem->ecc = atof( buff + 64);
+      elem->incl = atof( buff + 75) * PI / 180.;
+      elem->arg_per = atof( buff + 85) * PI / 180.;
+      elem->asc_node = atof( buff + 95) * PI / 180.;
+      memcpy( t_perih, buff + 105, 14);
+      t_perih[14] = '\0';
+      elem->perih_time = get_time_from_string( 0., t_perih, 0, NULL);
+      derive_quantities( elem, SOLAR_GM);
+      rval = 0;
+      }
+   return( rval);
+}
+
+static int mutant_hex( const char ival)
+{
+   int rval = -1;
+
+   if( ival >= '0' && ival <= '9')
+      rval = ival - '0';
+   else if( ival >= 'A' && ival <= 'Z')
+      rval = ival + 10 - 'A';
+   else if( ival >= 'a' && ival <= 'z')
+      rval = ival + 36 - 'a';
+   assert( rval >= 0 && rval < 62);
+   return( rval);
+}
+
+static void decrypt_packed_desig( char *name, const char *packed)
+{
+   if( packed[5] == ' ')         /* numbered object */
+      snprintf( name, 8, "%7d",
+                      mutant_hex( *packed) * 10000 + atoi( packed + 1));
+   else if( !memcmp( packed, "PLS", 3) || (packed[0] == 'T' && packed[2] == 'S'))
+      {        /* Palomar-Leiden Survey or Trojan 1, 2, 3 surveys */
+      snprintf( name, 9, "%.4s %c-%c", packed + 3, packed[0], packed[1]);
+      }
+   else                          /* provisional desig */
+      snprintf( name, 13, "%2d%.2s %c%c%d%c", mutant_hex( *packed),
+            packed + 1, packed[3], packed[6], mutant_hex( packed[4]),
+            packed[5]);
+}
+
+
+const char *sof_header =
        "Name        |Tp      .       |Te      |q          |"
        "i  .      |Om .      |om .      |e         |"
        "rms |n_o  |Tlast   |H .  |G . ^";
 
-int main( const int argc, const char **argv)
+static void output_sof( const ELEMENTS *elem)
 {
-   char buff[400];
-   FILE *ifile = fopen( (argc > 1 ? argv[1] : "mpcorb.dat"), "rb");
-   ELEMENTS elem;
-   long epoch;
+   char perih_time[20], epoch_time[20];
    const int base_time_format = FULL_CTIME_YMD | FULL_CTIME_NO_SPACES
                 | FULL_CTIME_MONTHS_AS_DIGITS | FULL_CTIME_FORMAT_DAY
                 | FULL_CTIME_LEADING_ZEROES;
 
-   assert( ifile);
+   full_ctime( perih_time, elem->perih_time, base_time_format |
+                                 FULL_CTIME_7_PLACES);
+   full_ctime( epoch_time, elem->epoch, base_time_format);
+   printf( "%s %s %11.8f ", perih_time, epoch_time, elem->q);
+   printf( "%10.6f %10.6f %10.6f %10.8f ",
+                  elem->incl * 180. / PI,  elem->asc_node * 180. / PI,
+                  elem->arg_per * 180. / PI, elem->ecc);
+}
+
+static FILE *err_fopen( const char *filename, const char *permits)
+{
+   FILE *rval = fopen( filename, permits);
+
+   if( !rval)
+      {
+      fprintf( stderr, "Failed to open '%s'", filename);
+      perror( " ");
+      exit( -1);
+      }
+   return( rval);
+}
+
+int main( const int argc, const char **argv)
+{
+   char buff[400];
+   FILE *ifile = err_fopen( (argc > 1 ? argv[1] : "mpcorb.dat"), "rb");
+   ELEMENTS elem;
+   long epoch;
+   int i;
+
    while( fgets( buff, sizeof( buff), ifile)
             && memcmp( buff, "------", 6))
       ;           /* skip over header */
-   printf( "%s\n", header);
+   printf( "%s\n", sof_header);
    while( fgets( buff, sizeof( buff), ifile))
       if( strlen( buff) == 203 &&
                        (epoch = extract_mpcorb_dat( &elem, buff)) > 0L)
          {
-         char perih_time[20], epoch_time[20];
+         char name[30];
 
-         full_ctime( perih_time, elem.perih_time, base_time_format |
-                                       FULL_CTIME_7_PLACES);
-         full_ctime( epoch_time, elem.epoch, base_time_format);
-         printf( "%.8s     %s %s %11.8f ",
-                        buff, perih_time, epoch_time, elem.q);
-         printf( "%10.6f %10.6f %10.6f %10.8f ",
-                  elem.incl * 180. / PI,  elem.asc_node * 180. / PI,
-                  elem.arg_per * 180. / PI, elem.ecc);
+         decrypt_packed_desig( name, buff);
+         printf( "%-13s", name);
+         output_sof( &elem);
          printf( "%.4s %.5s ", buff + 137, buff + 117);    /* rms, number obs */
          printf( "%.8s %.5s %.5s\n", buff + 194, buff + 8, buff + 14);  /* Tlast, H, G */
+         }
+   fclose( ifile);
+
+   ifile = err_fopen( (argc > 2 ? argv[2] : "ELEMENTS.COMET"), "rb");
+   for( i = 0; i < 2; i++)       /* ELEMENTS.COMET has two header lines */
+      if( !fgets( buff, sizeof( buff), ifile))
+         {
+         fprintf( stderr, "Failed to read line from ELEMENTS.COMET\n");
+         return( -2);
+         }
+   while( fgets( buff, sizeof( buff), ifile))
+      if( !parse_elements_dot_comet( &elem, buff) && elem.epoch > 1721000.)
+         {
+         char *tptr, name[13];
+
+         memset( name, 0, sizeof( name));
+         if( buff[2] == ' ')    /* provisional desig */
+            {
+            memcpy( name, buff + 3, 12);
+            tptr = strstr( name, " (");
+            if( tptr)
+               *tptr = '\0';
+            }
+         else           /* permanent desig */
+            {
+            memcpy( name, buff, 4);
+            tptr = buff + 43;
+            while( *tptr == ' ')       /* search for end of name */
+               tptr--;
+            if( tptr[-1] == '-')       /* one-character suffix */
+               memcpy( name + 4, tptr - 1, 2);
+            if( tptr[-2] == '-')       /* two-character suffix */
+               memcpy( name + 4, tptr - 2, 3);
+            }
+         printf( "%-12s ", name);
+         output_sof( &elem);
+         printf( "           ");    /* rms, number obs */
+         printf( "                    \n");     /* Tlast, H, G */
          }
    fclose( ifile);
    return( 0);
