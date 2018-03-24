@@ -122,8 +122,8 @@ clean:
 	$(RM) ps_1996$(EXE) relativi$(EXE) solseqn$(EXE) ssattest$(EXE) tables$(EXE)
 	$(RM) test_ref$(EXE) testprec$(EXE) uranus1$(EXE) utc_test$(EXE) liblunar.a
 
-astcheck$(EXE): astcheck.o mpcorb.o liblunar.a
-	$(CC) $(CFLAGS) -o astcheck$(EXE) astcheck.o mpcorb.o liblunar.a $(LIBSADDED)
+astcheck$(EXE): astcheck.o sof.o liblunar.a
+	$(CC) $(CFLAGS) -o astcheck$(EXE) astcheck.o sof.o liblunar.a $(LIBSADDED)
 
 astephem$(EXE): astephem.o mpcorb.o liblunar.a
 	$(CC) $(CFLAGS) -o astephem$(EXE) astephem.o mpcorb.o liblunar.a $(LIBSADDED)
@@ -131,8 +131,8 @@ astephem$(EXE): astephem.o mpcorb.o liblunar.a
 calendar$(EXE): calendar.o liblunar.a
 	$(CC) $(CFLAGS) -o calendar$(EXE) calendar.o   liblunar.a $(LIBSADDED)
 
-cgicheck$(EXE): astcheck.cpp mpcorb.o liblunar.a cgicheck.o
-	$(CC) $(CFLAGS) -o cgicheck$(EXE) -DCGI_VERSION cgicheck.o astcheck.cpp mpcorb.o liblunar.a $(LIBSADDED)
+cgicheck$(EXE): astcheck.cpp sof.o liblunar.a cgicheck.o
+	$(CC) $(CFLAGS) -o cgicheck$(EXE) -DCGI_VERSION cgicheck.o astcheck.cpp sof.o liblunar.a $(LIBSADDED)
 
 colors$(EXE): colors.cpp
 	$(CC) $(CFLAGS) -o colors$(EXE) colors.cpp -DSIMPLE_TEST_PROGRAM
