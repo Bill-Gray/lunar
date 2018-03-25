@@ -27,6 +27,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 #include "date.h"
 #include "comets.h"
 #include "afuncs.h"
+#include "mpc_func.h"
 
 #define PI 3.1415926535897932384626433832795028841971693993751058209749445923
 #define LOG_10 2.3025850929940456840179914546843642076011014886287729760333279009675726
@@ -37,29 +38,15 @@ int extract_sof_data( ELEMENTS *elem, const char *buff, const char *header);
 
 static int get_mpc_data( const char *buff, double *jd, double *ra, double *dec)
 {
-   int i1, i2, year, month;
-   double tval, day;
+   int err_code;
 
    if( strlen( buff) < 80 || strlen( buff) > 83)
-      return( -1);
-   if( sscanf( buff + 32, "%d %d %lf", &i1, &i2, &tval) != 3)
-      return( -2);
-   *ra = ((double)i1 + (double)i2 / 60. + tval / 3600.) * (PI / 12.);
-
-   if( sscanf( buff + 45, "%d %d %lf", &i1, &i2, &tval) != 3)
-      return( -3);
-   *dec = ((double)i1 + (double)i2 / 60. + tval / 3600.) * (PI / 180.);
-   if( buff[44] == '-')
-      *dec = -*dec;
-   else if( buff[44] != '+')
-      return( -4);
-
-               /* Read in the day/month/year from the record... */
-   if( sscanf( buff + 15, "%d %d %lf", &year, &month, &day) != 3)
-      return( -5);
-               /* ...and convert to a JD: */
-   *jd = day + (double)dmy_to_day( 0, month, year, 0) - .5;
-   return( 0);
+      err_code = -5;
+   else
+      err_code = get_ra_dec_from_mpc_report( buff, NULL, ra, NULL,
+                                                NULL, dec, NULL);
+   *jd = extract_date_from_mpc_report( buff, NULL);
+   return( err_code);
 }
 
 static inline double law_of_cosines( const double a, const double b, const double c)
@@ -381,19 +368,19 @@ static double compute_motion( const char **lines, const int n_lines,
          double ra1, dec1, jd1;
          const double five_degrees = PI / 36.;
 
-         get_mpc_data( lines[i], &jd1, &ra1, &dec1);
-         if( fabs( jd1 - jd) < 10.)   /* within ten days... */
-            if( fabs( ra1 - ra) < five_degrees)
-               if( fabs( dec1 - dec) < five_degrees)
-                  {
-                  *ra_motion = (ra1 - ra) / (jd1 - jd);
-                  *dec_motion = (dec1 - dec) / (jd1 - jd);
-                  *ra_motion *= cos( dec);
-                           /* cvt radians/day to arcsec/hr: */
-                  *ra_motion *= radians_to_arcsec  / 24.;
-                  *dec_motion *= radians_to_arcsec / 24.;
-                  rval = jd1;
-                  }
+         if( !get_mpc_data( lines[i], &jd1, &ra1, &dec1)
+                && fabs( jd1 - jd) < 10.   /* within ten days... */
+                && fabs( ra1 - ra) < five_degrees
+                && fabs( dec1 - dec) < five_degrees)
+            {
+            *ra_motion = (ra1 - ra) / (jd1 - jd);
+            *dec_motion = (dec1 - dec) / (jd1 - jd);
+            *ra_motion *= cos( dec);
+                     /* cvt radians/day to arcsec/hr: */
+            *ra_motion *= radians_to_arcsec  / 24.;
+            *dec_motion *= radians_to_arcsec / 24.;
+            rval = jd1;
+            }
          }
    return( rval);
 }
@@ -428,7 +415,7 @@ static void err_message( void)
 {
    printf( "\nastcheck needs the name of a file containing MPC-formatted (80-column)\n");
    printf( "astrometric data.  It will then attempt to match the records to known\n");
-   printf( "objects in the 'astorb.sof' file.\n\n");
+   printf( "objects in the 'mpcorb.sof' file.\n\n");
    printf( "Command-line options are:\n\n");
    printf( "   -r(dist)   Set search distance to 'dist' arcseconds. Default is 3600.\n");
    printf( "   -z(tol)    Set motion match tolerance to 'tol' arcsec/hr. Default is 10.\n");

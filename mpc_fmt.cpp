@@ -157,7 +157,7 @@ double extract_date_from_mpc_report( const char *buff, unsigned *format)
    const size_t len = strlen( buff);
    unsigned i, bit, digits_mask = 0;
 
-   if( len != 80)             /* check for correct length */
+   if( len < 80 || len > 82)       /* check for correct length */
       return( 0.);
    if( buff[12] != ' ' && buff[12] != '*' && buff[12] != '-')
       return( 0.);
@@ -402,15 +402,24 @@ int get_ra_dec_from_mpc_report( const char *ibuff,
                        int *ra_format, double *ra, double *ra_precision,
                        int *dec_format, double *dec, double *dec_precision)
 {
-   int rval = 0;
+   int rval = 0, format;
+   double prec;
 
-   *ra  = get_ra_dec( ibuff + 32, ra_format, ra_precision) * (PI / 12.);
-   *ra_precision *= 15.;     /* cvt minutes/seconds to arcmin/arcsec */
-   if( *ra_format == BAD_RA_DEC_FMT)
+   *ra  = get_ra_dec( ibuff + 32, &format, &prec) * (PI / 12.);
+   if( ra_precision)
+      *ra_precision = prec * 15.;     /* cvt minutes/seconds to arcmin/arcsec */
+   if( format == BAD_RA_DEC_FMT)
       rval = -1;
-   *dec =  get_ra_dec( ibuff + 44, dec_format, dec_precision) * (PI / 180.);
-   if( *dec_format == BAD_RA_DEC_FMT)
+   if( ra_format)
+      *ra_format = format;
+
+   *dec =  get_ra_dec( ibuff + 44, &format, &prec) * (PI / 180.);
+   if( dec_precision)
+      *dec_precision = prec;
+   if( format == BAD_RA_DEC_FMT)
       rval -= 2;
+   if( dec_format)
+      *dec_format = format;
    return( rval);
 }
 
