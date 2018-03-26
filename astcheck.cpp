@@ -666,7 +666,7 @@ int main( const int argc, const char **argv)
                            extract_sof_data( &class_elem, tbuff, sof_header))
                      {
                      fprintf( stderr, "Couldn't read .sof elements\n");
-                     return( -1);
+                     exit( -1);
                      }
                   earth_obj_dist = compute_asteroid_loc( earth_loc, &class_elem, jd,
                            &ra1, &dec1);
