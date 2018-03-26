@@ -101,7 +101,7 @@ OBJS= alt_az.o astfuncs.o big_vsop.o cgi_func.o classel.o cospar.o  \
    date.o delta_t.o de_plan.o dist_pa.o eart2000.o elp82dat.o \
    eop_prec.o getplane.o get_time.o jsats.o lunar2.o miscell.o  \
    mpc_code.o mpc_fmt.o nutation.o obliquit.o pluto.o precess.o \
-   showelem.o spline.o ssats.o triton.o vislimit.o vsopson.o
+   showelem.o sof.o spline.o ssats.o triton.o vislimit.o vsopson.o
 
 liblunar.a: $(OBJS)
 	ar crsv liblunar.a $(OBJS)
@@ -122,8 +122,8 @@ clean:
 	$(RM) ps_1996$(EXE) relativi$(EXE) solseqn$(EXE) ssattest$(EXE) tables$(EXE)
 	$(RM) test_ref$(EXE) testprec$(EXE) uranus1$(EXE) utc_test$(EXE) liblunar.a
 
-astcheck$(EXE): astcheck.o sof.o liblunar.a
-	$(CC) $(CFLAGS) -o astcheck$(EXE) astcheck.o sof.o liblunar.a $(LIBSADDED)
+astcheck$(EXE): astcheck.o liblunar.a
+	$(CC) $(CFLAGS) -o astcheck$(EXE) astcheck.o liblunar.a $(LIBSADDED)
 
 astephem$(EXE): astephem.o mpcorb.o liblunar.a
 	$(CC) $(CFLAGS) -o astephem$(EXE) astephem.o mpcorb.o liblunar.a $(LIBSADDED)
@@ -131,8 +131,8 @@ astephem$(EXE): astephem.o mpcorb.o liblunar.a
 calendar$(EXE): calendar.o liblunar.a
 	$(CC) $(CFLAGS) -o calendar$(EXE) calendar.o   liblunar.a $(LIBSADDED)
 
-cgicheck$(EXE): astcheck.cpp sof.o liblunar.a cgicheck.o
-	$(CC) $(CFLAGS) -o cgicheck$(EXE) -DCGI_VERSION cgicheck.o astcheck.cpp sof.o liblunar.a $(LIBSADDED)
+cgicheck$(EXE): astcheck.cpp liblunar.a cgicheck.o
+	$(CC) $(CFLAGS) -o cgicheck$(EXE) -DCGI_VERSION cgicheck.o astcheck.cpp liblunar.a $(LIBSADDED)
 
 colors$(EXE): colors.cpp
 	$(CC) $(CFLAGS) -o colors$(EXE) colors.cpp -DSIMPLE_TEST_PROGRAM
