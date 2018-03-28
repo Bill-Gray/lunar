@@ -105,19 +105,23 @@ Obj: 3001 # Earth's moon
    W=38.3213 +13.17635815d -1.4e-12d2 +3.5610 sin E1 +0.1208 sin E2 -0.0642 sin E3 +0.0158 sin E4 +0.0252 sin E5 -0.0066 sin E6 -0.0047 sin E7 -0.0046 sin E8 +0.0028 sin E9 +0.0052 sin E10 +0.0040 sin E11 +0.0019 sin E12 -0.0044 sin E13
 
 Planet: M
-  M1=169.51-0.4357640d
-  M2=192.93+1128.4096700d+8.864T2
-  M3=53.47-0.0181510d
+  M1 = 190.752833 + 15917.1197346T
+  M2 =  21.510735 + 31834.5296590T
+  M3 = 196.381549 + 19139.7201379T
+  M4 = 214.896971 + 38279.9940271T
+  M5 = 125.675097 +   660.2084573T
+  M6 = 251.350194 +  1320.4169146T
+  M7 = 215.675097 +   660.2084573T
 
-Obj: 4001 # Phobos
-   a0=317.68 -0.108T +1.79 sin M1
-   d0=52.90  -0.061T -1.08 cos M1
-   W=35.06 +1128.8445850d   +8.864T2 -1.42 sin M1    -0.78 sin M2
+Obj: 4001 # Phobos (s)
+   a0 = 317.670722 -0.1084132486T -1.784328 sin M1 +0.022113 sin M2
+   d0 =  52.886261 -0.0613383599T -1.075191 cos M1 +0.006656 cos M2
+   W  =  35.187741 + 1128.8447592753d + 12.722 T2 + 1.424227 sin M1 - 0.022751 sin M2
 
-Obj: 4002 # Deimos
-   a0=316.65 -0.108T   +2.98 sin M3
-   d0=53.52 -0.061T    -1.78 cos M3
-   W=79.41 +285.1618970d -0.520T2 -2.58 sin M3   +0.19 cos M3
+Obj: 4002 # Deimos (s)
+   a0 = 316.656987 -0.1046750020T +0.007782 sin M3 +0.025076 sin M4 +3.022942 sin M5 +0.064064 sin M6 -0.005241 sin M7
+   d0 = 53.509843 -0.0599874462T +0.001912 cos M3 -0.014719 cos M4 +1.796415 cos M5 +0.019065 cos M6 +0.003205 cos M7
+   W = 79.399489 +285.1618889679d +0.016999 sin M3 -0.029333 sin M4 -2.626250 sin M5 -0.065368 sin M6 -0.184398 sin M7
 
 Planet: J
   J1=73.32+91472.9T
@@ -542,6 +546,10 @@ Feb 07, 2008:
    (pole RA/dec didn't change).
 (r) (2016 Oct 2) Updated Ceres to use Dawn measurements from
    https://naif.jpl.nasa.gov/pub/naif/DAWN/kernels/pck/dawn_ceres_v05.tpc
+(s) (2018 Mar 26) Updated Phobos & Deimos to use
+   ftp://ssd.jpl.nasa.gov/pub/eph/satellites/orientation/iom.392R-17-004.pdf
+   This has a small effect on Deimos and a larger one on Phobos,  partly
+   because the sign for the sin(M1) term was reversed.
 
 Satellites for which no suitable data are yet available have been omitted
 from this table. Nereid is not included in this table because it is not in
