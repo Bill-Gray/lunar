@@ -82,9 +82,9 @@ static void decrypt_packed_desig( char *name, const char *packed)
 const char *sof_header =
        "Name        |Tp      .       |Te      |q          |"
        "i  .      |Om .      |om .      |e         |"
-       "rms |n_o  |Tlast   |H .  |G . ^";
+       "rms |n_o  |Tlast   |H .  |G . ^\n";
 
-static void output_sof( const ELEMENTS *elem)
+static void output_sof( const ELEMENTS *elem, char *obuff)
 {
    char perih_time[20], epoch_time[20];
    const int base_time_format = FULL_CTIME_YMD | FULL_CTIME_NO_SPACES
@@ -94,8 +94,8 @@ static void output_sof( const ELEMENTS *elem)
    full_ctime( perih_time, elem->perih_time, base_time_format |
                                  FULL_CTIME_7_PLACES);
    full_ctime( epoch_time, elem->epoch, base_time_format);
-   printf( "%s %s %11.8f ", perih_time, epoch_time, elem->q);
-   printf( "%10.6f %10.6f %10.6f %10.8f ",
+   sprintf( obuff, "%s %s %11.8f ", perih_time, epoch_time, elem->q);
+   snprintf( obuff + strlen( obuff), 45, "%10.6f %10.6f %10.6f %10.8f ",
                   elem->incl * 180. / PI,  elem->asc_node * 180. / PI,
                   elem->arg_per * 180. / PI, elem->ecc);
 }
@@ -113,18 +113,29 @@ static FILE *err_fopen( const char *filename, const char *permits)
    return( rval);
 }
 
+int qsort_compare( const void *a, const void *b)
+{
+   return( strcmp( (const char *)a, (const char *)b));
+}
+
+#define MAX_ORBITS 1000000
+#define MAX_OUT 200
+
 int main( const int argc, const char **argv)
 {
-   char buff[400];
+   const size_t reclen = strlen( sof_header);
+   char buff[400], *obuff = (char *)calloc( MAX_ORBITS, reclen);
+   char tbuff[MAX_OUT];
    FILE *ifile = err_fopen( (argc > 1 ? argv[1] : "mpcorb.dat"), "rb");
    ELEMENTS elem;
    long epoch;
    int i;
+   size_t n_out = 0;
 
    while( fgets( buff, sizeof( buff), ifile)
             && memcmp( buff, "------", 6))
       ;           /* skip over header */
-   printf( "%s\n", sof_header);
+   printf( "%s", sof_header);
    while( fgets( buff, sizeof( buff), ifile))
       if( strlen( buff) == 203 &&
                        (epoch = extract_mpcorb_dat( &elem, buff)) > 0L)
@@ -132,10 +143,16 @@ int main( const int argc, const char **argv)
          char name[30];
 
          decrypt_packed_desig( name, buff);
-         printf( "%-13s", name);
-         output_sof( &elem);
-         printf( "%.4s %.5s ", buff + 137, buff + 117);    /* rms, number obs */
-         printf( "%.8s %.5s %.5s\n", buff + 194, buff + 8, buff + 14);  /* Tlast, H, G */
+         snprintf( tbuff, 14, "%-13s", name);
+         output_sof( &elem, tbuff + 13);
+         sprintf( tbuff + strlen( tbuff), "%.4s %.5s ",
+                      buff + 137, buff + 117);         /* rms, number obs */
+         sprintf( tbuff + strlen( tbuff), "%.8s %.5s %.5s\n",
+                  buff + 194, buff + 8, buff + 14);        /* Tlast, H, G */
+         assert( strlen( tbuff) == reclen);
+         memcpy( obuff + n_out * reclen, tbuff, reclen);
+         n_out++;
+         assert( n_out < MAX_ORBITS - 1);
          }
    fclose( ifile);
 
@@ -170,11 +187,18 @@ int main( const int argc, const char **argv)
             if( tptr[-2] == '-')       /* two-character suffix */
                memcpy( name + 4, tptr - 2, 3);
             }
-         printf( "%-12s ", name);
-         output_sof( &elem);
-         printf( "           ");    /* rms, number obs */
-         printf( "                    \n");     /* Tlast, H, G */
+         snprintf( tbuff, 14, "%-12s ", name);
+         output_sof( &elem, tbuff + 13);
+         strcat( tbuff, "           ");    /* rms, number obs */
+         strcat( tbuff, "                    \n");     /* Tlast, H, G */
+         assert( strlen( tbuff) == reclen);
+         memcpy( obuff + n_out * reclen, tbuff, reclen);
+         n_out++;
+         assert( n_out < MAX_ORBITS - 1);
          }
    fclose( ifile);
+   qsort( obuff, n_out, reclen, qsort_compare);
+   printf( "%s", obuff);
+   free( obuff);
    return( 0);
 }
