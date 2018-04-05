@@ -206,6 +206,9 @@ ps_1996$(EXE): ps_1996.o liblunar.a
 relativi$(EXE): relativi.cpp liblunar.a
 	$(CC) $(CFLAGS) -o relativi$(EXE) -DTEST_CODE relativi.cpp liblunar.a $(LIBSADDED)
 
+sof$(EXE): sof.cpp
+	$(CC) $(CFLAGS) -DTEST_CODE -o sof$(EXE) sof.cpp -lm liblunar.a
+
 spline$(EXE): spline.cpp
 	$(CC) $(CFLAGS) -DTEST_CODE -o spline$(EXE) spline.cpp -lm
 

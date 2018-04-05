@@ -190,7 +190,8 @@ int main( const int argc, const char **argv)
    assert( tptr);
    name_len = tptr - header_line;
    while( fgets( buff, sizeof( buff), ifile))
-      if( (tptr = strstr( buff, argv[2])) && tptr < buff + name_len)
+      if( (tptr = strstr( buff, argv[2])) && tptr < buff + name_len
+                  && tptr[strlen( argv[2])] == ' ')
          {
          ELEMENTS elem;
          int rval = extract_sof_data( &elem, buff, header_line);
@@ -204,6 +205,7 @@ int main( const int argc, const char **argv)
          printf( "   i = %f\n", elem.incl * 180. / PI);
          printf( "   Om= %f\n", elem.asc_node * 180. / PI);
          printf( "   om= %f\n", elem.arg_per * 180. / PI);
+         printf( "   Epoch = %f\n", elem.epoch);
          }
    fclose( ifile);
    return( 0);
