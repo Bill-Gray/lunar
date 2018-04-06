@@ -280,6 +280,16 @@ static void show_remainder( char *buff, long double remainder, unsigned precisio
    *buff++ = '\0';
 }
 
+static void remove_char( char *buff, const char removed)
+{
+   size_t i, j;
+
+   for( i = j = 0; buff[i]; i++)
+      if( buff[i] != removed)
+         buff[j++] = buff[i];
+   buff[j] = '\0';
+}
+
 /* The following is analogous to the C ctime( ) function,  except that it
    handles dates previous to 1970 (at least back to -5.5 million years
    and forward to 5.5 million years) and allows for other calendars
@@ -433,12 +443,9 @@ void DLL_FUNC full_ctimel( char *buff, long double t2k, const int format)
       sprintf( buff + strlen( buff), " %s",
                      set_day_of_week_name( (int)day_of_week, NULL));
    if( format & FULL_CTIME_NO_SPACES)
-      for( i = 0; ibuff[i]; i++)
-         if( ibuff[i] == ' ')
-            {
-            memmove( ibuff + i, ibuff + i + 1, strlen( ibuff + i));
-            i--;
-            }
+      remove_char( ibuff, ' ');
+   if( format & FULL_CTIME_NO_COLONS)
+      remove_char( ibuff, ':');
 }
 
 void DLL_FUNC full_ctime( char *buff, double jd, const int format)
