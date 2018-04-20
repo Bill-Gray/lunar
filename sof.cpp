@@ -81,7 +81,7 @@ int extract_sof_data( ELEMENTS *elem, const char *buff, const char *header)
 
       while( header[i] >= ' ' && header[i] != '|')
          i++;
-      if( i < 3)
+      if( i < 2)
          return( -1);
       if( header[1] == ' ')
          {
@@ -114,6 +114,9 @@ int extract_sof_data( ELEMENTS *elem, const char *buff, const char *header)
             case 'G':
                elem->slope_param = atof( buff);
                fields_found |= SOF_SLOPE_PARAM_FOUND;
+               break;
+            case 'C':
+               elem->central_obj = atoi( buff);
                break;
             }
          }
