@@ -315,10 +315,9 @@ static bool extract_region_data_for_mpc_station( char *buff,
    return( *buff ? true : false);
 }
 
-
 int main( const int argc, const char **argv)
 {
-   FILE *ifile = fopen( (argc == 1 ? "ObsCodes.htm" : argv[1]), "rb");
+   FILE *ifile = fopen( (argc < 2 ? "ObsCodes.htm" : argv[1]), "rb");
    char buff[200];
    mpc_code_t code;
 
@@ -348,6 +347,8 @@ int main( const int argc, const char **argv)
                   code.alt, code.rho_cos_phi, code.rho_sin_phi,
                   region, code.name);
          }
+      else if( argc > 2)         /* dump everything,  including */
+         printf( "%s", buff);    /* comments from input file */
    printf( "%s\n", header);
    fclose( ifile);
    return( 0);
