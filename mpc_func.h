@@ -18,6 +18,10 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 #ifndef MPC_FUNC_H_INCLUDED
 #define MPC_FUNC_H_INCLUDED
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 bool is_valid_mpc_code( const char *mpc_code);        /* mpc_fmt.cpp */
 double extract_date_from_mpc_report( const char *buff, unsigned *format);
 int get_ra_dec_from_mpc_report( const char *ibuff,    /* mpc_fmt.cpp */
@@ -48,4 +52,14 @@ int lat_alt_to_parallax( const double lat, const double ht_in_meters,
             double *rho_cos_phi, double *rho_sin_phi,
             const double major_axis_in_meters,
             const double minor_axis_in_meters);    /* mpc_code.cpp */
+int create_mpc_packed_desig( char *packed_desig, const char *obj_name);
+
+void *init_ades2mpc( void);
+int xlate_ades2mpc( void *context, char *buff);
+int free_ades2mpc_context( void *context);
+
+#ifdef __cplusplus
+}
+#endif
+
 #endif
