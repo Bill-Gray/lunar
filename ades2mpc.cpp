@@ -26,13 +26,13 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 
 typedef struct
 {
-   int64_t state;
    int depth, tags[MAX_DEPTH];
    char line[83];    /* allow possible CR, LF,  & null */
    char line2[83];
    char rms_ra[20], rms_dec[20], corr[20];
    char rms_mag[20], rms_time[20];
    int id_set, getting_lines;
+   int prev_line_passed_through;
 } ades2mpc_t;
 
 void *init_ades2mpc( void)
@@ -286,7 +286,7 @@ static inline void place_value( char *optr, const char *iptr, const size_t ilen,
    memcpy( optr, iptr, ilen);
 }
 
-static char *skip_whitespace( char *tptr)
+static const char *skip_whitespace( const char *tptr)
 {
    while( *tptr && isspace( *tptr))
       tptr++;
@@ -338,17 +338,26 @@ static int get_a_line( char *obuff, ades2mpc_t *cptr)
 #define ADES_CLOSING_UNOPENED_TAG         (-2)
 #define ADES_DEPTH_MAX                    (-3)
 
-int xlate_ades2mpc( void *context, char *obuff, char *buff)
+int xlate_ades2mpc( void *context, char *obuff, const char *buff)
 {
-   char temp_obuff[100];
    int rval = 0;
-   char *tptr = skip_whitespace( buff);
+   const char *tptr;
    ades2mpc_t *cptr = (ades2mpc_t *)context;
 
+   if( cptr->prev_line_passed_through)
+      {
+      cptr->prev_line_passed_through = 0;
+      return( 0);
+      }
+   if( !cptr->depth && !strstr( buff, "<ades version"))
+      {
+      strcpy( obuff, buff);
+      cptr->prev_line_passed_through = 1;
+      return( 1);
+      }
    if( cptr->getting_lines)
-      return( get_a_line( obuff ? obuff : buff, cptr));
-   if( !obuff)
-      obuff = temp_obuff;
+      return( get_a_line( obuff, cptr));
+   tptr = skip_whitespace( buff);
    while( rval >= 0 && *tptr)
       {
       size_t len = 0;
@@ -600,9 +609,17 @@ int xlate_ades2mpc( void *context, char *obuff, char *buff)
          memcpy( cptr->line2 + 77, cptr->line + 77, 3);
          }
       get_a_line( obuff, cptr);
-      if( obuff == temp_obuff)
-         strcpy( buff, temp_obuff);
       }
+   return( rval);
+}
+
+int xlate_ades2mpc_in_place( void *context, char *buff)
+{
+   char temp_obuff[100];
+   const int rval = xlate_ades2mpc( context, temp_obuff, buff);
+
+   if( rval)
+      strcpy( buff, temp_obuff);
    return( rval);
 }
 
@@ -619,7 +636,7 @@ int main( const int argc, const char **argv)
       {
       if( argc > 2)        /* verbose mode */
          printf( "Input line %s", buff);
-      while( xlate_ades2mpc( ades_context, NULL, buff) > 0)
+      while( xlate_ades2mpc_in_place( ades_context, buff) > 0)
          printf( "%s", buff);
       }
    rval = free_ades2mpc_context( ades_context);

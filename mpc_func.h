@@ -55,7 +55,8 @@ int lat_alt_to_parallax( const double lat, const double ht_in_meters,
 int create_mpc_packed_desig( char *packed_desig, const char *obj_name);
 
 void *init_ades2mpc( void);
-int xlate_ades2mpc( void *context, char *buff);
+int xlate_ades2mpc( void *context, char *obuff, const char *buff);
+int xlate_ades2mpc_in_place( void *context, char *buff);
 int free_ades2mpc_context( void *context);
 
 #ifdef __cplusplus
