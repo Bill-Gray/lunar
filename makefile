@@ -55,7 +55,7 @@ ifdef XCOMPILE
    LIBSADDED=-L $(LIB_DIR) -mwindows
 endif
 
-all: astcheck$(EXE) astephem$(EXE) calendar$(EXE) cgicheck$(EXE)  \
+all: adestest$(EXE) astcheck$(EXE) astephem$(EXE) calendar$(EXE) cgicheck$(EXE)  \
    colors$(EXE) colors2$(EXE) cosptest$(EXE) dist$(EXE) easter$(EXE) \
    get_test$(EXE) htc20b$(EXE) jd$(EXE) \
    jevent$(EXE) jpl2b32$(EXE) jsattest$(EXE) lun_test$(EXE) \
@@ -97,8 +97,8 @@ uninstall:
 .cpp.o:
 	$(CC) $(CFLAGS) -c $<
 
-OBJS= alt_az.o astfuncs.o big_vsop.o cgi_func.o classel.o cospar.o  \
-   date.o delta_t.o de_plan.o dist_pa.o eart2000.o elp82dat.o \
+OBJS= alt_az.o ades2mpc.o astfuncs.o big_vsop.o cgi_func.o classel.o   \
+   cospar.o date.o delta_t.o de_plan.o dist_pa.o eart2000.o elp82dat.o \
    eop_prec.o getplane.o get_time.o jsats.o lunar2.o miscell.o  \
    mpc_code.o mpc_fmt.o nutation.o obliquit.o pluto.o precess.o \
    showelem.o sof.o spline.o ssats.o triton.o vislimit.o vsopson.o
@@ -108,19 +108,22 @@ liblunar.a: $(OBJS)
 
 clean:
 	$(RM) $(OBJS)
-	$(RM) astcheck.o astephem.o calendar.o cgicheck.o
+	$(RM) adestest.o astcheck.o astephem.o calendar.o cgicheck.o
 	$(RM) cosptest.o get_test.o gust86.o htc20b.o integrat.o jd.o
 	$(RM) jevent.o jpl2b32.o jsattest.o lun_test.o lun_tran.o
 	$(RM) mpcorb.o oblitest.o obliqui2.o persian.o phases.o
 	$(RM) prectes2.o prectest.o ps_1996.o refract.o refract4.o riseset3.o solseqn.o
 	$(RM) ssattest.o tables.o test_ref.o testprec.o uranus1.o utc_test.o
-	$(RM) astcheck$(EXE) astephem$(EXE) calendar$(EXE) cgicheck$(EXE) colors$(EXE)
+	$(RM) adestest$(EXE) astcheck$(EXE) astephem$(EXE) calendar$(EXE) cgicheck$(EXE) colors$(EXE)
 	$(RM) colors2$(EXE) cosptest$(EXE) dist$(EXE) easter$(EXE) get_test$(EXE)
 	$(RM) htc20b$(EXE) integrat$(EXE) jd$(EXE) jevent$(EXE) jpl2b32$(EXE) jsattest$(EXE)
 	$(RM) lun_test$(EXE) marstime$(EXE) mpc2sof$(EXE) oblitest$(EXE) persian$(EXE)
 	$(RM) phases$(EXE) prectest$(EXE) prectes2$(EXE)
 	$(RM) ps_1996$(EXE) relativi$(EXE) solseqn$(EXE) ssattest$(EXE) tables$(EXE)
 	$(RM) test_ref$(EXE) testprec$(EXE) uranus1$(EXE) utc_test$(EXE) liblunar.a
+
+adestest$(EXE): adestest.o liblunar.a
+	$(CC) $(CFLAGS) -o adestest$(EXE) adestest.o liblunar.a $(LIBSADDED)
 
 astcheck$(EXE): astcheck.o liblunar.a
 	$(CC) $(CFLAGS) -o astcheck$(EXE) astcheck.o liblunar.a $(LIBSADDED)
