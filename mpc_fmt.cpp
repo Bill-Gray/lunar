@@ -453,8 +453,8 @@ static const char *net_codes[] = {
            "vNOMAD",
            "wCMC-14",
            "xHIP-2",
-           "yHIP",
-           "zGSC-1.x",
+           "yHIP-1",
+           "zGSC",        /* no version specified */
            "AAC",
            "BSAO 1984",
            "CSAO",
