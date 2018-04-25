@@ -33,6 +33,7 @@ typedef struct
    char rms_mag[20], rms_time[20];
    int id_set, getting_lines;
    int prev_line_passed_through;
+   int prev_rval;
 } ades2mpc_t;
 
 void *init_ades2mpc( void)
@@ -349,6 +350,8 @@ int xlate_ades2mpc( void *context, char *obuff, const char *buff)
       cptr->prev_line_passed_through = 0;
       return( 0);
       }
+   if( !cptr->depth && strstr( buff, "<optical>"))
+      cptr->depth = 1;
    if( !cptr->depth && !strstr( buff, "<ades version"))
       {
       strcpy( obuff, buff);
@@ -539,9 +542,6 @@ int xlate_ades2mpc( void *context, char *obuff, const char *buff)
                   cptr->line[44] = '+';
                place_value( cptr->line + 45, tptr, len, 2);
                break;
-            case ADES_provID:
-               if( cptr->id_set == ADES_permID)
-                  break;                  /* FALLTHRU */
             case ADES_astCat:
                assert( len < sizeof( name));
                cptr->line[71] = net_name_to_byte_code( name);
@@ -566,6 +566,9 @@ int xlate_ades2mpc( void *context, char *obuff, const char *buff)
                assert( len < 20);
                strcpy( cptr->rms_mag, name);
                break;
+            case ADES_provID:
+               if( cptr->id_set == ADES_permID)
+                  break;                  /* FALLTHRU */
             case ADES_permID:
                {
                char tbuff[20];
@@ -623,24 +626,19 @@ int xlate_ades2mpc_in_place( void *context, char *buff)
    return( rval);
 }
 
-#ifdef TEST_CODE
-
-int main( const int argc, const char **argv)
+int fgets_with_ades_xlation( char *buff, const size_t len,
+                        void *ades_context, FILE *ifile)
 {
-   FILE *ifile = fopen( argv[1], "rb");
-   char buff[200];
-   void *ades_context = init_ades2mpc( );
-   int rval;
+   ades2mpc_t *cptr = (ades2mpc_t *)ades_context;
+   int prev_rval = cptr->prev_rval;
 
-   while( fgets( buff, sizeof( buff), ifile))
-      {
-      if( argc > 2)        /* verbose mode */
-         printf( "Input line %s", buff);
-      while( xlate_ades2mpc_in_place( ades_context, buff) > 0)
-         printf( "%s", buff);
-      }
-   rval = free_ades2mpc_context( ades_context);
-   printf( "rval = %d\n", rval);
-   return( 0);
+   if( prev_rval)
+      prev_rval = xlate_ades2mpc_in_place( ades_context, buff);
+   while( !prev_rval && fgets( buff, len, ifile))
+      prev_rval = xlate_ades2mpc_in_place( ades_context, buff);
+   while( *buff && *buff != 10)
+      buff++;
+   *buff = '\0';
+   cptr->prev_rval = prev_rval;
+   return( prev_rval);
 }
-#endif

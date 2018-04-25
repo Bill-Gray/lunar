@@ -58,6 +58,8 @@ void *init_ades2mpc( void);
 int xlate_ades2mpc( void *context, char *obuff, const char *buff);
 int xlate_ades2mpc_in_place( void *context, char *buff);
 int free_ades2mpc_context( void *context);
+int fgets_with_ades_xlation( char *buff, const size_t len,
+                                      void *ades_context, FILE *ifile);
 
 #ifdef __cplusplus
 }
