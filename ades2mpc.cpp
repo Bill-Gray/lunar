@@ -472,8 +472,15 @@ int xlate_ades2mpc( void *context, char *obuff, const char *buff)
                cptr->line[70] = *tptr;
                break;
             case ADES_mode:
-               if( len == 3 && !memcmp( tptr, "CCD", 3))
-                  cptr->line[14] = 'C';
+               if( len == 3)
+                  {
+                  const char *modes = "CCCD VVID PPHO eENC pPMT MMIC TMER ";
+                  int i;
+
+                  for( i = 0; modes[i]; i += 5)
+                     if( !memcmp( modes + i + 1, tptr, 3))
+                        cptr->line[14] = modes[i];
+                  }
                break;
             case ADES_prog:
                {
