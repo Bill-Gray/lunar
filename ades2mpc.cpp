@@ -344,6 +344,7 @@ int xlate_ades2mpc( void *context, char *obuff, const char *buff)
    int rval = 0;
    const char *tptr;
    ades2mpc_t *cptr = (ades2mpc_t *)context;
+   char temp_obuff[100], *orig_obuff = NULL;
 
    if( cptr->prev_line_passed_through)
       {
@@ -354,12 +355,18 @@ int xlate_ades2mpc( void *context, char *obuff, const char *buff)
       cptr->depth = 1;
    if( !cptr->depth && !strstr( buff, "<ades version"))
       {
-      strcpy( obuff, buff);
+      if( obuff != buff)
+         strcpy( obuff, buff);
       cptr->prev_line_passed_through = 1;
       return( 1);
       }
    if( cptr->getting_lines)
       return( get_a_line( obuff, cptr));
+   if( obuff == buff)            /* translating in place */
+      {
+      orig_obuff = obuff;
+      obuff = temp_obuff;
+      }
    tptr = skip_whitespace( buff);
    while( rval >= 0 && *tptr)
       {
@@ -620,16 +627,15 @@ int xlate_ades2mpc( void *context, char *obuff, const char *buff)
          }
       get_a_line( obuff, cptr);
       }
+   if( orig_obuff)
+      strcpy( orig_obuff, temp_obuff);
    return( rval);
 }
 
 int xlate_ades2mpc_in_place( void *context, char *buff)
 {
-   char temp_obuff[100];
-   const int rval = xlate_ades2mpc( context, temp_obuff, buff);
+   const int rval = xlate_ades2mpc( context, buff, buff);
 
-   if( rval)
-      strcpy( buff, temp_obuff);
    return( rval);
 }
 
