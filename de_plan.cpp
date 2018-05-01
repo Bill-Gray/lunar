@@ -68,7 +68,7 @@ optimization pragmas,  rather than remove them outright.
    (2012 Jan 17) The function is used exactly once,  from within this
 file,  and therefore should be 'static inline'.          */
 
-// #pragma optimize( "", off)
+#pragma optimize( "", off)
 
 static inline int unpack_six_doubles( double *ovals, const char *ibuff)
 {
@@ -210,7 +210,8 @@ int DLL_FUNC unload_ps1996_series( void *p)
 
 /*  See comment above about possible optimization issues that appear
 to have been resolved,  but I'm not sure: */
-// #pragma optimize( "", on)
+
+#pragma optimize( "", on)
 
 /* I will have to mumble concerning much of what the following function
 does.  There are parts I don't understand,  and parts that are
@@ -241,7 +242,7 @@ int DLL_FUNC get_ps1996_position( const double jd, const void *iptr,
    double wx = 1.;
    double xpower[5];
 
-     if( jd < p->tzero || jd > p->tzero + p->dt)
+   if( jd < p->tzero || jd > p->tzero + p->dt)
       return( -1);
    xpower[0] = xpower[1] = 1.;
    for( i = 2; i < 5; i++)
@@ -310,10 +311,20 @@ int DLL_FUNC get_ps1996_position( const double jd, const void *iptr,
 }
 
 #ifdef TEST_CODE
-int main( int argc, char **argv)
+
+/* Example run,  giving heliocentric J2000 equatorial state
+vector for Mars as of JD 2458239.5 = 2018 May 1 TDB :
+
+../lunar/de_plan 4 2458239.5
+Series loaded
+-0.435280249 -1.303106084 -0.585949939  1.493616984
+0.013913669 -0.002480622 -0.001513357
+*/
+
+int main( const int argc, const char **argv)
 {
-   double state_vect[6];
-   double t0 = atof( argv[2]), r;
+   double state_vect[6], r;
+   const double t0 = atof( argv[2]);
    void *p;
    FILE *ifile;
 
