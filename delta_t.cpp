@@ -24,6 +24,10 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 #include "watdefs.h"
 #include "afuncs.h"
 
+#ifdef __WATCOMC__
+#define sinl(x) ((long double)sin((double)x))
+#endif
+
 /* 2013 Feb 1:  (BJG) Corrected some comments;  also revised td_minus_ut( )
 to check default_delta_t_string only for years before 1620.  This should
 have zero effect on the results,  but should save some CPU cycles.   */
