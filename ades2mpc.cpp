@@ -50,7 +50,7 @@ encountering closing tags).  */
 int free_ades2mpc_context( void *context)
 {
    ades2mpc_t *tptr = (ades2mpc_t *)context;
-   const int64_t rval = tptr->depth;
+   const int rval = tptr->depth;
 
    free( context);
    return( rval);
