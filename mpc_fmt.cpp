@@ -26,6 +26,10 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 #include "date.h"
 #include "mpc_func.h"
 
+#if defined(_MSC_VER) && _MSC_VER < 1900
+int snprintf( char *string, const size_t max_len, const char *format, ...);
+#endif
+
 /* MPC has,  at least thus far,  only assigned MPC codes that are an uppercase
 letter followed by two digits.  Look at 'rovers.txt',  and you'll see that
 user-added "MPC codes" are not so limited;  e.g.,  "2.2" and "0.6" are codes

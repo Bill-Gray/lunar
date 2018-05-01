@@ -106,6 +106,24 @@ int lat_alt_to_parallax( const double lat, const double ht_in_meters,
    return( 0);
 }
 
+/* MS only got around to adding cbrt in VS2013 : */
+
+#if (defined( _MSC_VER) && (_MSC_VER < 1800)) || defined( __WATCOMC__)
+
+static double cbrt( const double z)
+{
+   double rval;
+
+   if( z > 0.)
+      rval = pow( z, 1. / 3.);
+   else if( z < 0.)
+      rval = -pow( -z, 1. / 3.);
+   else
+      rval = 0.;
+   return( rval);
+}
+#endif
+
 /* Given an ellipse with semimajor axis a,  semiminor axis b,  centered
 at the origin,  and an arbitrary point (x, y),  point_to_ellipse() will
 compute the closest distance between that point and the ellipse,  and
