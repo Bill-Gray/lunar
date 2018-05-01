@@ -12,19 +12,21 @@ EXES= astcheck.exe astephem.exe calendar.exe cosptest.exe dist.exe \
 
 all: $(EXES)
 
-LIB_OBJS= alt_az.obj astfuncs.obj big_vsop.obj classel.obj  \
+LIB_OBJS= ades2mpc.obj alt_az.obj astfuncs.obj \
+      big_vsop.obj classel.obj  \
       cgi_func.obj com_file.obj cospar.obj date.obj \
       de_plan.obj delta_t.obj dist_pa.obj  \
       elp82dat.obj eop_prec.obj getplane.obj \
       get_time.obj jsats.obj lunar2.obj  \
-      miscell.obj nutation.obj obliquit.obj pluto.obj precess.obj  \
-      refract.obj refract4.obj rocks.obj showelem.obj \
+      miscell.obj mpc_code.obj mpc_fmt.obj \
+      nutation.obj obliquit.obj pluto.obj precess.obj  \
+      refract.obj refract4.obj rocks.obj showelem.obj sof.obj \
       spline.obj ssats.obj triton.obj vislimit.obj vsopson.obj
 
 LINK=link /nologo
 
 !ifdef BITS_32
-BASE_FLAGS=-nologo -W3 -Ox
+BASE_FLAGS=-nologo -W3 -Ox -MT
 LIBNAME=lunar
 RM=rm
 !else
@@ -54,14 +56,16 @@ $(LIBNAME).lib: $(LIB_OBJS)
 clean:
    $(RM) $(LIB_OBJS)
    $(RM) $(EXES)
-   $(RM) astcheck.obj astephem.obj calendar.obj cosptest.obj dist.obj
+   $(RM) ades2mpc.obj astcheck.obj astephem.obj
+   $(RM) calendar.obj cosptest.obj dist.obj
    $(RM) easter.obj get_test.obj htc20b.obj jd.obj jevent.obj
-   $(RM) jpl2b32.obj jsattest.obj lun_test.obj marstime.obj oblitest.obj
+   $(RM) jpl2b32.obj jsattest.obj lun_test.obj marstime.obj
+   $(RM) mpc_code.obj mpc_fmt.obj oblitest.obj
    $(RM) persian.obj phases.obj ps_1996.obj prectest.obj
    $(RM) relativi.obj ssattest.obj tables.obj
    $(RM) testprec.obj test_ref.obj uranus1.obj utc_test.obj
    $(RM) eart2000.obj gust86.obj lun_tran.obj mpcorb.obj obliqui2.obj
-   $(RM) riseset3.obj solseqn.obj spline.obj
+   $(RM) riseset3.obj sof.obj solseqn.obj spline.obj
    $(RM) $(LIBNAME).lib $(LIBNAME).map $(LIBNAME).exp
    $(RM) $(LIBNAME).dll
 
@@ -157,9 +161,11 @@ install:
    copy colors.h   $(INSTALL_DIR)
    copy comets.h   $(INSTALL_DIR)
    copy date.h     $(INSTALL_DIR)
+   copy get_bin.h  $(INSTALL_DIR)
    copy gust86.h   $(INSTALL_DIR)
    copy lunar.h    $(INSTALL_DIR)
    copy lun_tran.h $(INSTALL_DIR)
+   copy mpc_func.h $(INSTALL_DIR)
    copy riseset3.h $(INSTALL_DIR)
    copy showelem.h $(INSTALL_DIR)
    copy vislimit.h $(INSTALL_DIR)
