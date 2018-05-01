@@ -16,8 +16,9 @@ LIB_OBJS= alt_az.obj astfuncs.obj big_vsop.obj classel.obj com_file.obj &
       cospar.obj date.obj de_plan.obj delta_t.obj dist_pa.obj elp82dat.obj &
       eop_prec.obj &
       getplane.obj get_time.obj jsats.obj lunar2.obj  &
-      miscell.obj nutation.obj obliquit.obj pluto.obj precess.obj  &
-      refract.obj refract4.obj rocks.obj showelem.obj &
+      miscell.obj mpc_code.obj mpc_fmt.obj &
+      nutation.obj obliquit.obj pluto.obj precess.obj  &
+      refract.obj refract4.obj rocks.obj showelem.obj sof.obj &
       spline.obj ssats.obj triton.obj vislimit.obj vsopson.obj
 
 LINK=wcl386 -zq -k10000
