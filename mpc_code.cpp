@@ -295,9 +295,6 @@ int get_mpc_code_info( mpc_code_t *cinfo, const char *buff)
 
 #ifdef TEST_CODE
 
-#define is_between( x, x1, x2) ((x < x1 && x > x2) || (x < x2 && x > x1))
-#define center_ang( x)  (fmod( (x) + 180. * 9., 360.) - 180.)
-
 static bool extract_region_data_for_mpc_station( char *buff,
             const double lat, const double lon)
 {
@@ -314,13 +311,20 @@ static bool extract_region_data_for_mpc_station( char *buff,
       while( !*buff && fgets( tbuff, sizeof( tbuff), ifile))
          if( *tbuff != '#')
             {
-            double lon1 = center_ang( atof( tbuff) - lon_in_degrees);
-            double lat1 = atof( tbuff + 10);
-            double lon2 = center_ang( atof( tbuff + 20) - lon_in_degrees);
-            double lat2 = atof( tbuff + 30);
+            double d_lon1 = atof( tbuff)      - lon_in_degrees;
+            double d_lon2 = atof( tbuff + 20) - lon_in_degrees;
+            const double d_lat1 = atof( tbuff + 10) - lat_in_degrees;
+            const double d_lat2 = atof( tbuff + 30) - lat_in_degrees;
 
-            if( is_between( 0., lon1, lon2) &&
-                is_between( lat_in_degrees, lat1, lat2))
+            while( d_lon1 > 180.)
+               d_lon1 -= 360.;
+            while( d_lon1 < -180.)
+               d_lon1 += 360.;
+            while( d_lon2 - d_lon1 > 180.)
+               d_lon2 -= 360.;
+            while( d_lon2 - d_lon1 < -180.)
+               d_lon2 += 360.;
+            if( d_lon1 * d_lon2 < 0. && d_lat1 * d_lat2 < 0.)
                {
                strcpy( buff, tbuff + 40);
                while( buff[i] >= ' ')
