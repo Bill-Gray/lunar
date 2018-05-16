@@ -8,7 +8,12 @@ https://minorplanetcenter.net/iau/MPCORB.html
 The plan is that astcheck, Find_Orb,  astephem,  etc. will all be able to
 use SOF,  thereby evading the numberless limitations baked into the MPCORB
 and ASTORB formats, and allowing comets and asteroids to be expressed in a
-unified format. */
+unified format.
+
+The asteroid elements can be in either 'mpcorb.dat' or 'MPCORB.DAT'.  For
+Find_Orb,  the file should be placed in ~./find_orb.   I'll make sure that
+other programs using this file (astcheck,  for example) look in that
+directory as well.  */
 
 #include <stdio.h>
 #include <string.h>
@@ -181,16 +186,18 @@ int main( const int argc, const char **argv)
    const size_t reclen = strlen( sof_header);
    char buff[400], *obuff = (char *)calloc( MAX_ORBITS, reclen);
    char tbuff[MAX_OUT];
-   FILE *ifile = err_fopen( (argc > 1 ? argv[1] : "mpcorb.dat"), "rb");
+   FILE *ifile = fopen( (argc > 1 ? argv[1] : "mpcorb.dat"), "rb");
+   FILE *ofile = err_fopen( "mpcorb.sof", "wb");
    ELEMENTS elem;
    long epoch;
    int i;
    size_t n_out = 0;
 
-   while( fgets( buff, sizeof( buff), ifile)
-            && memcmp( buff, "------", 6))
+   if( !ifile)
+      ifile = err_fopen( "MPCORB.DAT", "rb");
+   while( fgets( buff, sizeof( buff), ifile) && memcmp( buff, "------", 6))
       ;           /* skip over header */
-   printf( "%s", sof_header);
+   fprintf( ofile, "%s", sof_header);
    while( fgets( buff, sizeof( buff), ifile))
       if( strlen( buff) == 203 &&
                        (epoch = extract_mpcorb_dat( &elem, buff)) > 0L)
@@ -253,7 +260,8 @@ int main( const int argc, const char **argv)
          }
    fclose( ifile);
    qsort( obuff, n_out, reclen, qsort_compare);
-   printf( "%s", obuff);
+   fprintf( ofile, "%s", obuff);
    free( obuff);
+   fclose( ofile);
    return( 0);
 }
