@@ -13,6 +13,12 @@
 *.dylib
 *.dll
 
+# Data files
+big_vsop.bin
+vsop.bin
+ps_1996.dat
+elp82.dat
+
 # Fortran module files
 *.mod
 
@@ -27,6 +33,7 @@
 *.out
 *.app
 
+adestest
 astcheck
 astephem
 calendar
@@ -34,6 +41,7 @@ cgicheck
 colors
 colors2
 cosptest
+de_plan
 dist
 easter
 get_test
@@ -45,6 +53,8 @@ jpl2b32
 jsattest
 lun_test
 marstime
+mpc2sof
+mpc_code
 oblitest
 persian
 phases
