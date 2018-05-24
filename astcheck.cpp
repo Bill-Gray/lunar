@@ -668,6 +668,9 @@ int main( const int argc, const char **argv)
                      fprintf( stderr, "Couldn't read .sof elements\n");
                      exit( -1);
                      }
+                  class_elem.is_asteroid = 1;
+                  if( tbuff[1] == '/' || strchr( "APXCD", tbuff[3]))
+                     class_elem.is_asteroid = 0;   /* it's a comet */
                   earth_obj_dist = compute_asteroid_loc( earth_loc, &class_elem, jd,
                            &ra1, &dec1);
                   mag = calc_obs_magnitude( &class_elem, obj_sun_dist,
