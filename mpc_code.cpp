@@ -363,7 +363,7 @@ int main( const int argc, const char **argv)
             extract_region_data_for_mpc_station( region, code.lat, code.lon);
          else
             *region = '\0';
-         printf( "%2d %-4s %10.6f %+10.6f %10.3f %9.7f %+10.7f %-15s %s",
+         printf( "%2d %-4s %10.6f %+10.6f %10.3f %9.7f %+10.7f %-15.15s %s",
                   code.planet,
                   code.code, code.lon * 180. / PI, code.lat * 180. / PI,
                   code.alt, code.rho_cos_phi, code.rho_sin_phi,
