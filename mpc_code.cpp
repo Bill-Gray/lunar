@@ -20,6 +20,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 #include <stdlib.h>
 #include <assert.h>
 #include <stdio.h>
+#include <ctype.h>
+#include <time.h>
 #include "watdefs.h"
 #include "mpc_func.h"
 #include "lunar.h"
@@ -214,9 +216,7 @@ int get_mpc_code_info( mpc_code_t *cinfo, const char *buff)
 
    while( buff[i] > ' ' && buff[i] <= '~' && buff[i] != '!')
       i++;
-
-   cinfo->lat = cinfo->lon = cinfo->alt
-                  = cinfo->rho_sin_phi = cinfo->rho_cos_phi = 0.;
+   memset( cinfo, 0, sizeof( mpc_code_t));
    if( i >= 3 && i <= 4 && strlen( buff) > 33)
       {
       rval = 3;         /* assume earth */
@@ -269,6 +269,10 @@ int get_mpc_code_info( mpc_code_t *cinfo, const char *buff)
          else
             cinfo->lat = cinfo->alt = 0.;
          cinfo->alt *= EARTH_MAJOR_AXIS;
+         while( cinfo->prec1 < 5 && isdigit( buff[8 + cinfo->prec1]))
+            cinfo->prec1++;      /* longitude precision,  in digits */
+         while( cinfo->prec2 < 5 && isdigit( buff[15 + cinfo->prec2]))
+            cinfo->prec2++;      /* parallax precision,  in digits */
          }
       else if( i == 30)
          {
@@ -337,11 +341,22 @@ static bool extract_region_data_for_mpc_station( char *buff,
    return( *buff ? true : false);
 }
 
+const char *html_header_text =
+    "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\">\n"
+    "<HTML>\n"
+    "<HEAD>\n"
+    "   <TITLE> MPC station sites</TITLE>\n"
+    "   <META http-equiv=Content-Type content=\"text/html; charset=utf-8\">\n"
+    "</HEAD>\n"
+    "<BODY> <pre>\n";
+
 int main( const int argc, const char **argv)
 {
    FILE *ifile = fopen( (argc < 2 ? "ObsCodes.htm" : argv[1]), "rb");
    char buff[200];
    mpc_code_t code;
+   bool google_map_links = false, dump_comments = false;
+   int i;
 
    const char *header =
             "Pl Code Longitude  Latitude     Altitude rho_cos   rho_sin_phi  region";
@@ -353,26 +368,75 @@ int main( const int argc, const char **argv)
       printf( "ObsCodes not opened\n");
       return( -1);
       }
+   for( i = 1; i < argc; i++)
+      if( argv[i][0] == '-')
+         switch( argv[i][1])
+            {
+            case 'v':
+               dump_comments = true;
+               break;
+            case 'g':
+               {
+               const time_t t0 = time( NULL);
+
+               google_map_links = true;
+               printf( "%s", html_header_text);
+               printf( "Created %s\n", ctime( &t0));
+               }
+               break;
+            default:
+               printf( "Command line option '%s' unrecognized\n", argv[i]);
+               return( -1);
+            }
    printf( "%s\n", header);
+   i = 0;
    while( fgets( buff, sizeof( buff), ifile))
       if( get_mpc_code_info( &code, buff) != -1)
          {
-         char region[100];
+         char region[100], obuff[200];
+         bool show_link_for_this_line;
 
          if( code.planet == 3)
             extract_region_data_for_mpc_station( region, code.lat, code.lon);
          else
             *region = '\0';
-         printf( "%2d %-4s %10.6f %+10.6f %10.3f %9.7f %+10.7f %-15.15s %s",
+         code.lat *= 180. / PI;
+         code.lon *= 180. / PI;
+         snprintf( obuff, sizeof( obuff),
+                 "%2d %-4s %10.6f %+10.6f %10.3f %9.7f %+10.7f %-15.15s ",
                   code.planet,
-                  code.code, code.lon * 180. / PI, code.lat * 180. / PI,
+                  code.code, code.lon, code.lat,
                   code.alt, code.rho_cos_phi, code.rho_sin_phi,
-                  region, code.name);
+                  region);
+         if( code.prec1)         /* long. precision: blank unused digits */
+            memset( obuff + 12 + code.prec1, ' ', 6 - code.prec1);
+         if( code.prec2)         /* parallax data prec: blank unused */
+            {
+            memset( obuff + 43 + code.prec2, ' ', 7 - code.prec2);
+            memset( obuff + 54 + code.prec2, ' ', 7 - code.prec2);
+            }
+         if( code.lon > 180.)
+            code.lon -= 360.;
+         if( google_map_links)        /* include HTML anchors */
+            printf( "<a name=\"L%04d\"></a>", i++);
+         show_link_for_this_line = (code.planet == 3 && google_map_links
+                        && (code.lat || code.lon));
+         if( show_link_for_this_line)
+            {
+            printf( "<a name=\"%s\"></a>", code.code);
+            printf( "<a href=\"http://maps.google.com/maps?q=%f,%f\">",
+                        code.lat, code.lon);
+            }
+         printf( "%s %s", obuff, code.name);
+         if( show_link_for_this_line)
+            printf( "</a>");
          }
-      else if( argc > 2)         /* dump everything,  including */
+      else if( dump_comments)    /* dump everything,  including */
          printf( "%s", buff);    /* comments from input file */
-   printf( "%s\n", header);
    fclose( ifile);
+   printf( "%s\n", header);
+   if( google_map_links)
+      printf( "</pre></body></html>\n");
    return( 0);
 }
 #endif
