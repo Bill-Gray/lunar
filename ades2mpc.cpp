@@ -649,7 +649,7 @@ int fgets_with_ades_xlation( char *buff, const size_t len,
       prev_rval = xlate_ades2mpc_in_place( ades_context, buff);
    while( !prev_rval && fgets( buff, len, ifile))
       prev_rval = xlate_ades2mpc_in_place( ades_context, buff);
-   while( *buff && *buff != 10)
+   while( *buff && *buff != 10 && *buff != 13)
       buff++;
    *buff = '\0';
    cptr->prev_rval = prev_rval;
