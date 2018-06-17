@@ -129,9 +129,6 @@ static int desig_type( const char *buff)
    else if( buff[4] == ' ')
       if( buff[0] == '1' || buff[0] == '2')
          rval = DESIG_PROVISIONAL;
-   if( rval == DESIG_UNRECOGNIZED)
-      fprintf( stderr, "'%.12s' unrecognized\n", buff);
-   assert( rval != DESIG_UNRECOGNIZED);
    return( rval);
 }
 
@@ -171,6 +168,9 @@ int qsort_compare( const void *a, const void *b)
             if( !rval)
                if( astr[11] < 'A' && bstr[11] < 'A')
                   rval = atoi( astr + 11) - atoi( bstr + 11);
+            break;
+         case DESIG_UNRECOGNIZED:
+            rval = memcmp( astr, bstr, 12);
             break;
          }
    if( !rval)
