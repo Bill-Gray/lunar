@@ -23,14 +23,15 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 #include "mpc_func.h"
 
 #define MAX_DEPTH 20
+#define PIECE_SIZE   25
 
 typedef struct
 {
    int depth, tags[MAX_DEPTH];
    char line[83];    /* allow possible CR, LF,  & null */
    char line2[83];
-   char rms_ra[20], rms_dec[20], corr[20];
-   char rms_mag[20], rms_time[20];
+   char rms_ra[PIECE_SIZE], rms_dec[PIECE_SIZE], corr[PIECE_SIZE];
+   char rms_mag[PIECE_SIZE], rms_time[PIECE_SIZE], center[PIECE_SIZE];
    int id_set, getting_lines;
    int prev_line_passed_through;
    int prev_rval;
@@ -284,7 +285,7 @@ static inline void place_value( char *optr, const char *iptr, const size_t ilen,
       *optr++ = '0';
       leading_places--;
       }
-   memcpy( optr, iptr, ilen);
+   memcpy( optr, iptr, (ilen < 9 + leading_places) ? ilen : 9 + leading_places);
 }
 
 static const char *skip_whitespace( const char *tptr)
@@ -319,6 +320,11 @@ static int get_a_line( char *obuff, ades2mpc_t *cptr)
          }
       cptr->rms_ra[0] = '\0';
       strcat( obuff, "\n");
+      }
+   else if( cptr->center[0])
+      {
+      sprintf( obuff, "COM Offset center %s", cptr->center);
+      cptr->center[0] = '\0';
       }
    else if( cptr->line[0])
       {
@@ -422,7 +428,7 @@ int xlate_ades2mpc( void *context, char *obuff, const char *buff)
       else if( cptr->depth)
          {
          const int itag = cptr->tags[cptr->depth - 1];
-         char name[20];
+         char name[40];
 
          while( tptr[len] && tptr[len] != '<')
             len++;
@@ -512,21 +518,27 @@ int xlate_ades2mpc( void *context, char *obuff, const char *buff)
                cptr->line2[14] = 's';
                cptr->line[14] = 'S';
                break;
+            case ADES_ctr:
+               assert( len < 20);
+               strcpy( cptr->center, name);
+               break;
             case ADES_pos1:
             case ADES_pos2:
             case ADES_pos3:
                {
-               int dec_loc;
-               char *tptr2 = strchr( name, '.');
+               int dec_loc = 40 + (itag - ADES_pos1) * 12;
+               int nlen = len;
+               char *tptr2;
 
+               if( *name != '+' && *name != '-')   /* no sign provided; */
+                  {                             /* insert one */
+                  nlen++;
+                  memmove( name + 1, name, nlen);
+                  *name = '+';
+                  }
+               cptr->line2[dec_loc - 6] = *name;
+               tptr2 = strchr( name, '.');
                assert( tptr2);
-               dec_loc = 40 + (itag - ADES_pos1) * 12;
-               if( *name == '-')
-                  cptr->line2[dec_loc - 6] = '-';
-               else
-                  cptr->line2[dec_loc - 6] = '+';
-               if( *name == '-' || *name == '+')
-                  *name = ' ';
                dec_loc -= (tptr2 - name);
                if( cptr->line2[32] == '2')
                   dec_loc -= 4;
@@ -535,7 +547,8 @@ int xlate_ades2mpc( void *context, char *obuff, const char *buff)
                   strcpy( obuff, "Bad posn data\n");
                   rval = 1;
                   }
-               memcpy( &cptr->line2[dec_loc], name, len);
+               memcpy( &cptr->line2[dec_loc + 1], name + 1,
+                                              (nlen > 12 ? 11 : nlen - 1));
                }
                break;
             case ADES_ra:
@@ -565,11 +578,11 @@ int xlate_ades2mpc( void *context, char *obuff, const char *buff)
                strcpy( cptr->rms_ra, name);
                break;
             case ADES_rmsDec:
-               assert( len < 20);
+               assert( len < sizeof( cptr->rms_dec));
                strcpy( cptr->rms_dec, name);
                break;
             case ADES_rmsCorr:
-               assert( len < 20);
+               assert( len < sizeof( cptr->corr));
                strcpy( cptr->corr, name);
                break;
             case ADES_uncTime:
