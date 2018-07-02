@@ -217,7 +217,7 @@ int get_mpc_code_info( mpc_code_t *cinfo, const char *buff)
    while( buff[i] > ' ' && buff[i] <= '~' && buff[i] != '!')
       i++;
    memset( cinfo, 0, sizeof( mpc_code_t));
-   if( i >= 3 && i <= 4 && strlen( buff) > 33)
+   if( i >= 3 && i <= 4 && strlen( buff) >= 30)
       {
       rval = 3;         /* assume earth */
 
@@ -357,6 +357,7 @@ int main( const int argc, const char **argv)
    mpc_code_t code;
    bool google_map_links = false, dump_comments = false;
    int i;
+   size_t google_offset = 0;
 
    const char *header =
             "Pl Code Longitude  Latitude     Altitude rho_cos   rho_sin_phi  region";
@@ -380,6 +381,7 @@ int main( const int argc, const char **argv)
                const time_t t0 = time( NULL);
 
                google_map_links = true;
+               google_offset = 3;
                printf( "%s", html_header_text);
                printf( "Created %s\n", ctime( &t0));
                }
@@ -388,7 +390,7 @@ int main( const int argc, const char **argv)
                printf( "Command line option '%s' unrecognized\n", argv[i]);
                return( -1);
             }
-   printf( "%s\n", header);
+   printf( "%s\n", header + google_offset);
    i = 0;
    while( fgets( buff, sizeof( buff), ifile))
       if( get_mpc_code_info( &code, buff) != -1)
@@ -427,14 +429,14 @@ int main( const int argc, const char **argv)
             printf( "<a href=\"http://maps.google.com/maps?q=%f,%f\">",
                         code.lat, code.lon);
             }
-         printf( "%s %s", obuff, code.name);
+         printf( "%s %s", obuff + google_offset, code.name);
          if( show_link_for_this_line)
             printf( "</a>");
          }
       else if( dump_comments)    /* dump everything,  including */
          printf( "%s", buff);    /* comments from input file */
    fclose( ifile);
-   printf( "%s\n", header);
+   printf( "%s\n", header + google_offset);
    if( google_map_links)
       printf( "</pre></body></html>\n");
    return( 0);
