@@ -527,7 +527,7 @@ int xlate_ades2mpc( void *context, char *obuff, const char *buff)
             case ADES_pos3:
                {
                int dec_loc = 40 + (itag - ADES_pos1) * 12;
-               int nlen = len;
+               int nlen = (int)len;
                char *tptr2;
 
                if( *name != '+' && *name != '-')   /* no sign provided; */
@@ -539,7 +539,7 @@ int xlate_ades2mpc( void *context, char *obuff, const char *buff)
                cptr->line2[dec_loc - 6] = *name;
                tptr2 = strchr( name, '.');
                assert( tptr2);
-               dec_loc -= (tptr2 - name);
+               dec_loc -= (int)(tptr2 - name);
                if( cptr->line2[32] == '2')
                   dec_loc -= 4;
                else if( cptr->line2[32] != '1')
@@ -660,7 +660,7 @@ int fgets_with_ades_xlation( char *buff, const size_t len,
 
    if( prev_rval)
       prev_rval = xlate_ades2mpc_in_place( ades_context, buff);
-   while( !prev_rval && fgets( buff, len, ifile))
+   while( !prev_rval && fgets( buff, (int)len, ifile))
       prev_rval = xlate_ades2mpc_in_place( ades_context, buff);
    while( *buff && *buff != 10 && *buff != 13)
       buff++;
