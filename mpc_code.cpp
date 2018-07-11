@@ -405,7 +405,11 @@ int main( const int argc, const char **argv)
             *region = '\0';
          code.lat *= 180. / PI;
          code.lon *= 180. / PI;
+#ifdef BITS_32
+         sprintf( obuff,
+#else
          snprintf( obuff, sizeof( obuff),
+#endif
                  "%2d %-4s %10.6f %+10.6f %10.3f %9.7f %+10.7f %-15.15s ",
                   code.planet,
                   code.code, code.lon, code.lat,
