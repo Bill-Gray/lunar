@@ -196,16 +196,17 @@ double point_to_ellipse( const double a, const double b,
 }
 
 /* You can store locations in 'rovers.txt' in base-60 form,  with the
-lat and longitude smashed together;  e.g.,  19 13' 33.1" would be
+degrees/minutes/seconds smashed together;  e.g.,  19 13' 33.1" would be
 stored as 191333.1.  The following code would take 191331.1 as input
 and return 19 + 13/60 + 33.1/3600 = 19.22586111.   */
 
 static double convert_base_60_to_decimal( const double ival)
 {
-   const int deg = (int)( ival / 10000.);
-   const int min = (int)( fmod( ival / 100., 100.));
-   const double sec = fmod( ival, 100.);
-   const double rval = (double)deg + (double)min / 60. + sec / 3600.;
+   const int secs = (int)ival;
+   const double rval = (double)( secs / 10000)
+                     + (double)((secs / 100) % 100) / 60.
+                     + (double)( secs % 100) / 3600.
+                     + (ival - (double)secs) / 3600.;
 
    return( rval);
 }
