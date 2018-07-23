@@ -34,10 +34,7 @@ Obj: 3
    d0= 90.00-0.557T
    W= 190.147+360.9856235d
 
-Obj: 4 # Mars
-   a0= 317.68143-0.1061T
-   d0= 52.88650-0.0609T
-   W= 176.630+350.89198226d   # (c)
+# See Mars under 'M'
 
 Obj: 5 # Jupiter
    a0= 268.056595-.006499T
@@ -72,16 +69,16 @@ Obj: 9 # Pluto
 # i.e., JD 2451545.0 TCB).
 
 Planet: H
-  H1=174.791086+4.092335d
-  H2=349.582171+8.184670d
-  H3=164.373257+12.277005d
-  H4=339.164343+16.369340d
-  H5=153.955429+20.461675d
+  H1=174.7910857 + 4.092335d
+  H2=349.5821714 + 8.184670d
+  H3=164.3732571 + 12.277005d
+  H4=339.1643429 + 16.369340d
+  H5=153.9554286 + 20.461675d
 
 Obj: 1 # Mercury
-   a0=281.0097-0.0328T
-   d0= 61.4143-0.0049T
-   W=329.5469+6.1385025d+0.00993822 sin H1 -0.00104581 sin H2 -0.00010280 sin H3 -0.00002364 sin H3 -0.00002365 sin H4 -0.00000532 sin H5
+   a0=281.0103-0.0328T
+   d0= 61.4155-0.0049T
+   W=329.5488+6.1385018d+0.01067257 sin H1 -0.00112309 sin H2 -0.00011040 sin H3 -0.00002539 sin H4 -0.00000571 sin H5
    # (a) (l)
 
 Planet: E
@@ -105,23 +102,36 @@ Obj: 3001 # Earth's moon
    W=38.3213 +13.17635815d -1.4e-12d2 +3.5610 sin E1 +0.1208 sin E2 -0.0642 sin E3 +0.0158 sin E4 +0.0252 sin E5 -0.0066 sin E6 -0.0047 sin E7 -0.0046 sin E8 +0.0028 sin E9 +0.0052 sin E10 +0.0040 sin E11 +0.0019 sin E12 -0.0044 sin E13
 
 Planet: M
-  M1 = 190.752833 + 15917.1197346T
-  M2 =  21.510735 + 31834.5296590T
-  M3 = 196.381549 + 19139.7201379T
-  M4 = 214.896971 + 38279.9940271T
-  M5 = 125.675097 +   660.2084573T
-  M6 = 251.350194 +  1320.4169146T
-  M7 = 215.675097 +   660.2084573T
+
+  M1 = 190.72646643 + 15917.10818695T
+  M2 = 21.46892470  + 31834.27934054T
+  M3 = 332.86082793 + 19139.89694742T
+  M4 = 394.93256437 + 38280.79631835T
+  M5 = 189.63271560 + 41215158.18420050T # + 12.71192322 T2
+  M6 = 121.46893664 + 660.22803474T
+  M7 = 231.05028581 + 660.99123540T
+  M8 = 251.37314025 + 1320.50145245T
+  M9 = 217.98635955 + 38279.96125550T
+  M10 = 196.19729402 + 19139.83628608T
+
+  M11 =  79.398797 +     0.5042615T
+  M12 = 166.325722 +     0.5042615T
+  M13 =  95.391654 +     0.5042615T
 
 Obj: 4001 # Phobos (s)
-   a0 = 317.670722 -0.1084132486T -1.784328 sin M1 +0.022113 sin M2
-   d0 =  52.886261 -0.0613383599T -1.075191 cos M1 +0.006656 cos M2
-   W  =  35.187741 + 1128.8447592753d + 12.722 T2 + 1.424227 sin M1 - 0.022751 sin M2
+   a0 = 317.67071657 -0.10844326T -1.78428399 sin M1 +0.02212824 sin M2
+   d0 =  52.88627266 -0.06134706T -1.07516537 cos M1 +0.00668626 cos M2
+   W  =  34.9964842535 +1128.84475928d + 12.72192797 T2 + 1.42421769 sin M1 - 0.02273783 sin M2 + 1.145 sin M5
 
 Obj: 4002 # Deimos (s)
-   a0 = 316.656987 -0.1046750020T +0.007782 sin M3 +0.025076 sin M4 +3.022942 sin M5 +0.064064 sin M6 -0.005241 sin M7
-   d0 = 53.509843 -0.0599874462T +0.001912 cos M3 -0.014719 cos M4 +1.796415 cos M5 +0.019065 cos M6 +0.003205 cos M7
-   W = 79.399489 +285.1618889679d +0.016999 sin M3 -0.029333 sin M4 -2.626250 sin M5 -0.065368 sin M6 -0.184398 sin M7
+   a0 = 316.65705808 -0.10518014T +3.09217726 sin M6 + 0.22980637 sin M7
+   d0 = 53.50992033 -0.0597909T + 1.83936044 cos M6 + 0.14325320 cos M7
+   W = 79.39932954 +285.16188899d - 2.73954829 sin M6 - 0.39968606 sin M7
+
+Obj: 4 # Mars
+   a0= 317.269202 − 0.10927547T + 0.419057 sin M11
+   d0= 54.432516 - 0.05827105T + 1.591274 cos M12
+   W= 176.049863 + 350.891982443297d + 0.584542 sin M13   # (c) See 2018 Jul 17 comments
 
 Planet: J
   J1=73.32+91472.9T
@@ -377,7 +387,7 @@ Planet: N
 Obj: 8 # Neptune
    a0= 299.36+0.70 sin N0
    d0= 43.46-0.51 cos N0
-   W= 253.18+536.3128492d -0.48 sin N0   # (d)
+   W= 249.978 + 541.1397757d -0.48 sin N0   # (d) (2018 Jul 17)
 
 Obj: 8003 # III Naiad
    a0=299.36 +0.70 sin N0 -6.49 sin N1 +0.25 sin 2N1
@@ -442,9 +452,9 @@ Obj: 9005 # Styx/Pluto V = S/2012 (134340) 1      (n)
    W=11.7 +17.8551357d
 
 Obj: -1      # Ceres  (r)
-   a0=291.418           # Was 291 +/- 5
-   d0=66.764            # Was 59 +/- 5
-   W=170.650 +952.1532d  # Was 170.90 + 952.1532d
+   a0=291.418           # +/- 0.03
+   d0=66.764            # +/- 0.03
+   W=170.650 +952.1532d  # rate is +/- 0.00003 deg/day
 
 Obj: -2     # Pallas
    a0= 33
@@ -463,8 +473,8 @@ Obj: -21     # Lutetia
 
 Obj: -243     # Ida
    a0=168.76
-   d0=-2.88
-   W=265.95+1864.6280070d
+   d0=-87.12
+   W=274.05 + 1864.6280070d  (2018 Jul 17)
 
 Obj: -433    # Eros
    a0=11.35    # +/- 0.02
@@ -523,7 +533,8 @@ Feb 07, 2008:
 
 (m) COSPAR data for the earth is provided for reference only.  At least in
   my code,  the earth's orientation is actually computed using the IAU
-  precession and nutation models (see 'precess.cpp').
+  precession and nutation models (see 'precess.cpp').  WGCCRE dropped this
+  model in their 2015 report.
 (n) As far as I know,  there is no "official" rotation model for Nix and
    Hydra.  I took the polar axis for Pluto and Charon,  then came up with
    values for the constant and linear term in W that produced near-zero
@@ -664,3 +675,31 @@ Further determinations didn't quite match up with it,  and they decided to
 go back to the old value of 870.536 degrees/day.  That change has now been
 made in this file.  Also found that some of the trig terms for Mercury were
 botched (used 'M' instead of 'H'),  resulting in not getting any value at all.
+
+   (2018 Jul 17) Corrections based on the WGCCRE 2015 report,  at
+
+https://astrogeology.usgs.gov/search/map/Docs/WGCCRE/WGCCRE2015reprint
+
+   Mercury's rotation has the same general form as before,  but various
+coefficients have changed.  I caught and corrected a spurious extra term in
+W that caused a sub-arcsecond error.
+
+   Mars now includes five trig terms for the pole position and
+six for W.  One term for each has considerable amplitude;  the others are
+below an arcsecond and are omitted here.  Small changes made for Phobos and
+Deimos have been incorporated,  again with some lesser terms dropped. The
+quadratic bit for M5 is dropped,  mostly because I've no straightforward
+way of including it anyway (and it's small).
+
+   W for Neptune has changed,  with the rotation rate increasing from 536.3128
+degrees/day to 541.1397757 degrees/day,  based on observations of two unusually
+stable features : https://doi.org/10.1016/j.icarus.2011.05.013
+
+   (243) Ida was far off in previous WGCCRE reports (dec for pole off by 90
+degrees!).  It should now be correct.
+
+   WGCCRE has dropped orientation models for the earth and moon.  I've not
+used the former for some time (the IAU precession/nutation model is much more
+accurate).  I do still use the latter in situations where the accurate
+alternative (orientations from DE-4xx) would be overkill.
+
