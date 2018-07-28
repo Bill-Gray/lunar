@@ -341,6 +341,213 @@ static int get_a_line( char *obuff, ades2mpc_t *cptr)
    return( cptr->getting_lines);
 }
 
+static int process_ades_tag( char *obuff, ades2mpc_t *cptr, const int itag,
+                 const char *tptr, size_t len)
+{
+   int rval = 0;
+   char name[40];
+
+   if( len < sizeof( name))
+      {
+      memcpy( name, tptr, len);
+      name[len] = '\0';
+      }
+   switch( itag)
+      {
+      case ADES_mpcCode:
+         sprintf( obuff, "COD %s\n", name);
+         rval = 1;
+         break;
+      case ADES_name:
+         {
+         const char *format = NULL;
+
+         if( cptr->depth > 1)
+            switch( cptr->tags[cptr->depth - 2])
+               {
+               case ADES_mpcCode:
+                  format = "COM %.*s\n";
+                  break;
+               case ADES_observatory:
+                  format = "COM Observatory name %.*s\n";
+                  break;
+               case ADES_observers:
+                  format = "OBS %.*s\n";
+                  break;
+               case ADES_measurers:
+                  format = "MEA %.*s\n";
+                  break;
+               case ADES_submitter:
+                  format = "CON %.*s\n";
+                  break;
+               }
+         if( format)
+            sprintf( obuff, format, (int)len, tptr);
+         else
+            strcpy( obuff, "COM Mangled name data\n");
+         rval = 1;
+         }
+         break;
+      case ADES_stn:
+         memcpy( cptr->line + 77, tptr, 3);
+         break;
+      case ADES_obsTime:
+         move_fits_time( cptr->line + 15, tptr);
+         break;
+      case ADES_band:
+         cptr->line[70] = *tptr;
+         break;
+      case ADES_mode:
+         if( len == 3)
+            {
+            const char *modes = "CCCD VVID PPHO eENC pPMT MMIC TMER ";
+            int i;
+
+            for( i = 0; modes[i]; i += 5)
+               if( !memcmp( modes + i + 1, tptr, 3))
+                  cptr->line[14] = modes[i];
+            }
+         break;
+      case ADES_prog:
+         {
+         const char *programs = "0123456789!\"#$%&'()*+,-./[\\]^_`{|}~";
+         const int idx = atoi( tptr);
+
+         if( idx >=0 && idx <= 34)
+            cptr->line[13] = programs[idx];
+         }
+         break;
+      case ADES_sys:
+         cptr->line2[0] = ' ';
+         if( !strcmp( name, "ICRF_KM"))
+            cptr->line2[32] = '1';
+         else if( !strcmp( name, "ICRF_AU"))
+            cptr->line2[32] = '2';
+         else
+            {
+            strcpy( obuff, "Bad <sys> tag\n");
+            assert( 1);
+            }
+         cptr->line2[14] = 's';
+         cptr->line[14] = 'S';
+         break;
+      case ADES_ctr:
+         assert( len < 20);
+         strcpy( cptr->center, name);
+         break;
+      case ADES_pos1:
+      case ADES_pos2:
+      case ADES_pos3:
+         {
+         int dec_loc = 40 + (itag - ADES_pos1) * 12;
+         int nlen = (int)len;
+         char *tptr2;
+
+                  /* cvt scientific notation,  if any : */
+         if( strchr( name, 'e') || strchr( name, 'E'))
+            {
+            snprintf( name, sizeof( name), "%.13f", atof( name));
+            nlen = 12;
+            }
+         if( *name != '+' && *name != '-')   /* no sign provided; */
+            {                             /* insert one */
+            nlen++;
+            memmove( name + 1, name, nlen);
+            *name = '+';
+            }
+         cptr->line2[dec_loc - 6] = *name;
+         tptr2 = strchr( name, '.');
+         assert( tptr2);
+         dec_loc -= (int)(tptr2 - name);
+         if( cptr->line2[32] == '2')
+            dec_loc -= 4;
+         else if( cptr->line2[32] != '1')
+            {
+            strcpy( obuff, "Bad posn data\n");
+            rval = 1;
+            }
+         memcpy( &cptr->line2[dec_loc + 1], name + 1,
+                                        (nlen > 12 ? 11 : nlen - 1));
+         }
+         break;
+      case ADES_ra:
+         if( *tptr == '+')
+            {
+            tptr++;
+            len--;
+            }
+         place_value( cptr->line + 32, tptr, len, 3);
+         break;
+      case ADES_dec:
+         if( *tptr == '-' || *tptr == '+')
+            {
+            cptr->line[44] = *tptr++;
+            len--;
+            }
+         else
+            cptr->line[44] = '+';
+         place_value( cptr->line + 45, tptr, len, 2);
+         break;
+      case ADES_astCat:
+         assert( len < sizeof( name));
+         cptr->line[71] = net_name_to_byte_code( name);
+         break;
+      case ADES_rmsRA:
+         assert( len < 20);
+         strcpy( cptr->rms_ra, name);
+         break;
+      case ADES_rmsDec:
+         assert( len < sizeof( cptr->rms_dec));
+         strcpy( cptr->rms_dec, name);
+         break;
+      case ADES_rmsCorr:
+         assert( len < sizeof( cptr->corr));
+         strcpy( cptr->corr, name);
+         break;
+      case ADES_uncTime:
+         assert( len < 20);
+         strcpy( cptr->rms_time, name);
+         break;
+      case ADES_rmsMag:
+         assert( len < 20);
+         strcpy( cptr->rms_mag, name);
+         break;
+      case ADES_provID:
+         if( cptr->id_set == ADES_permID)
+            break;                  /* FALLTHRU */
+      case ADES_permID:
+         {
+         char tbuff[20];
+
+         assert( len < sizeof( name));
+         create_mpc_packed_desig( tbuff, name);
+         memcpy( cptr->line, tbuff, 12);
+         cptr->id_set = itag;
+         }
+         break;
+      case ADES_artSat:
+         assert( len < 13);
+         if( !cptr->id_set)
+            {
+            cptr->id_set = ADES_artSat;
+            memcpy( cptr->line, tptr, len);
+            }
+         break;
+      case ADES_trkSub:
+         assert( len < 8);
+         if( !cptr->id_set)
+            {
+            cptr->id_set = ADES_trkSub;
+            memcpy( cptr->line + 5, tptr, len);
+            }
+         break;
+      case ADES_mag:
+         memcpy( cptr->line + 65, tptr, (len < 5) ? len : 5);
+         break;
+      }
+   return( rval);
+}
+
 #define ADES_UNHANDLED_TAG                (-1)
 #define ADES_CLOSING_UNOPENED_TAG         (-2)
 #define ADES_DEPTH_MAX                    (-3)
@@ -428,210 +635,12 @@ int xlate_ades2mpc( void *context, char *obuff, const char *buff)
       else if( cptr->depth)
          {
          const int itag = cptr->tags[cptr->depth - 1];
-         char name[40];
 
          while( tptr[len] && tptr[len] != '<')
             len++;
          while( len && tptr[len - 1] == ' ')
             len--;
-         if( len < sizeof( name))
-            {
-            memcpy( name, tptr, len);
-            name[len] = '\0';
-            }
-         switch( itag)
-            {
-            case ADES_mpcCode:
-               sprintf( obuff, "COD %s\n", name);
-               rval = 1;
-               break;
-            case ADES_name:
-               {
-               const char *format = NULL;
-
-               if( cptr->depth > 1)
-                  switch( cptr->tags[cptr->depth - 2])
-                     {
-                     case ADES_mpcCode:
-                        format = "COM %.*s\n";
-                        break;
-                     case ADES_observatory:
-                        format = "COM Observatory name %.*s\n";
-                        break;
-                     case ADES_observers:
-                        format = "OBS %.*s\n";
-                        break;
-                     case ADES_measurers:
-                        format = "MEA %.*s\n";
-                        break;
-                     case ADES_submitter:
-                        format = "CON %.*s\n";
-                        break;
-                     }
-               if( format)
-                  sprintf( obuff, format, (int)len, tptr);
-               else
-                  strcpy( obuff, "COM Mangled name data\n");
-               rval = 1;
-               }
-               break;
-            case ADES_stn:
-               memcpy( cptr->line + 77, tptr, 3);
-               break;
-            case ADES_obsTime:
-               move_fits_time( cptr->line + 15, tptr);
-               break;
-            case ADES_band:
-               cptr->line[70] = *tptr;
-               break;
-            case ADES_mode:
-               if( len == 3)
-                  {
-                  const char *modes = "CCCD VVID PPHO eENC pPMT MMIC TMER ";
-                  int i;
-
-                  for( i = 0; modes[i]; i += 5)
-                     if( !memcmp( modes + i + 1, tptr, 3))
-                        cptr->line[14] = modes[i];
-                  }
-               break;
-            case ADES_prog:
-               {
-               const char *programs = "0123456789!\"#$%&'()*+,-./[\\]^_`{|}~";
-               const int idx = atoi( tptr);
-
-               if( idx >=0 && idx <= 34)
-                  cptr->line[13] = programs[idx];
-               }
-               break;
-            case ADES_sys:
-               cptr->line2[0] = ' ';
-               if( !strcmp( name, "ICRF_KM"))
-                  cptr->line2[32] = '1';
-               else if( !strcmp( name, "ICRF_AU"))
-                  cptr->line2[32] = '2';
-               else
-                  {
-                  strcpy( obuff, "Bad <sys> tag\n");
-                  assert( 1);
-                  }
-               cptr->line2[14] = 's';
-               cptr->line[14] = 'S';
-               break;
-            case ADES_ctr:
-               assert( len < 20);
-               strcpy( cptr->center, name);
-               break;
-            case ADES_pos1:
-            case ADES_pos2:
-            case ADES_pos3:
-               {
-               int dec_loc = 40 + (itag - ADES_pos1) * 12;
-               int nlen = (int)len;
-               char *tptr2;
-
-                        /* cvt scientific notation,  if any : */
-               if( strchr( name, 'e') || strchr( name, 'E'))
-                  {
-                  snprintf( name, sizeof( name), "%.13f", atof( name));
-                  nlen = 12;
-                  }
-               if( *name != '+' && *name != '-')   /* no sign provided; */
-                  {                             /* insert one */
-                  nlen++;
-                  memmove( name + 1, name, nlen);
-                  *name = '+';
-                  }
-               cptr->line2[dec_loc - 6] = *name;
-               tptr2 = strchr( name, '.');
-               assert( tptr2);
-               dec_loc -= (int)(tptr2 - name);
-               if( cptr->line2[32] == '2')
-                  dec_loc -= 4;
-               else if( cptr->line2[32] != '1')
-                  {
-                  strcpy( obuff, "Bad posn data\n");
-                  rval = 1;
-                  }
-               memcpy( &cptr->line2[dec_loc + 1], name + 1,
-                                              (nlen > 12 ? 11 : nlen - 1));
-               }
-               break;
-            case ADES_ra:
-               if( *tptr == '+')
-                  {
-                  tptr++;
-                  len--;
-                  }
-               place_value( cptr->line + 32, tptr, len, 3);
-               break;
-            case ADES_dec:
-               if( *tptr == '-' || *tptr == '+')
-                  {
-                  cptr->line[44] = *tptr++;
-                  len--;
-                  }
-               else
-                  cptr->line[44] = '+';
-               place_value( cptr->line + 45, tptr, len, 2);
-               break;
-            case ADES_astCat:
-               assert( len < sizeof( name));
-               cptr->line[71] = net_name_to_byte_code( name);
-               break;
-            case ADES_rmsRA:
-               assert( len < 20);
-               strcpy( cptr->rms_ra, name);
-               break;
-            case ADES_rmsDec:
-               assert( len < sizeof( cptr->rms_dec));
-               strcpy( cptr->rms_dec, name);
-               break;
-            case ADES_rmsCorr:
-               assert( len < sizeof( cptr->corr));
-               strcpy( cptr->corr, name);
-               break;
-            case ADES_uncTime:
-               assert( len < 20);
-               strcpy( cptr->rms_time, name);
-               break;
-            case ADES_rmsMag:
-               assert( len < 20);
-               strcpy( cptr->rms_mag, name);
-               break;
-            case ADES_provID:
-               if( cptr->id_set == ADES_permID)
-                  break;                  /* FALLTHRU */
-            case ADES_permID:
-               {
-               char tbuff[20];
-
-               assert( len < sizeof( name));
-               create_mpc_packed_desig( tbuff, name);
-               memcpy( cptr->line, tbuff, 12);
-               cptr->id_set = itag;
-               }
-               break;
-            case ADES_artSat:
-               assert( len < 13);
-               if( !cptr->id_set)
-                  {
-                  cptr->id_set = ADES_artSat;
-                  memcpy( cptr->line, tptr, len);
-                  }
-               break;
-            case ADES_trkSub:
-               assert( len < 8);
-               if( !cptr->id_set)
-                  {
-                  cptr->id_set = ADES_trkSub;
-                  memcpy( cptr->line + 5, tptr, len);
-                  }
-               break;
-            case ADES_mag:
-               memcpy( cptr->line + 65, tptr, (len < 5) ? len : 5);
-               break;
-            }
+         rval = process_ades_tag( obuff, cptr, itag, tptr, len);
          tptr += len;
          }
       tptr = skip_whitespace( tptr);
