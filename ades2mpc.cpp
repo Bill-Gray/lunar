@@ -530,6 +530,12 @@ int xlate_ades2mpc( void *context, char *obuff, const char *buff)
                int nlen = (int)len;
                char *tptr2;
 
+                        /* cvt scientific notation,  if any : */
+               if( strchr( name, 'e') || strchr( name, 'E'))
+                  {
+                  snprintf( name, sizeof( name), "%.13f", atof( name));
+                  nlen = 12;
+                  }
                if( *name != '+' && *name != '-')   /* no sign provided; */
                   {                             /* insert one */
                   nlen++;
