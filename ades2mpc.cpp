@@ -35,6 +35,7 @@ typedef struct
    int id_set, getting_lines;
    int prev_line_passed_through;
    int prev_rval;
+   char *psv_hdr;
 } ades2mpc_t;
 
 void *init_ades2mpc( void)
@@ -53,6 +54,8 @@ int free_ades2mpc_context( void *context)
    ades2mpc_t *tptr = (ades2mpc_t *)context;
    const int rval = tptr->depth;
 
+   if( tptr->psv_hdr)
+      free( tptr->psv_hdr);
    free( context);
    return( rval);
 }
@@ -359,6 +362,8 @@ static int process_ades_tag( char *obuff, ades2mpc_t *cptr, const int itag,
          rval = 1;
          break;
       case ADES_name:
+      case ADES_line:
+      case ADES_institution:
          {
          const char *format = NULL;
 
@@ -366,6 +371,7 @@ static int process_ades_tag( char *obuff, ades2mpc_t *cptr, const int itag,
             switch( cptr->tags[cptr->depth - 2])
                {
                case ADES_mpcCode:
+               case ADES_comment:
                   format = "COM %.*s\n";
                   break;
                case ADES_observatory:
@@ -534,16 +540,98 @@ static int process_ades_tag( char *obuff, ades2mpc_t *cptr, const int itag,
             }
          break;
       case ADES_trkSub:
-         assert( len < 8);
+         assert( len < 13);
          if( !cptr->id_set)
             {
             cptr->id_set = ADES_trkSub;
-            memcpy( cptr->line + 5, tptr, len);
+            if( len < 8)
+               memcpy( cptr->line + 5, tptr, len);
+            else
+               memcpy( cptr->line + 12 - len, tptr, len);
             }
          break;
       case ADES_mag:
          memcpy( cptr->line + 65, tptr, (len < 5) ? len : 5);
          break;
+      }
+   return( rval);
+}
+
+static int process_psv_tag( ades2mpc_t *cptr, char *obuff, const char *hdr,
+                                       const char *ibuff)
+{
+   int itag, rval = 0;
+   size_t len = 0;
+
+   hdr = skip_whitespace( hdr);
+   ibuff = skip_whitespace( ibuff);
+   while( hdr[len] != '|' && hdr[len] > ' ')
+      len++;
+   itag = find_tag( hdr, len);
+   assert( itag >= 0);
+   len = 0;
+   while( ibuff[len] != '|' && ibuff[len] >= ' ')
+      len++;
+   while( len && ibuff[len - 1] == ' ')
+      len--;            /* drop trailing spaces */
+   if( len)
+      rval = process_ades_tag( obuff, cptr, itag, ibuff, len);
+   return( rval);
+}
+
+static void setup_observation( ades2mpc_t *cptr)
+{
+   memset( cptr->line, ' ', 80);
+   strcpy( cptr->line + 80, "\n");
+   memset( cptr->line2, ' ', 80);
+   strcpy( cptr->line2 + 80, "\n");
+   cptr->line2[0] = '\0';
+   cptr->id_set = 0;
+}
+
+static int process_psv_line( ades2mpc_t *cptr, char *obuff, const char *ibuff)
+{
+   size_t i;
+
+   for( i = 0; cptr->psv_hdr[i] && ibuff[i]; i++)
+      if( cptr->psv_hdr[i] == '|' && ibuff[i] != '|')
+         return( 0);       /* it's not a PSV line */
+   if( strchr( cptr->psv_hdr + i, '|') || strchr( ibuff + i, '|'))
+      return( 0);          /* there should be no further pipe characters */
+   setup_observation( cptr);
+   for( i = 0; cptr->psv_hdr[i] && ibuff[i]; i++)
+      if( !i || cptr->psv_hdr[i - 1] == '|')
+         process_psv_tag( cptr, obuff, cptr->psv_hdr + i, ibuff + i);
+   return( 1);
+}
+
+static int process_psv_header( ades2mpc_t *cptr, char *obuff, const char *ibuff)
+{
+   size_t i = 2;
+   int itag, rval = 0;
+
+   while( ibuff[i] > ' ')
+      i++;
+   itag = find_tag( ibuff + 2, i - 2);
+   if( itag >= 0)
+      {
+      if( *ibuff == '#')
+         {
+         cptr->tags[1] = itag;
+         rval = 2;         /* signal non-visible 'container' tag */
+         }
+      else
+         {
+         cptr->tags[2] = itag;
+         cptr->depth = 3;
+         ibuff = skip_whitespace( ibuff + i);
+         i = 0;
+         while( ibuff[i] >= ' ')
+            i++;
+         process_ades_tag( obuff, cptr, itag, ibuff, i);
+         cptr->depth = 0;
+         rval = 1;
+         }
       }
    return( rval);
 }
@@ -557,16 +645,57 @@ int xlate_ades2mpc( void *context, char *obuff, const char *buff)
    int rval = 0;
    const char *tptr;
    ades2mpc_t *cptr = (ades2mpc_t *)context;
-   char temp_obuff[100], *orig_obuff = NULL;
+   char temp_obuff[300], *orig_obuff = NULL;
 
    if( cptr->prev_line_passed_through)
       {
       cptr->prev_line_passed_through = 0;
       return( 0);
       }
+   if( cptr->getting_lines)
+      return( get_a_line( obuff, cptr));
    if( !cptr->depth && strstr( buff, "<optical>"))
       cptr->depth = 1;
-   if( !cptr->depth && !strstr( buff, "<ades version"))
+   if( !memcmp( buff, "permID ", 6))
+      {
+      if( cptr->psv_hdr)
+         free( cptr->psv_hdr);
+      cptr->psv_hdr = (char *)malloc( strlen( buff) + 1);
+      assert( cptr->psv_hdr);
+      strcpy( cptr->psv_hdr, buff);
+      cptr->depth = 1;
+      return( 0);
+      }
+   if( cptr->psv_hdr)
+      {
+      rval = process_psv_line( cptr, (obuff == buff ? temp_obuff : obuff), buff);
+      if( !rval)        /* we've reached the end of a PSV data section */
+         {
+         printf( "End of PSV\n");
+         free( cptr->psv_hdr);
+         cptr->psv_hdr = NULL;
+         cptr->depth = 0;
+         }
+      }
+   if( !rval && buff[1] == ' ' && (buff[0] == '#' || buff[0] == '!'))
+      {
+      rval = process_psv_header( cptr, (obuff == buff ? temp_obuff : obuff), buff);
+      if( rval)
+         {
+         if( rval == 1)
+            {
+            if( obuff == buff)
+               strcpy( obuff, temp_obuff);
+            }
+         else        /* 'container' tag;  affects internal state,  but */
+            rval = 0;    /* nothing is output */
+         cptr->prev_line_passed_through = rval;
+         return( rval);
+         }
+      }
+   if( rval)
+      cptr->getting_lines = 1;
+   if( !rval && !cptr->depth && !strstr( buff, "<ades version"))
       {
       if( obuff != buff)
          strcpy( obuff, buff);
@@ -619,14 +748,7 @@ int xlate_ades2mpc( void *context, char *obuff, const char *buff)
                   if( tptr[1] == '/')
                      cptr->getting_lines = rval = 1;
                   else
-                     {
-                     memset( cptr->line, ' ', 80);
-                     strcpy( cptr->line + 80, "\n");
-                     memset( cptr->line2, ' ', 80);
-                     strcpy( cptr->line2 + 80, "\n");
-                     cptr->line2[0] = '\0';
-                     cptr->id_set = 0;
-                     }
+                     setup_observation( cptr);
                   }
                }
             }
