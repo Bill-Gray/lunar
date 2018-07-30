@@ -671,7 +671,6 @@ int xlate_ades2mpc( void *context, char *obuff, const char *buff)
       rval = process_psv_line( cptr, (obuff == buff ? temp_obuff : obuff), buff);
       if( !rval)        /* we've reached the end of a PSV data section */
          {
-         printf( "End of PSV\n");
          free( cptr->psv_hdr);
          cptr->psv_hdr = NULL;
          cptr->depth = 0;
