@@ -605,6 +605,28 @@ static int process_psv_line( ades2mpc_t *cptr, char *obuff, const char *ibuff)
    return( 1);
 }
 
+#define MIN_PSV_TAGS    4
+
+static bool is_psv_header( const char *buff)
+{
+   int n_psv_tags = 0;
+
+   while( buff)
+      {
+      buff = skip_whitespace( buff);
+      if( *buff >= 'a' && *buff <= 'z')
+         {                /* could be a PSV header field */
+         n_psv_tags++;
+         buff = strchr( buff, '|');
+         if( buff)
+            buff++;
+         }
+      else     /* PSV header fields must start with a lowercase letter */
+         return( false);
+      }
+   return( n_psv_tags >= MIN_PSV_TAGS);
+}
+
 static int process_psv_header( ades2mpc_t *cptr, char *obuff, const char *ibuff)
 {
    size_t i = 2;
@@ -656,7 +678,7 @@ int xlate_ades2mpc( void *context, char *obuff, const char *buff)
       return( get_a_line( obuff, cptr));
    if( !cptr->depth && strstr( buff, "<optical>"))
       cptr->depth = 1;
-   if( !memcmp( buff, "permID ", 6))
+   if( is_psv_header( buff))
       {
       if( cptr->psv_hdr)
          free( cptr->psv_hdr);
