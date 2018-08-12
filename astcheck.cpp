@@ -131,7 +131,7 @@ static FILE *get_sof_file( const char *filename)
          fprintf( stderr, "Unable to read '%s'\n", filename);
          exit( -4);
          }
-      record_length = strlen( buff);
+      record_length = (int)strlen( buff);
       assert( record_length < MAX_SOF_SIZE);
       strcpy( sof_header, buff);
       fseek( ifile, 0L, SEEK_END);
@@ -429,7 +429,7 @@ static void show_astcheck_info( void)
    printf( "%d objects\n", n_asteroids);
 }
 
-#ifdef _MSC_VER
+#if defined(_MSC_VER) && _MSC_VER < 1900
      /* Microsoft Visual C/C++ has no snprintf.  Yes,  you read that      */
      /* correctly.  MSVC has an _snprintf which doesn't add a '\0' at the */
      /* end if max_len bytes are written.  You can't pass a NULL string   */
