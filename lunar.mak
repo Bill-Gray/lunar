@@ -21,6 +21,7 @@ LIB_OBJS= ades2mpc.obj alt_az.obj astfuncs.obj \
       miscell.obj mpc_code.obj mpc_fmt.obj \
       nutation.obj obliquit.obj pluto.obj precess.obj  \
       refract.obj refract4.obj rocks.obj showelem.obj sof.obj \
+      snprintf.obj \
       spline.obj ssats.obj triton.obj vislimit.obj vsopson.obj
 
 LINK=link /nologo
@@ -84,14 +85,17 @@ cosptest.exe: cosptest.obj $(LIBNAME).lib
 dist.exe:  dist.obj
    $(LINK) dist.obj
 
-easter.exe: easter.cpp
-   cl -DTEST_CODE $(BASE_FLAGS) easter.cpp
+easter.exe: easter.cpp snprintf.obj
+   cl -DTEST_CODE $(BASE_FLAGS) easter.cpp snprintf.obj
 
 get_test.exe: get_test.obj $(LIBNAME).lib
    $(LINK)    get_test.obj $(LIBNAME).lib
 
 htc20b.exe: htc20b.cpp
    cl -DTEST_MAIN $(BASE_FLAGS) htc20b.cpp
+
+integrat.exe: integrat.obj $(LIBNAME).lib
+   $(LINK)    integrat.obj $(LIBNAME).lib jpleph.lib
 
 jevent.exe: jevent.obj $(LIBNAME).lib
    $(LINK)  jevent.obj $(LIBNAME).lib

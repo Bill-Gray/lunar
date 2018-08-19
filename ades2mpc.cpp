@@ -22,6 +22,12 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 #include <ctype.h>
 #include "mpc_func.h"
 
+#if defined(_MSC_VER) && _MSC_VER < 1900
+                      /* For older MSVCs,  we have to supply our own  */
+                      /* snprintf().  See snprintf.cpp for details.  */
+int snprintf( char *string, const size_t max_len, const char *format, ...);
+#endif
+
 #define MAX_DEPTH 20
 #define PIECE_SIZE   25
 
