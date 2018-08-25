@@ -31,6 +31,18 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 #include "lunar.h"
 #include "date.h"
 #include "afuncs.h"        /* for rotate_vector( ) proto */
+
+#if defined( __has_include) && !__has_include(<jpleph.h>)
+   #error   \
+        'jpleph.h' not found.  This project depends on the 'jpl_eph'\
+        library.  See www.github.com/Bill-Gray/jpl_eph .\
+        Clone that repository,  'make'  and 'make install' it.
+#ifdef __GNUC__
+   #include <stop_compiling_here>
+         /* Above line suppresses cascading errors. */
+#endif
+#endif
+
 #include "jpleph.h"
 
 /* On some (non-Windows) system,  spreading the integration out to
