@@ -5,12 +5,16 @@
 #
 # where tgt can be any of:
 # [all|astcheck|astephem|calendar... clean]
+# [install|install_integrat]
 #
 #	'XCOMPILE' = cross-compile for Windows,  using MinGW,  on a Linux or BSD box
 #	'MSWIN' = compile for Windows,  using MinGW,  on a Windows machine
 #	'CLANG' = use clang instead of GCC;  BSD/Linux only
 # None of these: compile using g++ on BSD or Linux
 #	Note that I've only tried clang on PC-BSD (which is based on FreeBSD).
+#
+# 'integrat' is not built as part of 'make'.  If you want that,  run
+# 'make integrat' and then,  optionally,  'make install_integrat'.
 
 CC=g++
 LIBSADDED=
@@ -79,7 +83,9 @@ install:
 	cp liblunar.a $(LIB_DIR)
 	$(MKDIR) $(HOME)/bin
 	cp astcheck $(HOME)/bin
-	-cp integrat $(HOME)/bin
+
+install_integrat:
+	cp integrat $(HOME)/bin
 
 uninstall:
 	rm -f $(INSTALL_DIR)/include/afuncs.h
