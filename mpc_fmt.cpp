@@ -182,12 +182,12 @@ double extract_date_from_mpc_report( const char *buff, unsigned *format)
          int divisor = 1;
 
          year = atoi( tbuff);
-         month = atoi( tbuff + 5);
+         month = get_two_digits( tbuff + 5);
 //       rval = atof( tbuff + 8);
                      /* atof( ) is a little slow,  so we use a little more */
          for( i = 11; i < 17 && tbuff[i] != ' '; i++)  /* code in exchange */
             divisor *= 10;                             /* for better speed */
-         rval = (double)atoi( tbuff + 8) +
+         rval = (double)get_two_digits( tbuff + 8) +
                            (double)atoi( tbuff + 11) / (double)divisor;
          format_found = 0;
          start_of_decimals = 11;
