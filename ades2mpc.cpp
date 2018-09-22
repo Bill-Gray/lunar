@@ -444,7 +444,7 @@ static int process_ades_tag( char *obuff, ades2mpc_t *cptr, const int itag,
          cptr->line[14] = 'S';
          break;
       case ADES_ctr:
-         assert( len < 20);
+         assert( len < sizeof( cptr->center));
          strcpy( cptr->center, name);
          break;
       case ADES_pos1:
@@ -505,7 +505,7 @@ static int process_ades_tag( char *obuff, ades2mpc_t *cptr, const int itag,
          cptr->line[71] = net_name_to_byte_code( name);
          break;
       case ADES_rmsRA:
-         assert( len < 20);
+         assert( len < sizeof( cptr->rms_ra));
          strcpy( cptr->rms_ra, name);
          break;
       case ADES_rmsDec:
@@ -517,11 +517,11 @@ static int process_ades_tag( char *obuff, ades2mpc_t *cptr, const int itag,
          strcpy( cptr->corr, name);
          break;
       case ADES_uncTime:
-         assert( len < 20);
+         assert( len < sizeof( cptr->rms_time));
          strcpy( cptr->rms_time, name);
          break;
       case ADES_rmsMag:
-         assert( len < 20);
+         assert( len < sizeof( cptr->rms_mag));
          strcpy( cptr->rms_mag, name);
          break;
       case ADES_provID:
