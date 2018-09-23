@@ -207,6 +207,7 @@ int free_ades2mpc_context( void *context)
 #define ADES_objectDetection             136
 #define ADES_line                        137
 #define ADES_name                        138
+#define ADES_rmsTime                     139
 
 static int find_tag( const char *buff, size_t len)
 {
@@ -245,6 +246,8 @@ static int find_tag( const char *buff, size_t len)
          "filter", "arrayScale", "pixelScale", "astrometry", "fitOrder",
          "photometry", "objectDetection", "line",
          "name",
+                     /* added Sep 2018 */
+         "rmsTime",
          NULL };
 
    int i, rval = -1;
