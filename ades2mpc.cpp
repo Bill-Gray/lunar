@@ -663,7 +663,6 @@ static int process_psv_header( ades2mpc_t *cptr, char *obuff, const char *ibuff)
    return( rval);
 }
 
-#define ADES_UNHANDLED_TAG                (-1)
 #define ADES_CLOSING_UNOPENED_TAG         (-2)
 #define ADES_DEPTH_MAX                    (-3)
 
@@ -750,12 +749,7 @@ int xlate_ades2mpc( void *context, char *obuff, const char *buff)
             {
             const int tag_idx = find_tag( tptr + 1, len - 1);
 
-            if( tag_idx < 0)
-               {
-               if( memcmp( tptr, "?xml version=", 13))
-                  rval = ADES_UNHANDLED_TAG;
-               }
-            else
+            if( tag_idx >= 0)
                {
                if( tptr[1] == '/')
                   {
