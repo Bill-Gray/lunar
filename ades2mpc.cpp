@@ -574,13 +574,12 @@ static int process_psv_tag( ades2mpc_t *cptr, char *obuff, const char *hdr,
    while( hdr[len] != '|' && hdr[len] > ' ')
       len++;
    itag = find_tag( hdr, len);
-   assert( itag >= 0);
    len = 0;
    while( ibuff[len] != '|' && ibuff[len] >= ' ')
       len++;
    while( len && ibuff[len - 1] == ' ')
       len--;            /* drop trailing spaces */
-   if( len)
+   if( len && itag >= 0)
       rval = process_ades_tag( obuff, cptr, itag, ibuff, len);
    return( rval);
 }
