@@ -127,7 +127,11 @@ static void show_small_month( int month, int year, const int x0, int y0)
 
 static int get_phase_data( const double t, double *t_phases)
 {
+#ifdef _WIN32
    const char *phase_file_name = "z:\\vsop\\phases.dat";
+#else
+   const char *phase_file_name = "/home/phred/guide9/vsop/phases.dat";
+#endif
    FILE *phase_file;
    int rval = -1;
 
@@ -618,18 +622,27 @@ static int calendar( const int month, const int year)
 
 int main( const int argc, const char **argv)
 {
-   int month = atoi( argv[1]), year = atoi( argv[2]);
-   int i;
+   int i, month = 0, year;
 
+   if( argc == 1)
+      {
+      fprintf( stdout, "'calendar' needs a year and month on the command line.\n"
+                       "It will produce a PostScript (R) calendar.  Given only\n"
+                       "the year,  it will produce a twelve-month calendar.\n");
+       return( -1);
+      }
+   year = atoi( argv[1]);
+   if( argc > 2)
+      month = atoi( argv[2]);
+   else
+      dollhouse = 1;
    if( month > year)       /* allow for possible reversed entry */
       {
       month = year;
       year = atoi( argv[1]);
       }
    assert( month >= 0 && month <= 12);
-   if( !month)
-      dollhouse = 1;
-   for( i = 3; i < argc; i++)
+   for( i = 2; i < argc; i++)
       if( argv[i][0] == '-')
          switch( argv[i][1])
             {
