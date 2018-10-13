@@ -174,6 +174,16 @@ double extract_date_from_mpc_report( const char *buff, unsigned *format)
       if( isdigit( tbuff[i]))
          digits_mask |= bit;
    tbuff[17] = '\0';
+   if( (digits_mask & 0x3ff) != 0x36f    /* i.e.,  'dddd zd zd' */
+                   && (digits_mask & 0x2df) == 0x24f
+                   && tbuff[7] == ' ' && tbuff[10] == '.')
+      {                        /* no leading zero given for month,  day, */
+      if( tbuff[5] == ' ')     /* or both;  fill it in with zero(es)  */
+         tbuff[5] = '0';
+      if( tbuff[8] == ' ')
+         tbuff[8] = '0';
+      digits_mask |= 32 + 256;
+      }
    if( tbuff[4] == ' ')
       {                       /* standard YYYY MM DD.dddddd format */
       if( (digits_mask & 0x3ff) == 0x36f    /* i.e.,  'dddd dd dd' */
