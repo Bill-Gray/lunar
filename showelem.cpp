@@ -208,19 +208,19 @@ int DLL_FUNC elements_in_mpc_format( char *obuff, const ELEMENTS *elem,
       {
       *obuff = 'q';
       show_formatted_dist( obuff + 1, perihelion_dist, precision);
-      for( i = (int)strlen( obuff); i < n_digits_to_show + 6; i++)
+      for( i = (int)strlen( obuff); i < n_digits_to_show + 9; i++)
          obuff[i] = ' ';
-      obuff[n_digits_to_show + 6] = '\0';
+      obuff[n_digits_to_show + 9] = '\0';
       }
    else
       {
       const double mean_anomaly = zero_to_two_pi( elem->mean_anomaly);
 
       sprintf( obuff, "M%20.15f", mean_anomaly * 180. / PI);
-      lop_digits( obuff + 6, precision);
+      lop_digits( obuff + 9, precision);
       }
    if( !(format & SHOWELEM_OMIT_PQ_MASK))
-      strcat( obuff, "    (2000.0)            P               Q");
+      strcat( obuff, " (2000.0)            P               Q");
    obuff += strlen( obuff) + 1;
    n_lines++;
 
