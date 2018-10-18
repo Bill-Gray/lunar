@@ -30,7 +30,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 #pragma pack( 1)
 COEFFS
    {
-   char j, s, p, dummy_to_maintain_alignment;
+   signed char j, s, p, dummy_to_maintain_alignment;
    int16_t lon_a, lon_b, lat_a, lat_b, rad_a, rad_b;
    };
 #pragma pack( )
@@ -104,3 +104,48 @@ int DLL_FUNC calc_pluto_loc( const void FAR *data, double DLLPTR *loc,
    *loc++ = r / 10.;    /* convert back to units of AUs */
    return( 0);
 }
+
+#ifdef TEST_PROGRAM
+
+/* Compile as,  e.g.,
+
+g++ -Wall -Wextra -pedantic -DTEST_PROGRAM -o pluto pluto.cpp        */
+
+#include <assert.h>
+#include <stdio.h>
+#include <stdlib.h>
+
+/* A useful trick to suppress 'unused parameter' warnings,  modified from
+
+https://stackoverflow.com/questions/1486904/how-do-i-best-silence-a-warning-about-unused-variables
+*/
+
+#define INTENTIONALLY_UNUSED_PARAMETER( param) (void)(param)
+
+int main( const int argc, const char **argv)
+{
+   const size_t vsop_size = 60874;
+   FILE *ifile = fopen( "vsop.bin", "rb");
+   char *buff = (char *)malloc( vsop_size);
+
+   INTENTIONALLY_UNUSED_PARAMETER( argv);
+   INTENTIONALLY_UNUSED_PARAMETER( argc);
+   assert( ifile);
+   assert( buff);
+   if( fread( buff, 1, vsop_size, ifile) != vsop_size)
+      fprintf( stderr, "Wrong vsop.bin file size\n");
+   else
+      {
+      double loc[3];
+      double t_cen = -0.0721834360;    /* 1992 Oct 13.0 TD */
+
+      calc_pluto_loc( buff, loc, t_cen, 0);
+      printf( "Computed :  %10.6f %10.6f %10.7f\n", loc[0] * 180. / PI,
+                                       loc[1] * 180. / PI, loc[2]);
+      printf( "From Meeus: 232.74009   14.58789  29.711383\n");
+      }
+   free( buff);
+   fclose( ifile);
+   return( 0);
+}
+#endif           /* #ifdef TEST_PROGRAM */
