@@ -27,14 +27,25 @@ embedded systems.  It's probably not the way I would do things now.
 The code is not easy to follow.  But it _does_ all work,  and runs
 fast and has a small footprint.
 
-NOTE that this will fail on big-Endian machines,  and on some
-little-Endians that require byte alignment.  Let me know if you have
-such a machine.  The fix is simple,  but I'm reluctant to try it
-without a means of verifying that it works. */
+   The lunar longitude/distance terms each consume twelve bytes in the
+binary file:  one each for a d, m, mp, and f coefficient,  and then the
+longitude (sl) and radius (sr) amplitudes are stored as 32-bit integers.
+
+   The lunar latitude terms are similar,  but only eight bytes:  still
+the d, m, mp, and f coefficients,  but then there's just a latitude
+term stored as a 32-bit integer.  */
+
+#define LON_R_TERM_SIZE          12u
+#define LAT_TERM_SIZE             8u
+#define N_TERMS                  60
+#define LUNAR_LON_DIST_OFFSET    59354u
+#define LUNAR_LAT_OFFSET         LUNAR_LON_DIST_OFFSET + LON_R_TERM_SIZE * N_TERMS
+#define LUNAR_FUND_OFFSET        LUNAR_LAT_OFFSET + LAT_TERM_SIZE * N_TERMS
 
 #include <math.h>
 #include <stdlib.h>
 #include <stdint.h>
+#include <assert.h>
 #include "watdefs.h"
 #include "lunar.h"
 #include "get_bin.h"
@@ -49,48 +60,23 @@ without a means of verifying that it works. */
 #define A3  fund[7]
 #define T   fund[8]
 
-#define N_TERM1 60
-#define TERM1 struct term1
-
-/* 28 Jul 2011:  modified these structures so they're packed (they
-   are read from disk files) and that 32-bit ints are specified.
-   Obviously,  they'll still break on non-Intel order hardware.  */
-
-#pragma pack( 1)
-TERM1
-   {
-   char d, m, mp, f;
-   int32_t sl, sr;
-   };
-#pragma pack( )
-
-#define N_TERM2 60
-#define TERM2 struct term2
-
-#pragma pack( 1)
-TERM2
-   {
-   char d, m, mp, f;
-   int32_t sb;
-   };
-#pragma pack( )
-
 #define PI 3.1415926535897932384626433832795028841971693993751058209749445923
-#define CVT (PI / 180.)
 
 int DLL_FUNC lunar_fundamentals( const void FAR *data, const double t,
                                         double DLLPTR *fund)
 {
    int i, j;
-   const double FAR *tptr = (const double FAR *)((const char FAR *)data + 60554U);
+   const char FAR *tptr = (const char FAR *)data + LUNAR_FUND_OFFSET;
    double tpow;
 
+   assert( get32bits( tptr) == 0x6ed5a0b1);
+   assert( get32bits( data) == 0x00260000);
    for( i = 0; i < 5; i++)
       {
       fund[i] = get_double( tptr);
-      tptr++;
+      tptr += 8;
       tpow = t;
-      for( j = 4; j; j--, tpow *= t, tptr++)
+      for( j = 4; j; j--, tpow *= t, tptr += 8)
          fund[i] += tpow * get_double( tptr);
       }
 
@@ -102,7 +88,7 @@ int DLL_FUNC lunar_fundamentals( const void FAR *data, const double t,
       {
       fund[i] = fmod( fund[i], 360.);
       if( fund[i] < 0.) fund[i] += 360.;
-      fund[i] *= CVT;
+      fund[i] *= PI / 180.;
       }
    return( 0);
 }
@@ -111,74 +97,47 @@ int DLL_FUNC lunar_lon_and_dist( const void FAR *data, const double DLLPTR *fund
                  double DLLPTR *lon, double DLLPTR *r, const long precision)
 {
    int i, j;
-   const TERM1 FAR *tptr = (const TERM1 FAR *)((const char FAR *)data + 59354U);
-   double sl = 0., sr = 0., e;
+   const signed char *tptr = (const signed char *)data + LUNAR_LON_DIST_OFFSET;
+   double sl_sum = 0., sr_sum = 0., e;
 
+   assert( get32bits( tptr) == 0x00010000);
    e = 1. - .002516 * T - .0000074 * T * T;
-   for( i = N_TERM1; i; i--, tptr++)
-      if( labs( tptr->sl) > precision || labs( tptr->sr) > precision)
-         {
-         double arg, term;
+   for( i = N_TERMS; i; i--, tptr += LON_R_TERM_SIZE)
+      {
+      const int32_t sl = get32bits( tptr + 4);
+      const int32_t sr = get32bits( tptr + 8);
 
-         switch( tptr->d)
+      if( labs( sl) > precision || labs( sr) > precision)
+         {
+         double term;
+         const signed char d = tptr[0], m = tptr[1], mp = tptr[2], f = tptr[3];
+         const double arg = (double)d * D + (double)m * M
+                          + (double)mp * Mp + (double)f * F;
+
+         if( sl)
             {
-            case  1:   arg = D;     break;
-            case -1:   arg =-D;     break;
-            case  2:   arg = D+D;   break;
-            case -2:   arg =-D-D;   break;
-            case  0:   arg = 0.;    break;
-            default:   arg = (double)tptr->d * D;  break;
-            }
-         switch( tptr->m)
-            {
-            case  1:   arg += M;     break;
-            case -1:   arg -= M;     break;
-            case  2:   arg += M+M;   break;
-            case -2:   arg -= M+M;  break;
-            case  0:           ;    break;
-            default:   arg += (double)tptr->m * M;  break;
-            }
-         switch( tptr->mp)
-            {
-            case  1:   arg += Mp;      break;
-            case -1:   arg -= Mp;      break;
-            case  2:   arg += Mp+Mp;   break;
-            case -2:   arg -= Mp+Mp;   break;
-            case  0:           ;       break;
-            default:   arg += (double)tptr->mp * Mp;  break;
-            }
-         switch( tptr->f)
-            {
-            case  1:   arg += F;     break;
-            case -1:   arg -= F;     break;
-            case  2:   arg += F+F;   break;
-            case -2:   arg -= F+F;  break;
-            case  0:           ;    break;
-            default:   arg += (double)tptr->f * F;  break;
-            }
-         if( tptr->sl)
-            {
-            term = (double)tptr->sl * sin( arg);
-            for( j = abs( tptr->m); j; j--)
+            term = (double)sl * sin( arg);
+            for( j = abs( m); j; j--)
                term *= e;
-            sl += term;
+            sl_sum += term;
             }
-         if( tptr->sr)
+         if( sr)
             {
-            term = (double)tptr->sr * cos( arg);
-            for( j = abs( tptr->m); j; j--)
+            term = (double)sr * cos( arg);
+            for( j = abs( m); j; j--)
                term *= e;
-            sr += term;
+            sr_sum += term;
             }
          }
+      }
    if( precision < 3959L)
-      sl += 3958. * sin( A1) + 1962. * sin( Lp - F) + 318. * sin( A2);
-   *lon = (Lp * 180. / PI) + sl * 1.e-6;
+      sl_sum += 3958. * sin( A1) + 1962. * sin( Lp - F) + 318. * sin( A2);
+   *lon = (Lp * 180. / PI) + sl_sum * 1.e-6;
    while( *lon < 0.)
       *lon += 360.;
    while( *lon > 360.)
       *lon -= 360.;
-   *r = 385000.56 + sr / 1000.;
+   *r = 385000.56 + sr_sum / 1000.;
    return( 0);
 }
 
@@ -186,58 +145,28 @@ double DLL_FUNC lunar_lat( const void FAR *data, const double DLLPTR *fund,
                                            const long precision)
 {
    int i, j;
-   const TERM2 FAR *tptr;
-   const TERM2 FAR *term2 = (const TERM2 FAR *)((const char FAR *)data + 60074U);
+   const signed char *tptr = (const signed char FAR *)data + LUNAR_LAT_OFFSET;
    double rval = 0., e;
 
-   tptr = term2;
+   assert( get32bits( tptr) == 0x01000000);
    e = 1. - .002516 * T - .0000074 * T * T;
-   for( i = N_TERM2; i; i--, tptr++)
-      if( labs( tptr->sb) > precision)
-         {
-         double arg, term;
+   for( i = N_TERMS; i; i--, tptr += LAT_TERM_SIZE)
+      {
+      const int32_t sb = get32bits( tptr + 4);
 
-         switch( tptr->d)
-            {
-            case  1:   arg = D;     break;
-            case -1:   arg =-D;     break;
-            case  2:   arg = D+D;   break;
-            case -2:   arg =-D-D;   break;
-            case  0:   arg = 0.;    break;
-            default:   arg = (double)tptr->d * D;  break;
-            }
-         switch( tptr->m)
-            {
-            case  1:   arg += M;     break;
-            case -1:   arg -= M;     break;
-            case  2:   arg += M+M;   break;
-            case -2:   arg -= M+M;  break;
-            case  0:           ;    break;
-            default:   arg += (double)tptr->m * M;  break;
-            }
-         switch( tptr->mp)
-            {
-            case  1:   arg += Mp;      break;
-            case -1:   arg -= Mp;      break;
-            case  2:   arg += Mp+Mp;   break;
-            case -2:   arg -= Mp+Mp;   break;
-            case  0:           ;       break;
-            default:   arg += (double)tptr->mp * Mp;  break;
-            }
-         switch( tptr->f)
-            {
-            case  1:   arg += F;     break;
-            case -1:   arg -= F;     break;
-            case  2:   arg += F+F;   break;
-            case -2:   arg -= F+F;  break;
-            case  0:           ;    break;
-            default:   arg += (double)tptr->f * F;  break;
-            }
-         term = (double)tptr->sb * sin( arg);
-         for( j = abs( tptr->m); j; j--)
+      if( labs( sb) > precision)
+         {
+         double term;
+         const signed char d = tptr[0], m = tptr[1], mp = tptr[2], f = tptr[3];
+         const double arg = (double)d * D + (double)m * M
+                          + (double)mp * Mp + (double)f * F;
+
+         term = (double)sb * sin( arg);
+         for( j = abs( m); j; j--)
             term *= e;
          rval += term;
          }
+      }
    if( precision < 2236L)
       rval += -2235. * sin( Lp) + 382. * sin( A3) + 175. * sin( A1 - F) +
                175. * sin( A1 + F) + 127. * sin(Lp - Mp) - 115. * sin(Lp+Mp);
