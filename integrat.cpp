@@ -32,7 +32,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 #include "date.h"
 #include "afuncs.h"        /* for rotate_vector( ) proto */
 
-#if defined( __has_include) && !__has_include(<jpleph.h>)
+#if defined( __has_include)
+   #if !__has_include(<jpleph.h>)
    #error   \
         'jpleph.h' not found.  This project depends on the 'jpl_eph'\
         library.  See www.github.com/Bill-Gray/jpl_eph .\
@@ -40,6 +41,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 #ifdef __GNUC__
    #include <stop_compiling_here>
          /* Above line suppresses cascading errors. */
+#endif
 #endif
 #endif
 
