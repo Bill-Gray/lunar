@@ -272,7 +272,7 @@ int get_mpc_code_info( mpc_code_t *cinfo, const char *buff)
          cinfo->alt *= EARTH_MAJOR_AXIS;
          while( cinfo->prec1 < 5 && isdigit( buff[8 + cinfo->prec1]))
             cinfo->prec1++;      /* longitude precision,  in digits */
-         while( cinfo->prec2 < 5 && isdigit( buff[15 + cinfo->prec2]))
+         while( cinfo->prec2 < 6 && isdigit( buff[15 + cinfo->prec2]))
             cinfo->prec2++;      /* parallax precision,  in digits */
          }
       else if( i == 30)
