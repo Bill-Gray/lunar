@@ -277,6 +277,13 @@ TD-UTC = td_minus_tai + floor( td_minus_ut + .5 - td_minus_tai)
 Delta-T as closely as possible (within half a second at the center of
 that half-year).
 
+   Note that eventually,  sometime around 2270,  this can result in two
+leap seconds being added at the end of June or December.  As currently
+defined,  we would instead start inserting leap seconds at the end of
+March or September.  Eventually,  if that wasn't enough,  we'd insert a
+leap second at the end of every month.  My only excuse is that I expect
+to be dead by 2270.
+
    You may not like this so-called "solution".  I don't,  either.  I'm
 open to ideas,  but doubt there is a better "solution".
 
