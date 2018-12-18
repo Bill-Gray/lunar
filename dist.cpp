@@ -445,18 +445,32 @@ the equatorial radius of 6378.140 km is used. */
 
 int main( const int argc, const char **argv)
 {
-   if( argc == 5)
+   const double pi = 3.14159265358979323846264338327950288419716939937510582;
+   const double lat1 = atof( argv[1]) * pi / 180.;
+   const double lon1 = atof( argv[2]) * pi / 180.;
+   const double flattening = 1. / 298.257223563;
+   const double semimajor = 6378.137;
+// const double flattening = 1. / 298.257;
+// const double semimajor = 6378.14;
+
+   if( argc == 6)
       {
-      const double pi = 3.14159265358979323846264338327950288419716939937510582;
-      const double lat1 = atof( argv[1]) * pi / 180.;
-      const double lon1 = atof( argv[2]) * pi / 180.;
+      double lat2, lon2, back_azimuth;
+      const double dist = atof( argv[3]) / semimajor;
+      double azimuth = atof( argv[4]) * pi / 180.;
+
+      vincenty_direct( lat1, lon1, &lat2, &lon2, flattening, azimuth, dist);
+      printf( "Vincenty direct: %.10f %.10f\n",
+               lat2 * 180. / pi, lon2 * 180. / pi);
+      vincenty_earth_dist( lat1, lon1, lat2, lon2, flattening, &azimuth,
+                                    &back_azimuth);
+      printf( "Reverse az: %.10f\n", back_azimuth * 180. / pi);
+      }
+   else if( argc == 5)
+      {
       double lat2 = atof( argv[3]) * pi / 180.;
       double lon2 = atof( argv[4]) * pi / 180.;
       double azimuth, dist, back_azimuth;
-      const double flattening = 1. / 298.257223563;
-      const double semimajor = 6378.137;
-// const double flattening = 1. / 298.257;
-// const double semimajor = 6378.14;
 
       double d1 = spherical_earth_dist( lat1, lon1, lat2, lon2);
       double d2 =           earth_dist( lat1, lon1, lat2, lon2, flattening);
@@ -478,6 +492,9 @@ int main( const int argc, const char **argv)
                lat2 * 180. / pi, lon2 * 180. / pi);
       }
    else
+      {
       printf( "usage: dist lat1 lon1 lat2 lon2\n");
+      printf( "or:    dist lat1 lon1 dist(km) azim -d\n");
+      }
    return( 0);
 }
