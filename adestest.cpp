@@ -6,7 +6,7 @@
 int main( const int argc, const char **argv)
 {
    FILE *ifile = fopen( argv[1], "rb");
-   char buff[200];
+   char buff[400];
    void *ades_context = init_ades2mpc( );
    int i, rval, show_data = 0;
 
