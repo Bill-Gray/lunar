@@ -141,7 +141,7 @@ static FILE *get_sof_file( const char *filename)
          printf( "'%s' appears to be corrupted.\n", filename);
          exit( -5);
          }
-      n_asteroids = filelen / record_length;
+      n_asteroids = filelen / record_length - 1;      /* there's a header line */
       for( i = 0; i < 4; i++)
          {
          const int32_t big_prime = 1234567891;
@@ -633,13 +633,18 @@ int main( const int argc, const char **argv)
                   ELEMENTS class_elem;
                   double ra1, dec1, mag;
                   double earth_obj_dist, dist;
+                  int sof_rval = -999;
 
                   n_checked++;
                   fseek( orbits_file, (i + 1) * record_length, SEEK_SET);
-                  if( !fgets( tbuff, sizeof( tbuff), orbits_file) ||
-                           extract_sof_data( &class_elem, tbuff, sof_header))
+                  if( fgets( tbuff, sizeof( tbuff), orbits_file))
+                     sof_rval = extract_sof_data( &class_elem, tbuff, sof_header);
+                  if( sof_rval)
                      {
-                     fprintf( stderr, "Couldn't read .sof elements\n");
+                     fprintf( stderr, "Couldn't read .sof elements: ast %d, rval %d\n",
+                                    i, sof_rval);
+                     if( sof_rval != -999)
+                        fprintf( stderr, "%s", tbuff);
                      exit( -1);
                      }
                   class_elem.is_asteroid = 1;
