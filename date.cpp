@@ -699,6 +699,64 @@ long DLL_FUNC dmy_to_day( const int day, const int month, const long year,
    return( jd);
 }
 
+/* This usually gets you the correct year for a given JD,  but is
+sometimes off by one around the New Year of the calendar in question.
+Which is why the subsequent day_to_dmy( ) function sometimes finds it
+has to move ahead or back up by one year.  */
+
+static long approx_year( long jd, const int calendar)
+{
+   long year, n1, n2, day_in_cycle, calendar_epoch;
+
+   switch( calendar)
+      {
+      case CALENDAR_GREGORIAN:
+         calendar_epoch = JUL_GREG_CALENDAR_EPOCH;
+         n1 = 400;               /* 400 Gregorian years contain 400 */
+         n2 = 400 * 365 + 97;    /* 'normal' years plus 97 leap days */
+         break;
+      case CALENDAR_JULIAN:
+         calendar_epoch = JUL_GREG_CALENDAR_EPOCH;
+         n1 = 4;                 /* The Julian calendar just repeats */
+         n2 = 365 * 4 + 1;       /* every four years */
+         break;
+      case CALENDAR_HEBREW:
+         calendar_epoch = HEBREW_CALENDAR_EPOCH - 365;
+         n1 = 312;               /* The Hebrew calendar has almost exactly */
+         n2 = 113957;            /* 113957 days every 312 years */
+         break;
+      case CALENDAR_ISLAMIC:
+         calendar_epoch = ISLAMIC_CALENDAR_EPOCH;
+         n1 = 30;             /* 30 Islamic years = 10631 days,  exactly */
+         n2 = 10631;
+         break;
+      case CALENDAR_REVOLUTIONARY:
+         calendar_epoch = REVOLUTIONARY_CALENDAR_EPOCH;
+         n1 = 128;           /* The current tropical year is really close */
+         n2 = 46751;         /* to 46751 days in 128 years */
+         break;
+      case CALENDAR_PERSIAN:
+      case CALENDAR_MODERN_PERSIAN:
+         calendar_epoch = JALALI_ZERO;
+         n1 = 128;
+         n2 = 46751;
+         break;
+      case CALENDAR_CHINESE:
+         calendar_epoch = CHINESE_CALENDAR_EPOCH + 90;
+         n1 = 128;
+         n2 = 46751;
+         break;
+      default:       /* undefined calendar */
+         assert( 1);
+         return( -1);
+      }
+   jd -= calendar_epoch;
+   day_in_cycle = mod( jd, n2);
+   year = n1 * (( jd - day_in_cycle) / n2);
+   year += day_in_cycle * n1 / n2;
+   return( year);
+}
+
 /* day_to_dmy( ) first estimates the year corresponding to an input JD,
 and calls get_calendar_data( ) for that year.  Occasionally,  it will
 find that the guesstimate was off;  in such cases,  it moves ahead or
@@ -712,42 +770,16 @@ void DLL_FUNC day_to_dmy( const long jd, int DLLPTR *day,
    long year_ends[2];
    long curr_jd;
    char month_data[N_MONTHS];
+   int calendar_to_use = calendar;
 
+   if( calendar == CALENDAR_JULIAN_GREGORIAN)
+      calendar_to_use =
+          ((jd > GREGORIAN_SWITCHOVER_JD) ? CALENDAR_GREGORIAN : CALENDAR_JULIAN);
+
+   *year = approx_year( jd, calendar_to_use);
    *day = -1;           /* to signal an error */
-   switch( calendar)
-      {
-      case CALENDAR_GREGORIAN:
-      case CALENDAR_JULIAN:
-      case CALENDAR_JULIAN_GREGORIAN:
-         *year = (jd - JUL_GREG_CALENDAR_EPOCH) / 365;
-         break;
-      case CALENDAR_HEBREW:
-         *year = (jd - HEBREW_CALENDAR_EPOCH) / 365L;
-         break;
-      case CALENDAR_ISLAMIC:
-         *year = (jd - ISLAMIC_CALENDAR_EPOCH) / 354L;
-         break;
-      case CALENDAR_REVOLUTIONARY:
-         *year = (jd - REVOLUTIONARY_CALENDAR_EPOCH) / 365L;
-         break;
-      case CALENDAR_PERSIAN:
-      case CALENDAR_MODERN_PERSIAN:
-         *year = (jd - JALALI_ZERO) / 365L;
-         break;
-      case CALENDAR_CHINESE:
-         *year = (jd - CHINESE_CALENDAR_EPOCH) / 365L;
-         break;
-      default:       /* undefined calendar */
-         return;
-      }
-
    do
       {
-      int calendar_to_use = calendar;
-
-      if( calendar == CALENDAR_JULIAN_GREGORIAN)
-         calendar_to_use =
-          ((jd > GREGORIAN_SWITCHOVER_JD) ? CALENDAR_GREGORIAN : CALENDAR_JULIAN);
       if( get_calendar_data( *year, year_ends, month_data, calendar_to_use))
          return;
       if( year_ends[0] > jd)
