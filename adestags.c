@@ -6,6 +6,8 @@ specified in the documentation,  and produces arrays suitable for use
 in 'ades2mpc.cpp'.  It also sorts the tags;  this will allow for a
 binary search,  gaining 0.001% (probably) in speed.  */
 
+#define INTENTIONALLY_UNUSED_PARAMETER( param) (void)(param)
+
 int main( const int intentionally_unused_argc,
           const char **intentionally_unused_argv)
 {
@@ -44,8 +46,13 @@ int main( const int intentionally_unused_argc,
          "filter", "arrayScale", "pixelScale", "astrometry", "fitOrder",
          "photometry", "objectDetection", "line",
          "name",
+                     /* added Sep 2018 */
+         "rmsTime",
          NULL };
    size_t i, j;
+
+   INTENTIONALLY_UNUSED_PARAMETER( intentionally_unused_argv);
+   INTENTIONALLY_UNUSED_PARAMETER( intentionally_unused_argc);
 
    for( i = 0; tags[i]; i++)
       for( j = i + 1; tags[j]; j++)
