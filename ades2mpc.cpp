@@ -40,8 +40,8 @@ typedef struct
    char rms_mag[PIECE_SIZE], rms_time[PIECE_SIZE], center[PIECE_SIZE];
    int id_set, getting_lines;
    int prev_line_passed_through;
-   int prev_rval;
-   char *psv_hdr;
+   int prev_rval, n_psv_fields;
+   int *psv_tags;
 } ades2mpc_t;
 
 void *init_ades2mpc( void)
@@ -60,8 +60,8 @@ int free_ades2mpc_context( void *context)
    ades2mpc_t *tptr = (ades2mpc_t *)context;
    const int rval = tptr->depth;
 
-   if( tptr->psv_hdr)
-      free( tptr->psv_hdr);
+   if( tptr->psv_tags)
+      free( tptr->psv_tags);
    free( context);
    return( rval);
 }
@@ -566,18 +566,13 @@ static int process_ades_tag( char *obuff, ades2mpc_t *cptr, const int itag,
    return( rval);
 }
 
-static int process_psv_tag( ades2mpc_t *cptr, char *obuff, const char *hdr,
+static int process_psv_tag( ades2mpc_t *cptr, char *obuff, const int itag,
                                        const char *ibuff)
 {
-   int itag, rval = 0;
+   int rval = 0;
    size_t len = 0;
 
-   hdr = skip_whitespace( hdr);
    ibuff = skip_whitespace( ibuff);
-   while( hdr[len] != '|' && hdr[len] > ' ')
-      len++;
-   itag = find_tag( hdr, len);
-   len = 0;
    while( ibuff[len] != '|' && ibuff[len] >= ' ')
       len++;
    while( len && ibuff[len - 1] == ' ')
@@ -599,40 +594,81 @@ static void setup_observation( ades2mpc_t *cptr)
 
 static int process_psv_line( ades2mpc_t *cptr, char *obuff, const char *ibuff)
 {
-   size_t i;
+   const char *tptr = ibuff;
+   int i = 0;
 
-   for( i = 0; cptr->psv_hdr[i] && ibuff[i]; i++)
-      if( cptr->psv_hdr[i] == '|' && ibuff[i] != '|')
-         return( 0);       /* it's not a PSV line */
-   if( strchr( cptr->psv_hdr + i, '|') || strchr( ibuff + i, '|'))
-      return( 0);          /* there should be no further pipe characters */
+   while( tptr && i <= cptr->n_psv_fields)
+      {
+      tptr = strchr( tptr, '|');
+      if( tptr)
+         tptr++;
+      i++;
+      }
+   if( i != cptr->n_psv_fields)
+      return( 0);       /* it's not a PSV line */
    setup_observation( cptr);
-   for( i = 0; cptr->psv_hdr[i] && ibuff[i]; i++)
-      if( !i || cptr->psv_hdr[i - 1] == '|')
-         process_psv_tag( cptr, obuff, cptr->psv_hdr + i, ibuff + i);
+   for( i = 0; i < cptr->n_psv_fields; i++)
+      {
+      process_psv_tag( cptr, obuff, cptr->psv_tags[i], ibuff);
+      ibuff = strchr( ibuff, '|');
+      if( i != cptr->n_psv_fields - 1)
+         {
+         assert( ibuff);
+         ibuff++;
+         }
+      }
+   assert( !ibuff);
    return( 1);
 }
 
 #define MIN_PSV_TAGS    4
 
-static bool is_psv_header( const char *buff)
+/* Returns either zero if the line is not a PSV header,  or the number
+of PSV fields (which equals the number of pipe separators plus one.) */
+
+static int check_for_psv_header( ades2mpc_t *cptr, const char *buff)
 {
    int n_psv_tags = 0;
+   const char *tptr = buff;
 
-   while( buff)
+   while( tptr)
       {
-      buff = skip_whitespace( buff);
-      if( *buff >= 'a' && *buff <= 'z')
+      tptr = skip_whitespace( tptr);
+      if( *tptr >= 'a' && *tptr <= 'z')
          {                /* could be a PSV header field */
          n_psv_tags++;
-         buff = strchr( buff, '|');
-         if( buff)
-            buff++;
+         tptr = strchr( tptr, '|');
+         if( tptr)
+            tptr++;
          }
       else     /* PSV header fields must start with a lowercase letter */
-         return( false);
+         return( 0);
       }
-   return( n_psv_tags >= MIN_PSV_TAGS);
+   if( n_psv_tags < MIN_PSV_TAGS)
+      return( 0);
+   cptr->n_psv_fields = n_psv_tags;
+   if( cptr->psv_tags)
+      free( cptr->psv_tags);
+   cptr->psv_tags = (int *)calloc( n_psv_tags, sizeof( int));
+   tptr = buff;
+   n_psv_tags = 0;
+   while( tptr)
+      {
+      int i = 0;
+
+      tptr = skip_whitespace( tptr);
+      while( tptr[i] != '|' && tptr[i] > ' ')
+         i++;
+      cptr->psv_tags[n_psv_tags] = find_tag( tptr, i);
+      assert( cptr->psv_tags[n_psv_tags] > 0);
+      n_psv_tags++;
+      assert( tptr);
+      tptr = strchr( tptr, '|');
+      if( tptr)
+         tptr++;
+      }
+   assert( !tptr);
+   return( n_psv_tags);
 }
 
 static int process_psv_header( ades2mpc_t *cptr, char *obuff, const char *ibuff)
@@ -668,6 +704,7 @@ static int process_psv_header( ades2mpc_t *cptr, char *obuff, const char *ibuff)
 
 #define ADES_CLOSING_UNOPENED_TAG         (-2)
 #define ADES_DEPTH_MAX                    (-3)
+#define ADES_MALFORMED_TAG                (-4)
 
 int xlate_ades2mpc( void *context, char *obuff, const char *buff)
 {
@@ -685,23 +722,19 @@ int xlate_ades2mpc( void *context, char *obuff, const char *buff)
       return( get_a_line( obuff, cptr));
    if( !cptr->depth && strstr( buff, "<optical>"))
       cptr->depth = 1;
-   if( is_psv_header( buff))
+   if( check_for_psv_header( cptr, buff))
       {
-      if( cptr->psv_hdr)
-         free( cptr->psv_hdr);
-      cptr->psv_hdr = (char *)malloc( strlen( buff) + 1);
-      assert( cptr->psv_hdr);
-      strcpy( cptr->psv_hdr, buff);
       cptr->depth = 1;
       return( 0);
       }
-   if( cptr->psv_hdr)
+   if( cptr->psv_tags)
       {
       rval = process_psv_line( cptr, (obuff == buff ? temp_obuff : obuff), buff);
       if( !rval)        /* we've reached the end of a PSV data section */
          {
-         free( cptr->psv_hdr);
-         cptr->psv_hdr = NULL;
+         free( cptr->psv_tags);
+         cptr->psv_tags = NULL;
+         cptr->n_psv_fields = 0;
          cptr->depth = 0;
          }
       }
@@ -747,7 +780,7 @@ int xlate_ades2mpc( void *context, char *obuff, const char *buff)
          while( tptr[len] && tptr[len] != '>')
             len++;
          if( tptr[len] != '>')
-            printf( "Tag didn't close: '%s'\n", tptr);
+            return( ADES_MALFORMED_TAG);
          else
             {
             const int tag_idx = find_tag( tptr + 1, len - 1);
