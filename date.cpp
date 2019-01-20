@@ -489,7 +489,7 @@ static long persian_modern_jd0( const long year)
 {
    const long persian_epoch = 1948320L;
    const long epbase = year - 474L;
-   const long epyear = 474L + (epbase + 282000000) % 2820L;
+   const long epyear = 474L + mod( epbase, 2820L);
 
    return( (epyear * 31 - 5) / 128 + (epyear - 1) * 365
                + ((year - epyear) / 2820) * 1029983 + persian_epoch);
@@ -508,13 +508,13 @@ static void get_jalali_year_data( const long year, long *days,
       is_modern = 1;
    if( is_modern)
       {
-      days[0] = persian_modern_jd0( (int)year) + 1L;
-      days[1] = persian_modern_jd0( (int)year + 1) + 1L;
+      days[0] = persian_modern_jd0( year) + 1L;
+      days[1] = persian_modern_jd0( year + 1L) + 1L;
       }
    else
       {
-      days[0] = jalali_jd0( (int)year) + 1L;
-      days[1] = jalali_jd0( (int)year + 1) + 1L;
+      days[0] = jalali_jd0( year) + 1L;
+      days[1] = jalali_jd0( year + 1L) + 1L;
       }
             /* The first six months have 31 days.  The next five have 30  */
             /* days.  The last month has 29 days in ordinary years,  30   */
@@ -736,10 +736,14 @@ static long approx_year( long jd, const int calendar)
          n2 = 46751;         /* to 46751 days in 128 years */
          break;
       case CALENDAR_PERSIAN:
-      case CALENDAR_MODERN_PERSIAN:
          calendar_epoch = JALALI_ZERO;
          n1 = 128;
          n2 = 46751;
+         break;
+      case CALENDAR_MODERN_PERSIAN:
+         calendar_epoch = JALALI_ZERO;
+         n1 = 2820;                    /* This calendar has an exact cycle */
+         n2 = 2820 * 365 + 683;        /* of 2820 years with 683 leap days */
          break;
       case CALENDAR_CHINESE:
          calendar_epoch = CHINESE_CALENDAR_EPOCH + 90;
