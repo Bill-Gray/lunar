@@ -449,7 +449,7 @@ int main( const int argc, const char **argv)
    char buff[90];
    char **ilines;
    int show_lov = 0;
-   int i, n_ilines = 0, n;
+   int i, n_ilines = 0, n, max_results = 100;
    int n_lines_printed = 0;
    double tolerance_in_arcsec = 18000.;       /* = five degrees */
    double mag_limit = 22.;
@@ -488,6 +488,9 @@ int main( const int argc, const char **argv)
                break;
             case 'z':
                motion_tolerance = atof( argv[i] + 2);
+               break;
+            case 'M':
+               max_results = atoi( argv[i] + 2);
                break;
 #ifdef NOT_READY_QUITE_YET
             case 'e':
@@ -713,7 +716,7 @@ int main( const int argc, const char **argv)
                                            (n_results - j) * sizeof( char *));
                         results[j] = (char *)malloc( strlen( tbuff) + 1);
                         strcpy( results[j], tbuff);
-                        if( n_results < MAX_RESULTS)
+                        if( n_results < max_results)
                            n_results++;
                         }
                      }
