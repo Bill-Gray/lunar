@@ -66,189 +66,184 @@ int free_ades2mpc_context( void *context)
    return( rval);
 }
 
-   /* see 'adestags.c' for code that generates these #defines.  Might use
-   it to generate a sorted list of tags,  so that a binary search could
-   be done,  to speed things up (just barely). */
-#define ADES_permID                        1
-#define ADES_provID                        2
-#define ADES_artSat                        3
-#define ADES_trkSub                        4
-#define ADES_obsID                         5
-#define ADES_trkID                         6
-#define ADES_mode                          7
-#define ADES_stn                           8
-#define ADES_trx                           9
-#define ADES_rcv                          10
-#define ADES_sys                          11
-#define ADES_ctr                          12
-#define ADES_pos1                         13
-#define ADES_pos2                         14
-#define ADES_pos3                         15
-#define ADES_posCov11                     16
-#define ADES_posCov12                     17
-#define ADES_posCov13                     18
-#define ADES_posCov22                     19
-#define ADES_posCov23                     20
-#define ADES_posCov33                     21
-#define ADES_prog                         22
-#define ADES_obsTime                      23
-#define ADES_ra                           24
-#define ADES_dec                          25
-#define ADES_raStar                       26
-#define ADES_decStar                      27
-#define ADES_obsCenter                    28
-#define ADES_deltaRA                      29
-#define ADES_deltaDec                     30
-#define ADES_dist                         31
-#define ADES_pa                           32
-#define ADES_rmsRA                        33
-#define ADES_rmsDec                       34
-#define ADES_rmsDist                      35
-#define ADES_rmsPA                        36
-#define ADES_rmsCorr                      37
-#define ADES_delay                        38
-#define ADES_rmsDelay                     39
-#define ADES_doppler                      40
-#define ADES_rmsDoppler                   41
-#define ADES_astCat                       42
-#define ADES_mag                          43
-#define ADES_rmsMag                       44
-#define ADES_band                         45
-#define ADES_photCat                      46
-#define ADES_photAp                       47
-#define ADES_nucMag                       48
+   /* see 'adestags.c' for code that generates these #defines.  Tags are
+sorted so that a binary search can speed up tag matching slightly. */
+
+#define ADES_Location                      1
+#define ADES_MPCID                         2
+#define ADES_OffsetVal                     3
+#define ADES_OpticalID                     4
+#define ADES_OpticalRes                    5
+#define ADES_OpticalResMag                 6
+#define ADES_OpticalResiduals              7
+#define ADES_Photometry                    8
+#define ADES_Precision                     9
+#define ADES_RadarID                      10
+#define ADES_RadarResiduals               11
+#define ADES_RadarValue                   12
+#define ADES_ades                         13
+#define ADES_aperture                     14
+#define ADES_arrayScale                   15
+#define ADES_artSat                       16
+#define ADES_astCat                       17
+#define ADES_astrometry                   18
+#define ADES_band                         19
+#define ADES_biasDec                      20
+#define ADES_biasMag                      21
+#define ADES_biasRA                       22
+#define ADES_biasTime                     23
+#define ADES_coinvestigators              24
+#define ADES_collaborators                25
+#define ADES_com                          26
+#define ADES_comment                      27
+#define ADES_ctr                          28
+#define ADES_dec                          29
+#define ADES_decStar                      30
+#define ADES_delay                        31
+#define ADES_deltaDec                     32
+#define ADES_deltaRA                      33
+#define ADES_deprecated                   34
+#define ADES_design                       35
+#define ADES_detector                     36
+#define ADES_disc                         37
+#define ADES_dist                         38
+#define ADES_doppler                      39
+#define ADES_exp                          40
+#define ADES_fRatio                       41
+#define ADES_filter                       42
+#define ADES_fitOrder                     43
+#define ADES_frq                          44
+#define ADES_fundingSource                45
+#define ADES_institution                  46
+#define ADES_line                         47
+#define ADES_localUse                     48
 #define ADES_logSNR                       49
-#define ADES_seeing                       50
-#define ADES_exp                          51
-#define ADES_rmsFit                       52
-#define ADES_nStars                       53
-#define ADES_com                          54
-#define ADES_frq                          55
-#define ADES_ref                          56
-#define ADES_disc                         57
-#define ADES_subFmt                       58
-#define ADES_subFrm                       59
-#define ADES_precTime                     60
-#define ADES_precRA                       61
-#define ADES_precDec                      62
-#define ADES_uncTime                      63
-#define ADES_notes                        64
-#define ADES_remarks                      65
-#define ADES_deprecated                   66
-#define ADES_localUse                     67
-#define ADES_orbProd                      68
-#define ADES_orbID                        69
-#define ADES_resRA                        70
-#define ADES_resDec                       71
-#define ADES_selAst                       72
-#define ADES_sigRA                        73
-#define ADES_sigDec                       74
-#define ADES_sigCorr                      75
-#define ADES_sigTime                      76
-#define ADES_biasRA                       77
-#define ADES_biasDec                      78
-#define ADES_biasTime                     79
-#define ADES_photProd                     80
-#define ADES_resMag                       81
-#define ADES_selPhot                      82
-#define ADES_sigMag                       83
-#define ADES_biasMag                      84
-#define ADES_photMod                      85
-#define ADES_resDelay                     86
-#define ADES_selDelay                     87
-#define ADES_sigDelay                     88
-#define ADES_resDoppler                   89
-#define ADES_selDoppler                   90
-#define ADES_sigDoppler                   91
-#define ADES_observatory                  92
-#define ADES_submitter                    93
-#define ADES_observers                    94
-#define ADES_measurers                    95
-#define ADES_telescope                    96
-#define ADES_software                     97
-#define ADES_coinvestigators              98
-#define ADES_collaborators                99
-#define ADES_fundingSource               100
-#define ADES_comment                     101
-#define ADES_optical                     102
-#define ADES_offset                      103
-#define ADES_occultation                 104
-#define ADES_radar                       105
-#define ADES_obsContext                  106
-#define ADES_obsData                     107
-#define ADES_obsBlock                    108
-#define ADES_opticalResidual             109
-#define ADES_radarResidual               110
-#define ADES_ades                        111
-#define ADES_MPCID                       112
-#define ADES_OpticalID                   113
-#define ADES_RadarID                     114
-#define ADES_RadarValue                  115
-#define ADES_Precision                   116
-#define ADES_Location                    117
-#define ADES_Photometry                  118
-#define ADES_OffsetVal                   119
-#define ADES_OpticalRes                  120
-#define ADES_OpticalResMag               121
-#define ADES_OpticalResiduals            122
-#define ADES_RadarResiduals              123
-#define ADES_mpcCode                     124
-#define ADES_institution                 125
-#define ADES_design                      126
-#define ADES_aperture                    127
-#define ADES_detector                    128
-#define ADES_fRatio                      129
-#define ADES_filter                      130
-#define ADES_arrayScale                  131
-#define ADES_pixelScale                  132
-#define ADES_astrometry                  133
-#define ADES_fitOrder                    134
-#define ADES_photometry                  135
-#define ADES_objectDetection             136
-#define ADES_line                        137
-#define ADES_name                        138
-#define ADES_rmsTime                     139
+#define ADES_mag                          50
+#define ADES_measurers                    51
+#define ADES_mode                         52
+#define ADES_mpcCode                      53
+#define ADES_nStars                       54
+#define ADES_name                         55
+#define ADES_notes                        56
+#define ADES_nucMag                       57
+#define ADES_objectDetection              58
+#define ADES_obsBlock                     59
+#define ADES_obsCenter                    60
+#define ADES_obsContext                   61
+#define ADES_obsData                      62
+#define ADES_obsID                        63
+#define ADES_obsTime                      64
+#define ADES_observatory                  65
+#define ADES_observers                    66
+#define ADES_occultation                  67
+#define ADES_offset                       68
+#define ADES_optical                      69
+#define ADES_opticalResidual              70
+#define ADES_orbID                        71
+#define ADES_orbProd                      72
+#define ADES_pa                           73
+#define ADES_permID                       74
+#define ADES_photAp                       75
+#define ADES_photCat                      76
+#define ADES_photMod                      77
+#define ADES_photProd                     78
+#define ADES_photometry                   79
+#define ADES_pixelScale                   80
+#define ADES_pos1                         81
+#define ADES_pos2                         82
+#define ADES_pos3                         83
+#define ADES_posCov11                     84
+#define ADES_posCov12                     85
+#define ADES_posCov13                     86
+#define ADES_posCov22                     87
+#define ADES_posCov23                     88
+#define ADES_posCov33                     89
+#define ADES_precDec                      90
+#define ADES_precRA                       91
+#define ADES_precTime                     92
+#define ADES_prog                         93
+#define ADES_provID                       94
+#define ADES_ra                           95
+#define ADES_raStar                       96
+#define ADES_radar                        97
+#define ADES_radarResidual                98
+#define ADES_rcv                          99
+#define ADES_ref                         100
+#define ADES_remarks                     101
+#define ADES_resDec                      102
+#define ADES_resDelay                    103
+#define ADES_resDoppler                  104
+#define ADES_resMag                      105
+#define ADES_resRA                       106
+#define ADES_rmsCorr                     107
+#define ADES_rmsDec                      108
+#define ADES_rmsDelay                    109
+#define ADES_rmsDist                     110
+#define ADES_rmsDoppler                  111
+#define ADES_rmsFit                      112
+#define ADES_rmsMag                      113
+#define ADES_rmsPA                       114
+#define ADES_rmsRA                       115
+#define ADES_rmsTime                     116
+#define ADES_seeing                      117
+#define ADES_selAst                      118
+#define ADES_selDelay                    119
+#define ADES_selDoppler                  120
+#define ADES_selPhot                     121
+#define ADES_sigCorr                     122
+#define ADES_sigDec                      123
+#define ADES_sigDelay                    124
+#define ADES_sigDoppler                  125
+#define ADES_sigMag                      126
+#define ADES_sigRA                       127
+#define ADES_sigTime                     128
+#define ADES_software                    129
+#define ADES_stn                         130
+#define ADES_subFmt                      131
+#define ADES_subFrm                      132
+#define ADES_submitter                   133
+#define ADES_sys                         134
+#define ADES_telescope                   135
+#define ADES_trkID                       136
+#define ADES_trkSub                      137
+#define ADES_trx                         138
+#define ADES_uncTime                     139
+
+/* See 'adestags.c' for code that created following array
+and the above #defines. */
 
 static int find_tag( const char *buff, size_t len)
 {
    static const char *tags[] = {
-         "permID", "provID", "artSat", "trkSub", "obsID", "trkID",
-         "mode", "stn", "trx", "rcv", "sys", "ctr", "pos1", "pos2", "pos3",
-         "posCov11", "posCov12", "posCov13",
-         "posCov22", "posCov23", "posCov33",
-         "prog", "obsTime", "ra", "dec", "raStar", "decStar", "obsCenter",
-         "deltaRA", "deltaDec", "dist", "pa", "rmsRA", "rmsDec", "rmsDist",
-         "rmsPA", "rmsCorr", "delay", "rmsDelay", "doppler", "rmsDoppler",
-         "astCat", "mag", "rmsMag", "band", "photCat", "photAp",
-         "nucMag", "logSNR", "seeing", "exp",
-                     /* end p6, start p7 */
-         "rmsFit", "nStars", "com",
-         "frq", "ref", "disc", "subFmt", "subFrm",
-                     /* end p7/start p8 */
-         "precTime", "precRA", "precDec", "uncTime", "notes", "remarks",
-         "deprecated", "localUse", "orbProd", "orbID", "resRA", "resDec",
-         "selAst", "sigRA", "sigDec", "sigCorr", "sigTime", "biasRA",
-         "biasDec", "biasTime", "photProd", "resMag", "selPhot",
-                     /* end p9/start p10 */
-         "sigMag", "biasMag", "photMod", "resDelay", "selDelay", "sigDelay",
-         "resDoppler", "selDoppler", "sigDoppler", "observatory", "submitter",
-         "observers", "measurers", "telescope", "software", "coinvestigators",
-         "collaborators", "fundingSource",
-                     /* end p10/start p11 */
-         "comment", "optical", "offset", "occultation", "radar", "obsContext",
-         "obsData", "obsBlock", "opticalResidual", "radarResidual", "ades",
-                     /* start p 18: complex types */
-         "MPCID", "OpticalID", "RadarID", "RadarValue", "Precision", "Location",
-         "Photometry", "OffsetVal", "OpticalRes", "OpticalResMag",
-         "OpticalResiduals", "RadarResiduals",
-                     /* start p 25 */
-         "mpcCode", "institution", "design", "aperture", "detector", "fRatio",
-         "filter", "arrayScale", "pixelScale", "astrometry", "fitOrder",
-         "photometry", "objectDetection", "line",
-         "name",
-                     /* added Sep 2018 */
-         "rmsTime",
-         NULL };
+       "Location", "MPCID", "OffsetVal", "OpticalID",
+       "OpticalRes", "OpticalResMag", "OpticalResiduals",
+       "Photometry", "Precision", "RadarID", "RadarResiduals",
+       "RadarValue", "ades", "aperture", "arrayScale", "artSat",
+       "astCat", "astrometry", "band", "biasDec", "biasMag",
+       "biasRA", "biasTime", "coinvestigators", "collaborators",
+       "com", "comment", "ctr", "dec", "decStar", "delay",
+       "deltaDec", "deltaRA", "deprecated", "design", "detector",
+       "disc", "dist", "doppler", "exp", "fRatio", "filter",
+       "fitOrder", "frq", "fundingSource", "institution", "line",
+       "localUse", "logSNR", "mag", "measurers", "mode",
+       "mpcCode", "nStars", "name", "notes", "nucMag",
+       "objectDetection", "obsBlock", "obsCenter", "obsContext",
+       "obsData", "obsID", "obsTime", "observatory", "observers",
+       "occultation", "offset", "optical", "opticalResidual",
+       "orbID", "orbProd", "pa", "permID", "photAp", "photCat",
+       "photMod", "photProd", "photometry", "pixelScale", "pos1",
+       "pos2", "pos3", "posCov11", "posCov12", "posCov13",
+       "posCov22", "posCov23", "posCov33", "precDec", "precRA",
+       "precTime", "prog", "provID", "ra", "raStar", "radar",
+       "radarResidual", "rcv", "ref", "remarks", "resDec",
+       "resDelay", "resDoppler", "resMag", "resRA", "rmsCorr",
+       "rmsDec", "rmsDelay", "rmsDist", "rmsDoppler", "rmsFit",
+       "rmsMag", "rmsPA", "rmsRA", "rmsTime", "seeing", "selAst",
+       "selDelay", "selDoppler", "selPhot", "sigCorr", "sigDec",
+       "sigDelay", "sigDoppler", "sigMag", "sigRA", "sigTime",
+       "software", "stn", "subFmt", "subFrm", "submitter", "sys",
+       "telescope", "trkID", "trkSub", "trx", "uncTime",
+   NULL };
 
    int i, rval = -1;
 
