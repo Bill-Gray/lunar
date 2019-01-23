@@ -374,7 +374,7 @@ void DLL_FUNC full_ctimel( char *buff, long double t2k, const int format)
    if( !(format & FULL_CTIME_TIME_ONLY))     /* we want the date: */
       {
       char month_str[25];
-      char year_str[10];
+      char year_str[20];
       char day_str[15];
 
       if( format & FULL_CTIME_MONTHS_AS_DIGITS)
