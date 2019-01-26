@@ -278,7 +278,7 @@ static AST_DATA *get_cached_day_data( const int ijd)
    strcat( filename, ".chk");
    if( verbose > 2)
       printf( "Creating '%s'\n", filename);
-   ifile = fopen( filename, "rb");
+   ifile = get_file_from_path( filename, "rb");
    if( ifile)
       {
       if( !fread( header, HEADER_SIZE, sizeof( int), ifile))
@@ -311,7 +311,7 @@ static AST_DATA *get_cached_day_data( const int ijd)
    header[1] = sof_checksum;
    header[2] = n_asteroids;
    header[3] = -1;         /* not currently used */
-   ofile = fopen( filename, "wb");
+   ofile = get_file_from_path( filename, "wb");
    fwrite( header, HEADER_SIZE, sizeof( int), ofile);
    fwrite( rval, n_asteroids, sizeof( AST_DATA), ofile);
    fclose( ofile);
@@ -477,15 +477,11 @@ int main( const int argc, const char **argv)
    double mag_limit = 22.;
    AST_DATA *day_data[2] = { NULL, NULL};
    long curr_loaded_day_data = 0;
-   FILE *mpc_station_file = fopen( "ObsCodes.html", "rb");
+   FILE *mpc_station_file;
    char curr_station[7];
    double rho_sin_phi = 0., rho_cos_phi = 0., longitude = 0.;
    double motion_tolerance = 10.;  /* require a match to within 10"/hr */
 
-   if( !mpc_station_file)        /* perhaps stored with truncated extension? */
-      mpc_station_file = fopen( "ObsCodes.htm", "rb");
-   if( !mpc_station_file)
-      printf( "ObsCodes.html not found; parallax won't be included!\n");
    curr_station[0] = '\0';
 
    for( i = 2; i < argc; i++)
@@ -531,6 +527,11 @@ int main( const int argc, const char **argv)
                break;
             }
          }
+   mpc_station_file = get_file_from_path( "ObsCodes.html", "rb");
+   if( !mpc_station_file)        /* perhaps stored with truncated extension? */
+      mpc_station_file = get_file_from_path( "ObsCodes.htm", "rb");
+   if( !mpc_station_file)
+      printf( "ObsCodes.html not found; parallax won't be included!\n");
    if( argc < 2)
       {
       printf( "No input file name specified\n");
