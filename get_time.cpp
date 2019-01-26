@@ -264,11 +264,13 @@ static long double set_from_lunar( const int phase_idx, const long double t2k)
    const long double lunation = 29.530588853;
    const long double k = floorl((t2k - t0) / lunation - phase + .5) + phase;
    const long double amplit = ((phase_idx & 1) ? -.62801 : -.40720);
-   const long double t = t0 + k * lunation;
+         /* sun,  moon mean anomalies,  Meeus (47.4) & (47.5) */
+   const long double moon_ma = 201.5643 * deg2rad + (385.81693528 * deg2rad) * k;
+   const long double sun_ma =    2.5534 * deg2rad + (29.10535669 * deg2rad) * k;
+   long double t = t0 + k * lunation;
 
-   return( t
-      + amplit * sinl( 201.5643 * deg2rad + (385.81693528 * deg2rad) * k)
-      + .17241 * sinl(   2.5534 * deg2rad + (29.10535669 * deg2rad) * k));
+   t += amplit * sinl( moon_ma) + .17241 * sinl( sun_ma);
+   return( t);
 }
 
 /* I ran across a system without a strtold() function.  Hard to imagine... */
