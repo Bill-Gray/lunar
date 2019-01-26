@@ -429,6 +429,16 @@ static void show_astcheck_info( void)
    printf( "%d objects\n", n_asteroids);
 }
 
+/* An oversimplified getopt(). */
+
+static const char *get_arg( const int argc, const char **argv, const int idx)
+{
+   if( argv[idx][2] || idx == argc - 1)
+      return( argv[idx] + 2);
+   else
+      return( argv[idx + 1]);
+}
+
 #if defined(_MSC_VER) && _MSC_VER < 1900
                       /* For older MSVCs,  we have to supply our own  */
                       /* snprintf().  See snprintf.cpp for details.  */
@@ -468,29 +478,33 @@ int main( const int argc, const char **argv)
 
    for( i = 2; i < argc; i++)
       if( argv[i][0] == '-')
+         {
+         const char *arg = get_arg( argc, argv, i);
+
+         assert( arg);
          switch( argv[i][1])
             {
             case 'r':
-               tolerance_in_arcsec = atof( argv[i] + 2);
+               tolerance_in_arcsec = atof( arg);
                break;
             case 'v':
                setvbuf( stdout, NULL, _IONBF, 0);
-               verbose = 1 + atoi( argv[i] + 2);
+               verbose = 1 + atoi( arg);
                break;
             case 'm':
-               mag_limit = atof( argv[i] + 2);
+               mag_limit = atof( arg);
                break;
             case 'p':
-               data_path = argv[i] + 2;
+               data_path = arg;
                break;
             case 'l':
                show_lov = 1;
                break;
             case 'z':
-               motion_tolerance = atof( argv[i] + 2);
+               motion_tolerance = atof( arg);
                break;
             case 'M':
-               max_results = atoi( argv[i] + 2);
+               max_results = atoi( arg);
                break;
 #ifdef NOT_READY_QUITE_YET
             case 'e':
@@ -498,12 +512,13 @@ int main( const int argc, const char **argv)
                break;
 #endif
             case 'f':
-               sof_filename = argv[i] + 2;
+               sof_filename = arg;
                break;
             default:
                printf( "%s: unrecognized command-line option\n", argv[i]);
                break;
             }
+         }
    if( argc < 2)
       {
       printf( "No input file name specified\n");
