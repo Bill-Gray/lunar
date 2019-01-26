@@ -236,7 +236,8 @@ static int check_for_bc( char *timestr)
 /* full moon,  '1q-2' for two days before first quarter... or just use */
 /* 'nm', '3q',  etc.  Uses formulae from Meeus, _Astronomical          */
 /* Algorithms_,  chap 47, for a very approximate lunar age (I ignored  */
-/* terms greater than about half an hour.)                             */
+/* terms greater than about one minute;  with cancellation,  results   */
+/* are usually good to a minute or two.)                               */
 
 #define PHASE_IDX_UNDEFINED        -1
 #define PHASE_IDX_NEW_MOON          0
@@ -254,20 +255,20 @@ static int get_phase_idx( const char *istr)
    return( rval);
 }
 
-static long double set_from_lunar( const int phase_idx, const long double t2k)
+static const long double pi =
+     3.1415926535897932384626433832795028841971693993751058209749445923;
+static const long double deg2rad = pi / 180.;
+static const long double lunation = 29.530588853;
+static const long double lunar_phase_t0 = 2451550.09765 - J2000;
+
+static long double get_phase_time( const long double k, const int phase_idx)
 {
-   const long double phase = (long double)phase_idx * .25;
-   const long double pi = 3.1415926535897932384626433832795028841971693993751058209749445923;
-   const long double deg2rad = pi / 180.;
-   const long double t0 = 2451550.09765 - J2000;
-   const long double lunation = 29.530588853;
-   const long double k = floorl((t2k - t0) / lunation - phase + .5) + phase;
          /* sun,  moon mean anomalies,  Meeus (47.4) & (47.5) */
    const long double moon_ma = 201.5643 * deg2rad + (385.81693528 * deg2rad) * k;
    const long double sun_ma =    2.5534 * deg2rad + (29.10535669 * deg2rad) * k;
          /* F = moon's argument of latitude : */
    const long double f =       160.7108 * deg2rad + (390.67050274 * deg2rad) * k;
-   long double t = t0 + k * lunation;
+   long double rval = lunar_phase_t0 + k * lunation;
    const long double *aptr;
    const long double amplit[3][9] = {
       /* M'       M       2M'     2F      M'-M      M'+M    2M        M'-2F    M'+2F */
@@ -277,23 +278,31 @@ static long double set_from_lunar( const int phase_idx, const long double t2k)
             /* above are amplitudes for new,  quarters,  and full moons */
 
    if( phase_idx == PHASE_IDX_FIRST_QUARTER)
-      t += 0.00306;
+      rval += 0.00306;
    if( phase_idx == PHASE_IDX_THIRD_QUARTER)
       {
-      t -= 0.00306;
+      rval -= 0.00306;
       aptr = amplit[1];      /* use 1st quarter amplitudes */
       }
    else
       aptr = amplit[phase_idx];
-   t += aptr[0] * sinl( moon_ma) + aptr[1] * sinl( sun_ma);
-   t += aptr[2] * sinl( 2. * moon_ma);
-   t += aptr[3] * sinl( 2. * f);
-   t += aptr[4] * sinl( moon_ma - sun_ma);
-   t += aptr[5] * sinl( moon_ma + sun_ma);
-   t += aptr[6] * sinl( 2. * sun_ma);
-   t += aptr[7] * sinl( moon_ma - 2. * f);
-   t += aptr[8] * sinl( moon_ma + 2. * f);
-   return( t);
+   rval += aptr[0] * sinl( moon_ma) + aptr[1] * sinl( sun_ma);
+   rval += aptr[2] * sinl( 2. * moon_ma);
+   rval += aptr[3] * sinl( 2. * f);
+   rval += aptr[4] * sinl( moon_ma - sun_ma);
+   rval += aptr[5] * sinl( moon_ma + sun_ma);
+   rval += aptr[6] * sinl( 2. * sun_ma);
+   rval += aptr[7] * sinl( moon_ma - 2. * f);
+   rval += aptr[8] * sinl( moon_ma + 2. * f);
+   return( rval);
+}
+
+static long double set_from_lunar( const int phase_idx, const long double t2k)
+{
+   const long double phase = (long double)phase_idx * .25;
+   const long double k = floorl((t2k - lunar_phase_t0) / lunation - phase + .5) + phase;
+
+   return( get_phase_time( k, phase_idx));
 }
 
 /* I ran across a system without a strtold() function.  Hard to imagine... */
