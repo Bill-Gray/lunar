@@ -109,22 +109,34 @@ const char *data_path = NULL;
 char sof_header[MAX_SOF_SIZE];
 int32_t sof_checksum;
 
+static FILE *get_file_from_path( const char *filename, const char *permits)
+{
+   FILE *fp = NULL;
+
+   if(  data_path && *data_path)
+      {
+      char buff[450];
+
+      strcpy( buff, data_path);
+      if( buff[strlen( buff) - 1] != '/')
+         strcat( buff, "/");
+      strcat( buff, filename);
+      fp = fopen( buff, "rb");
+      }
+   if( !fp)
+      fp = fopen( filename, permits);
+   return( fp);
+}
+
 static FILE *get_sof_file( const char *filename)
 {
-   FILE *ifile = fopen( filename, "rb");
-   char buff[450];
-
-   if( !ifile && data_path)
-      {
-      strcpy( buff, data_path);
-      strcat( buff, filename);
-      ifile = fopen( buff, "rb");
-      }
+   FILE *ifile = get_file_from_path( filename, "rb");
 
    if( ifile)
       {
       int filelen;
       size_t i, j;
+      char buff[450];
 
       if( !fgets( buff, sizeof( buff), ifile))
          {
