@@ -239,11 +239,10 @@ static int check_for_bc( char *timestr)
 /* terms greater than about half an hour.)                             */
 
 #define PHASE_IDX_UNDEFINED        -1
-/*       The following aren't explicitly used,  and are given just
-#define PHASE_IDX_NEW_MOON          0              for reference
+#define PHASE_IDX_NEW_MOON          0
 #define PHASE_IDX_FIRST_QUARTER     1
 #define PHASE_IDX_FULL_MOON         2
-#define PHASE_IDX_THIRD_QUARTER     3                           */
+#define PHASE_IDX_THIRD_QUARTER     3
 
 static int get_phase_idx( const char *istr)
 {
@@ -263,13 +262,37 @@ static long double set_from_lunar( const int phase_idx, const long double t2k)
    const long double t0 = 2451550.09765 - J2000;
    const long double lunation = 29.530588853;
    const long double k = floorl((t2k - t0) / lunation - phase + .5) + phase;
-   const long double amplit = ((phase_idx & 1) ? -.62801 : -.40720);
          /* sun,  moon mean anomalies,  Meeus (47.4) & (47.5) */
    const long double moon_ma = 201.5643 * deg2rad + (385.81693528 * deg2rad) * k;
    const long double sun_ma =    2.5534 * deg2rad + (29.10535669 * deg2rad) * k;
+         /* F = moon's argument of latitude : */
+   const long double f =       160.7108 * deg2rad + (390.67050274 * deg2rad) * k;
    long double t = t0 + k * lunation;
+   const long double *aptr;
+   const long double amplit[3][9] = {
+      /* M'       M       2M'     2F      M'-M      M'+M    2M        M'-2F    M'+2F */
+   { -.40720, +.17241, +.01608, +.01039, +.00739, -.00514, +.00208, -.00111, -.00057 },
+   { -.62801, +.17172, +.00862, +.00804, +.00454, -.01183, +.00204, -.00180, -.00070 },
+   { -.40614, +.17302, +.01614, +.01043, +.00734, -.00515, +.00209, -.00111, -.00057 }};
+            /* above are amplitudes for new,  quarters,  and full moons */
 
-   t += amplit * sinl( moon_ma) + .17241 * sinl( sun_ma);
+   if( phase_idx == PHASE_IDX_FIRST_QUARTER)
+      t += 0.00306;
+   if( phase_idx == PHASE_IDX_THIRD_QUARTER)
+      {
+      t -= 0.00306;
+      aptr = amplit[1];      /* use 1st quarter amplitudes */
+      }
+   else
+      aptr = amplit[phase_idx];
+   t += aptr[0] * sinl( moon_ma) + aptr[1] * sinl( sun_ma);
+   t += aptr[2] * sinl( 2. * moon_ma);
+   t += aptr[3] * sinl( 2. * f);
+   t += aptr[4] * sinl( moon_ma - sun_ma);
+   t += aptr[5] * sinl( moon_ma + sun_ma);
+   t += aptr[6] * sinl( 2. * sun_ma);
+   t += aptr[7] * sinl( moon_ma - 2. * f);
+   t += aptr[8] * sinl( moon_ma + 2. * f);
    return( t);
 }
 
