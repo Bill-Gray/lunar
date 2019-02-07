@@ -529,18 +529,12 @@ long double DLL_FUNC get_time_from_stringl( long double initial_t2k,
       int j;
 
       for( j = 0; j < 4; j++)
-         {
-         const int slen = 3 + ((j & 1) << 1);
-
-         if( !strcmp( str + i - slen, search_text[j]))
+         if( remove_substring( str, search_text[j]))
             {
-            i -= slen;
-            str[i] = '\0';
             am_pm_indicator = (j >= 2 ? AM_PM_SET_TO_PM :
                                         AM_PM_SET_TO_AM);
             j = 4;   /* break out of loop */
             }
-         }
       }
 
             /* If the input text ends with something containing ':'s,     */
