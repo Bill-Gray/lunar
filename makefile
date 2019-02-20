@@ -65,7 +65,7 @@ all: adestest$(EXE) astcheck$(EXE) astephem$(EXE) calendar$(EXE) cgicheck$(EXE) 
    jevent$(EXE) jpl2b32$(EXE) jsattest$(EXE) lun_test$(EXE) \
    marstime$(EXE) mpc2sof$(EXE) oblitest$(EXE) persian$(EXE) phases$(EXE) \
    prectest$(EXE) prectes2$(EXE) ps_1996$(EXE) ssattest$(EXE) tables$(EXE) \
-   test_ref$(EXE) testprec$(EXE) uranus1$(EXE) utc_test$(EXE)
+   test_ref$(EXE) testprec$(EXE) themis$(EXE) uranus1$(EXE) utc_test$(EXE)
 
 install:
 	$(MKDIR) $(INSTALL_DIR)/include
@@ -119,14 +119,14 @@ clean:
 	$(RM) jevent.o jpl2b32.o jsattest.o lun_test.o lun_tran.o
 	$(RM) mpcorb.o oblitest.o obliqui2.o persian.o phases.o
 	$(RM) prectes2.o prectest.o ps_1996.o refract.o refract4.o riseset3.o solseqn.o
-	$(RM) ssattest.o tables.o test_ref.o testprec.o uranus1.o utc_test.o
+	$(RM) ssattest.o tables.o test_ref.o testprec.o themis.o uranus1.o utc_test.o
 	$(RM) adestest$(EXE) astcheck$(EXE) astephem$(EXE) calendar$(EXE) cgicheck$(EXE) colors$(EXE)
 	$(RM) colors2$(EXE) cosptest$(EXE) dist$(EXE) easter$(EXE) get_test$(EXE)
 	$(RM) htc20b$(EXE) integrat$(EXE) jd$(EXE) jevent$(EXE) jpl2b32$(EXE) jsattest$(EXE)
 	$(RM) lun_test$(EXE) marstime$(EXE) mpc2sof$(EXE) oblitest$(EXE) persian$(EXE)
 	$(RM) phases$(EXE) prectest$(EXE) prectes2$(EXE)
 	$(RM) ps_1996$(EXE) relativi$(EXE) solseqn$(EXE) ssattest$(EXE) tables$(EXE)
-	$(RM) test_ref$(EXE) testprec$(EXE) uranus1$(EXE) utc_test$(EXE) liblunar.a
+	$(RM) test_ref$(EXE) testprec$(EXE) themis$(EXE) uranus1$(EXE) utc_test$(EXE) liblunar.a
 
 adestest$(EXE): adestest.o liblunar.a
 	$(CC) $(CFLAGS) -o adestest$(EXE) adestest.o liblunar.a $(LIBSADDED)
@@ -232,6 +232,9 @@ test_ref$(EXE):                    test_ref.o refract.o refract4.o
 
 testprec$(EXE):                    testprec.o liblunar.a
 	$(CC) $(CFLAGS) -o testprec$(EXE) testprec.o liblunar.a $(LIBSADDED)
+
+themis$(EXE):                    themis.o liblunar.a
+	$(CC) $(CFLAGS) -o themis$(EXE) themis.o liblunar.a $(LIBSADDED)
 
 uranus1$(EXE): uranus1.o gust86.o
 	$(CC) $(CFLAGS) -o uranus1$(EXE) uranus1.o gust86.o $(LIBSADDED)
