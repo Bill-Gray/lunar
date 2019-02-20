@@ -2,7 +2,6 @@
 #include <stddef.h>
 #include <math.h>
 #include <stdbool.h>
-#include <stdio.h>
 #include "brentmin.h"
 
 /* A modified version of Brent's minimization algorithm.  You
@@ -182,6 +181,10 @@ double brent_min_next( brent_min_t *b)
    else if( b->n_iterations)
       {
       rval = cubic_min( b->x, b->y);
+#ifdef NOT_WORKING_CORRECTLY
+         /* Tried comparing quadratic & cubic results,  thinking */
+         /* the difference could give an error estimate.  Not a bad */
+         /* idea,  but doesn't currently seem to help.   */
                      {
                      double quad, linear, qval;
                      double diff;
@@ -200,6 +203,7 @@ double brent_min_next( brent_min_t *b)
                         diff = -diff;
 //                   rval += diff;
                      }
+#endif
       if( rval > b->xmin && rval < b->xmax)
          b->step_type = STEP_TYPE_CUBIC;
       }
