@@ -53,6 +53,7 @@ jpl2b32
 jsattest
 lun_test
 marstime
+moidtest
 mpc2sof
 mpc_code
 oblitest
@@ -64,7 +65,10 @@ ps_1996
 ssattest
 tables
 testprec
+test_min
 test_ref
+themis
+them_cat
 uranus1
 utc_test
 vislimit
