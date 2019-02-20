@@ -62,8 +62,8 @@ endif
 all: adestest$(EXE) astcheck$(EXE) astephem$(EXE) calendar$(EXE) cgicheck$(EXE)  \
    colors$(EXE) colors2$(EXE) cosptest$(EXE) dist$(EXE) easter$(EXE) \
    get_test$(EXE) htc20b$(EXE) jd$(EXE) \
-   jevent$(EXE) jpl2b32$(EXE) jsattest$(EXE) lun_test$(EXE) \
-   marstime$(EXE) mpc2sof$(EXE) oblitest$(EXE) persian$(EXE) phases$(EXE) \
+   jevent$(EXE) jpl2b32$(EXE) jsattest$(EXE) lun_test$(EXE) marstime$(EXE) \
+   moidtest$(EXE) mpc2sof$(EXE) oblitest$(EXE) persian$(EXE) phases$(EXE) \
    prectest$(EXE) prectes2$(EXE) ps_1996$(EXE) ssattest$(EXE) tables$(EXE) \
    test_ref$(EXE) testprec$(EXE) themis$(EXE) uranus1$(EXE) utc_test$(EXE)
 
@@ -103,9 +103,10 @@ uninstall:
 .cpp.o:
 	$(CC) $(CFLAGS) -c $<
 
-OBJS= alt_az.o ades2mpc.o astfuncs.o big_vsop.o cgi_func.o classel.o   \
-   cospar.o date.o delta_t.o de_plan.o dist_pa.o eart2000.o elp82dat.o \
-   eop_prec.o getplane.o get_time.o jsats.o lunar2.o miscell.o  \
+OBJS= alt_az.o ades2mpc.o astfuncs.o big_vsop.o  \
+   brentmin.o cgi_func.o classel.o cospar.o date.o  \
+   delta_t.o de_plan.o dist_pa.o eart2000.o elp82dat.o \
+   eop_prec.o getplane.o get_time.o jsats.o lunar2.o miscell.o moid.o \
    mpc_code.o mpc_fmt.o nutation.o obliquit.o pluto.o precess.o showelem.o \
    snprintf.o sof.o spline.o ssats.o triton.o vislimit.o vsopson.o
 
@@ -187,6 +188,9 @@ lun_test$(EXE): lun_test.o lun_tran.o riseset3.o liblunar.a
 
 marstime$(EXE): marstime.cpp
 	$(CC) $(CFLAGS) -o marstime$(EXE) marstime.cpp -DTEST_PROGRAM $(LIBSADDED)
+
+moidtest$(EXE): moidtest.o liblunar.a
+	$(CC) $(CFLAGS) -o moidtest$(EXE) moidtest.o liblunar.a $(LIBSADDED)
 
 mpc2sof$(EXE): mpc2sof.cpp
 	$(CC) $(CFLAGS) -o mpc2sof$(EXE) mpc2sof.cpp mpcorb.o liblunar.a $(LIBSADDED)
