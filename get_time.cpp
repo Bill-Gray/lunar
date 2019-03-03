@@ -684,11 +684,11 @@ long double DLL_FUNC get_time_from_stringl( long double initial_t2k,
                if( dval > .999 && dval < 32.)
                   dday = dval;
                else
-                  year = (int)dval;
+                  year = (long)dval;
                }
             else if( year_found)         /* year/day of year format: */
                {
-               year = (int)ivals[year_found - 1];
+               year = (long)ivals[year_found - 1];
                month = 1;
                dday  = ivals[2 - year_found];
                }
@@ -757,7 +757,7 @@ long double DLL_FUNC get_time_from_stringl( long double initial_t2k,
             assert( year_found > 0 && year_found < 4);
             assert( month_found > 0 && month_found < 4);
             assert( day_found > 0 && day_found < 4);
-            year = (int)floorl( ivals[year_found - 1] + .5);
+            year = (long)floorl( ivals[year_found - 1] + .5);
             dday = ivals[day_found - 1];
             month = (int)( ivals[month_found - 1] + .5);
             }
