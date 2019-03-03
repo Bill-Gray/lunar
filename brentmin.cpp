@@ -29,6 +29,13 @@ static void bubble_down( brent_min_t *b, int count)
 
 #define PHI 0.6180339887498948482045868343656381177203091798057628621354486227052605
 
+#define STEP_TYPE_INITIALIZED -1
+#define STEP_TYPE_DONE        0
+#define STEP_TYPE_GOLDEN      1
+#define STEP_TYPE_CUBIC       2
+#define STEP_TYPE_SHRINK      3
+#define STEP_TYPE_QUADRATIC   4
+
 void brent_min_init( brent_min_t *b, const double x1, const double y1,
                                      const double x2, const double y2,
                                      const double x3, const double y3)
@@ -54,6 +61,7 @@ void brent_min_init( brent_min_t *b, const double x1, const double y1,
    b->n_iterations = 0;
    b->prev_range = b->prev_range2 = 0.;
    b->tolerance = 0.;
+   b->step_type = STEP_TYPE_INITIALIZED;
 }
 
 /* Fits a parabola y = ax^2 + bx + c to x[0, 1, 2] and y[0, 1, 2],  and
@@ -148,15 +156,8 @@ static double cubic_min( const double *x, const double *y)
 
 static int is_done( const brent_min_t *b)
 {
-   return( b->y[1] - b->y[0] <= b->tolerance
-                                  && b->y[2] - b->y[0] <= b->tolerance);
+   return( b->xmax - b->xmin <= b->tolerance);
 }
-
-#define STEP_TYPE_GOLDEN      0
-#define STEP_TYPE_CUBIC       1
-#define STEP_TYPE_SHRINK      2
-#define STEP_TYPE_QUADRATIC   3
-#define STEP_TYPE_DONE        4
 
 double brent_min_next( brent_min_t *b)
 {
@@ -165,8 +166,6 @@ double brent_min_next( brent_min_t *b)
    const double ratio = right / left;
    const double range = b->xmax - b->xmin;
 
-   assert( right > 0.);
-   assert( left > 0.);
    if( is_done( b))
       {
       b->step_type = STEP_TYPE_DONE;
@@ -218,8 +217,14 @@ double brent_min_next( brent_min_t *b)
       }
    b->prev_range2 = b->prev_range;
    b->prev_range = range;
+               /* If the proposed step goes outside the brackets,
+                  fall back on the golden section search : */
+   if( rval <= b->xmin || rval >= b->xmax)
+      b->step_type = STEP_TYPE_GOLDEN;
    if( b->step_type == STEP_TYPE_GOLDEN)
       rval = b->x[0] + (right > left ? right : -left) * (1. - b->gold_ratio);
+   assert( rval >= b->xmin);
+   assert( rval <= b->xmax);
    b->next_x = rval;
    return( rval);
 }
