@@ -702,11 +702,21 @@ long DLL_FUNC dmy_to_day( const int day, const int month, const long year,
 /* This usually gets you the correct year for a given JD,  but is
 sometimes off by one around the New Year of the calendar in question.
 Which is why the subsequent day_to_dmy( ) function sometimes finds it
-has to move ahead or back up by one year.  */
+has to move ahead or back up by one year.
+
+   The French Revolutionary and both Persian calendars have (over the
+long range) years of 365 + 683/2820 days.  The inverse of this is
+well-represented by the Egyptian fraction
+
+1 / 365 - 1/ 540126 - 1 / 99956730317944
+
+   The mean length of the Hebrew calendar year can be similarly
+represented,  allowing for a good determination of an approximate
+year even for times near the limit of a long integer.    */
 
 static long approx_year( long jd, const int calendar)
 {
-   long year, n1, n2, day_in_cycle, calendar_epoch;
+   long year, n1 = 0, n2 = 0, calendar_epoch;
 
    switch( calendar)
       {
@@ -722,8 +732,6 @@ static long approx_year( long jd, const int calendar)
          break;
       case CALENDAR_HEBREW:
          calendar_epoch = HEBREW_CALENDAR_EPOCH - 365;
-         n1 = 312;               /* The Hebrew calendar has almost exactly */
-         n2 = 113957;            /* 113957 days every 312 years */
          break;
       case CALENDAR_ISLAMIC:
          calendar_epoch = ISLAMIC_CALENDAR_EPOCH;
@@ -732,18 +740,10 @@ static long approx_year( long jd, const int calendar)
          break;
       case CALENDAR_REVOLUTIONARY:
          calendar_epoch = REVOLUTIONARY_CALENDAR_EPOCH;
-         n1 = 128;           /* The current tropical year is really close */
-         n2 = 46751;         /* to 46751 days in 128 years */
          break;
       case CALENDAR_PERSIAN:
-         calendar_epoch = JALALI_ZERO;
-         n1 = 128;
-         n2 = 46751;
-         break;
       case CALENDAR_MODERN_PERSIAN:
          calendar_epoch = JALALI_ZERO;
-         n1 = 2820;                    /* This calendar has an exact cycle */
-         n2 = 2820 * 365 + 683;        /* of 2820 years with 683 leap days */
          break;
       case CALENDAR_CHINESE:
          calendar_epoch = CHINESE_CALENDAR_EPOCH + 90;
@@ -755,9 +755,20 @@ static long approx_year( long jd, const int calendar)
          return( -1);
       }
    jd -= calendar_epoch;
-   day_in_cycle = mod( jd, n2);
-   year = n1 * (( jd - day_in_cycle) / n2);
-   year += day_in_cycle * n1 / n2;
+   if( calendar == CALENDAR_REVOLUTIONARY || calendar == CALENDAR_PERSIAN
+                  || calendar == CALENDAR_MODERN_PERSIAN)
+      year = jd / 365L - jd / 550430L + jd / 1970768981732L;
+   else if( calendar == CALENDAR_HEBREW)
+      year = jd / 365L - jd / 540126L - jd / 99956730317944L;
+   else
+      {
+      const long day_in_cycle = mod( jd, n2);
+
+      assert( n1);
+      assert( n2);
+      year = n1 * (( jd - day_in_cycle) / n2);
+      year += day_in_cycle * n1 / n2;
+      }
    return( year);
 }
 
