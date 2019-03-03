@@ -46,6 +46,7 @@ two minima may exist between points in the search grid.)
 https://www.researchgate.net/publication/325922027_On_the_minimum_orbital_intersection_distance_computation_A_new_effective_method
 */
 
+#include <assert.h>
 #include <string.h>
 #include <math.h>
 #include <stdio.h>
@@ -257,14 +258,15 @@ double find_moid_full( const ELEMENTS *elem1, const ELEMENTS *elem2, moid_data_t
          if( i > 0 && y[1] < y[0] && y[1] < y[2])
             {                 /* we've got a MOID bracketed;  use Brent  */
             brent_min_t b;    /* algorithm to find the 'true' minimum */
-            const double tolerance = .00001 * PI / 180.;
 
             brent_min_init( &b, x[0], y[0], x[1], y[1], x[2], y[2]);
-            while( b.xmax - b.xmin > tolerance)
+            b.tolerance  = .000001 * PI / 180.;
+            while( b.step_type)
                {
                const double new_true = brent_min_next( &b);
                const double dist_squared = find_point_moid_2( &idata, new_true);
 
+               assert( b.n_iterations < 30);
                if( least_dist_squared > dist_squared)
                   {
                   min_true2 = new_true;
