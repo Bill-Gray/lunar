@@ -213,7 +213,7 @@ double DLL_FUNC td_minus_ut( const double jd)
       const int delta_t_table_size =
             sizeof( delta_t_table) / sizeof( delta_t_table[0]);
 
-      if( index > delta_t_table_size - 2)       /* running off end of table */
+      if( index > delta_t_table_size - 2 || jd > 3e+7)   /* running off end of table */
          index = delta_t_table_size - 2;
       dt = index_loc - (double)index;
       tptr = delta_t_table + index;
@@ -410,10 +410,11 @@ double DLL_FUNC td_minus_utc( const double jd_utc)
                  JUL_1( 1993) - utc0, JUL_1( 1994) - utc0, JAN_1( 1996) - utc0,
                  JUL_1( 1997) - utc0, JAN_1( 1999) - utc0, JAN_1( 2006) - utc0,
                  JAN_1( 2009) - utc0, JUL_1( 2012) - utc0, JUL_1( 2015) - utc0,
-                 JAN_1( 2017) - utc0  };
+                 JAN_1( 2017) - utc0, JAN_1( 2020) - utc0  };
+                       /* 2020 Jan 1 leap second is not official yet */
       const int n_leap_seconds = sizeof( leap_intervals) / sizeof( leap_intervals[0]);
 
-      if( imjd_utc >= JUL_1( 2017))
+      if( imjd_utc >= JUL_1( 2020))
          {
          int day = imjd_utc + 2400000 - 1721058;
          int year = (int)( (int64_t)day * (int64_t)400 / (int64_t)146097);
