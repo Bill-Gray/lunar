@@ -60,7 +60,7 @@ typedef struct
    double barbee_speed;              /* in AU/day */
 } moid_data_t;
 
-double find_moid_full( const ELEMENTS *elem1, const ELEMENTS *elem2, moid_data_t *mdata);
+double DLL_FUNC find_moid_full( const ELEMENTS *elem1, const ELEMENTS *elem2, moid_data_t *mdata);
 
 #ifdef __cplusplus
 }

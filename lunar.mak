@@ -13,12 +13,12 @@ EXES= astcheck.exe astephem.exe calendar.exe cosptest.exe dist.exe \
 all: $(EXES)
 
 LIB_OBJS= ades2mpc.obj alt_az.obj astfuncs.obj \
-      big_vsop.obj classel.obj  \
+      big_vsop.obj brentmin.obj classel.obj  \
       cgi_func.obj com_file.obj cospar.obj date.obj \
       de_plan.obj delta_t.obj dist_pa.obj  \
       elp82dat.obj eop_prec.obj getplane.obj \
       get_time.obj jsats.obj lunar2.obj  \
-      miscell.obj mpc_code.obj mpc_fmt.obj \
+      miscell.obj mpc_code.obj mpc_fmt.obj moid.obj \
       nutation.obj obliquit.obj pluto.obj precess.obj  \
       refract.obj refract4.obj rocks.obj showelem.obj sof.obj \
       snprintf.obj \
@@ -114,6 +114,9 @@ lun_test.exe: lun_test.obj lun_tran.obj riseset3.obj $(LIBNAME).lib
 
 marstime.exe: marstime.cpp
    cl /DTEST_PROGRAM $(BASE_FLAGS) marstime.cpp
+
+moidtest.exe: moidtest.obj $(LIBNAME).lib
+   $(LINK)    moidtest.obj $(LIBNAME).lib
 
 oblitest.exe: oblitest.obj obliqui2.obj spline.obj $(LIBNAME).lib
    $(LINK)    oblitest.obj obliqui2.obj spline.obj $(LIBNAME).lib

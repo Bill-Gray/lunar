@@ -89,3 +89,4 @@ EXPORTS
    tdb_minus_tdt                          @88
    split_timel                            @89
    set_day_of_week_name                   @90
+   find_moid_full                         @107
