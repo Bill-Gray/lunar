@@ -138,7 +138,6 @@ int extract_sof_data( ELEMENTS *elem, const char *buff, const char *header)
                   elem->epoch = jd;
                   fields_found |= SOF_TEPOCH_FOUND;
                   }
-               elem->q = atof( buff);
                fields_found |= SOF_Q_FOUND;
                }
                break;
