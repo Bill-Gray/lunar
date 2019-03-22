@@ -132,6 +132,63 @@ static void error_exit( void)
    exit( -1);
 }
 
+/* 'greg_day_to_dmy' converts a JD to day/month/year for all dates (not
+just those after 1 Jan -4800 or similar).  Unlike the version in 'date.cpp'
+(q.v),  it does so only for the Gregorian calendar,  but it is slightly
+more efficient.  After testing,  I decided it's not worth the code bloat.
+I leave it here in case I come across a situation where the very small
+performance boost might be considered significant.   */
+
+void DLL_FUNC greg_day_to_dmy( const long jd, int DLLPTR *day,
+                  int DLLPTR *month, long DLLPTR *year)
+{
+   const long mar_1_year_0 = 1721120L;     /* JD 1721120 = 1.5 Mar 0 Greg */
+   const long one_year = 365L;
+   const long four_years = 4 * one_year + 1;
+   const long century = 25 * four_years - 1L;  /* days in 100 'normal' yrs */
+   const long quad_cent = century * 4 + 1;     /* days in 400 years */
+   long days = jd - mar_1_year_0;
+   long day_in_cycle = days % quad_cent;
+
+   if( day_in_cycle < 0)
+      day_in_cycle += quad_cent;
+   *year = ((days - day_in_cycle) / quad_cent) * 400L;
+   *year += (day_in_cycle / century) * 100L;
+   if( day_in_cycle == quad_cent - 1)    /* extra leap day every 400 years */
+      {
+      *month = 2;
+      *day = 29;
+      return;
+      }
+   day_in_cycle %= century;
+   *year += (day_in_cycle / four_years) * 4L;
+   day_in_cycle %= four_years;
+   *year +=  day_in_cycle / one_year;
+   if( day_in_cycle == four_years - 1)    /* extra leap day every 4 years */
+      {
+      *month = 2;
+      *day = 29;
+      return;
+      }
+   day_in_cycle %= one_year;
+   *month = 5 * (day_in_cycle / 153L);
+   day_in_cycle %= 153L;
+   *month += 2 * (day_in_cycle / 61L);
+   day_in_cycle %= 61L;
+   if( day_in_cycle >= 31)
+      {
+      (*month)++;
+      day_in_cycle -= 31;
+      }
+   *month += 3;
+   *day = day_in_cycle + 1;
+   if( *month > 12)
+      {
+      *month -= 12;
+      (*year)++;
+      }
+}
+
 int main( int argc, char **argv)
 {
    int calendar = CALENDAR_JULIAN_GREGORIAN, err_code, i, is_ut;
@@ -203,6 +260,16 @@ int main( int argc, char **argv)
                         year, month, is_intercalary, day);
          }
       }
+
+   {
+   int day, month;         /* Test alternative Gregorian date decryption */
+   long year;              /* (see 'greg_day_to_dmy' and comments above) */
+
+   greg_day_to_dmy( (long)floorl( t2k + .5 + j2000), &day, &month, &year);
+   printf( "%-20s %4ld%3d %3d\n", "New greg",
+                        year, month, day);
+   }
+
 
    jd = (double)( t2k + j2000);
    printf( "Delta-T = TD - UT1 = %.4f; TD - UTC = %.4f; UT1 - UTC = DUT1 = %.4f\n",
