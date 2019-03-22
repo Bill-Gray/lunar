@@ -134,7 +134,7 @@ static void error_exit( void)
 
 int main( int argc, char **argv)
 {
-   int calendar, err_code, i, is_ut;
+   int calendar = CALENDAR_JULIAN_GREGORIAN, err_code, i, is_ut;
    const double tdt_minus_tai = 32.184;
    const double tai_minus_gps = 19.;
    const long double j2000 = 2451545.;
@@ -150,14 +150,17 @@ int main( int argc, char **argv)
       {
       strcpy( buff, argv[1]);
       for( i = 2; i < argc; i++)
-         {
-         strcat( buff, " ");
-         strcat( buff, argv[i]);
-         }
+         if( !memcmp( argv[i], "-c", 2))
+            calendar = atoi( argv[i] + 2);
+         else
+            {
+            strcat( buff, " ");
+            strcat( buff, argv[i]);
+            }
       }
 
    t2k = get_time_from_stringl( t2k, buff,
-        CALENDAR_JULIAN_GREGORIAN | FULL_CTIME_YMD | FULL_CTIME_TWO_DIGIT_YEAR, &is_ut);
+        calendar | FULL_CTIME_YMD | FULL_CTIME_TWO_DIGIT_YEAR, &is_ut);
 
    if( is_ut < 0)
       printf( "Error parsing string: %d\n", is_ut);
@@ -200,6 +203,7 @@ int main( int argc, char **argv)
                         year, month, is_intercalary, day);
          }
       }
+
    jd = (double)( t2k + j2000);
    printf( "Delta-T = TD - UT1 = %.4f; TD - UTC = %.4f; UT1 - UTC = DUT1 = %.4f\n",
                             td_minus_ut( jd),
