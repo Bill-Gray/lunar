@@ -121,7 +121,12 @@ int main( const int argc, const char **argv)
          }
       }
    fclose( ifile);
-   fprintf( ofile, "Output from 'themis.cpp' (q.v.)\n");
+   fprintf( ofile, "\nCreated from 'themis.cpp' (q.v.)\n");
+   full_ctime( buff, jd_start, CALENDAR_JULIAN_GREGORIAN);
+   fprintf( ofile, "Ephemeris start: %s\n", buff);
+
+   full_ctime( buff, jd_end, CALENDAR_JULIAN_GREGORIAN);
+   fprintf( ofile, "Ephemeris end:   %s\n", buff);
    if( ofile != stdout)
       fclose( ofile);
    return( 0);

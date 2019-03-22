@@ -38,7 +38,7 @@ int main( const int argc, const char **argv)
    FILE *new_file = err_fopen( argv[2], "rb");
    FILE *temp_file = err_fopen( "ickywax.ugh", "wb");
    double jd0_new, end_jd_new;
-   char buff[200];
+   char buff[200], new_end[200];
    int i;
    bool found_end = false;
 
@@ -49,11 +49,14 @@ int main( const int argc, const char **argv)
    for( i = 0; i < 3; i++)       /* skip lines */
       if( !fgets( buff, sizeof( buff), new_file))
          perror( "Error reading 'new' file");
+   strcpy( new_end, buff);
 
    while( !found_end && fgets( buff, sizeof( buff), old_file))
       {
       if( !memcmp( buff, "# Ephem range:", 14))
          sprintf( buff + 28, "%lf %lf\n", end_jd_new, 1.);
+      if( !memcmp( buff, "# Ephemeris end:", 16))
+         strcpy( buff, new_end);
       fputs( buff,  temp_file);
       if( !memcmp( buff, "# MJD ", 6) && atof( buff + 6) == jd0_new - 1.)
          found_end = true;
