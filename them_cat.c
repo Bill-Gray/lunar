@@ -18,6 +18,7 @@ over to replace the old file.       */
 #include <string.h>
 #include <assert.h>
 #include <unistd.h>
+#include <time.h>
 
 static FILE *err_fopen( const char *filename, const char *permits)
 {
@@ -39,6 +40,7 @@ int main( const int argc, const char **argv)
    FILE *temp_file = err_fopen( "ickywax.ugh", "wb");
    double jd0_new, end_jd_new;
    char buff[200], new_end[200];
+   const time_t t0 = time( NULL);
    int i;
    bool found_end = false;
 
@@ -57,6 +59,9 @@ int main( const int argc, const char **argv)
          sprintf( buff + 28, "%lf %lf\n", end_jd_new, 1.);
       if( !memcmp( buff, "# Ephemeris end:", 16))
          strcpy( buff, new_end);
+      if( !memcmp( buff, "# Last updated with", 19))
+         strcpy( buff + 42, ctime( &t0));
+
       fputs( buff,  temp_file);
       if( !memcmp( buff, "# MJD ", 6) && atof( buff + 6) == jd0_new - 1.)
          found_end = true;
