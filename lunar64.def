@@ -89,4 +89,20 @@ EXPORTS
    tdb_minus_tdt                          @88
    split_timel                            @89
    set_day_of_week_name                   @90
+   extract_date_from_mpc_report           @91
+   extract_sof_data                       @92
+   get_mpc_code_info                      @93
+   get_ra_dec_from_mpc_report             @94
+   lat_alt_to_parallax                    @95
+   planet_axis_ratio                      @96
+   point_to_ellipse                       @97
+   is_valid_mpc_code                      @98
+   byte_code_to_net_name                  @99
+   net_name_to_byte_code                  @100
+   create_mpc_packed_desig                @101
+   init_ades2mpc                          @102
+   free_ades2mpc_context                  @103
+   xlate_ades2mpc                         @104
+   xlate_ades2mpc_in_place                @105
+   fgets_with_ades_xlation                @106
    find_moid_full                         @107
