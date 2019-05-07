@@ -56,7 +56,7 @@ int main( const int argc, const char **argv)
    while( !found_end && fgets( buff, sizeof( buff), old_file))
       {
       if( !memcmp( buff, "# Ephem range:", 14))
-         sprintf( buff + 28, "%lf %lf\n", end_jd_new, 1.);
+         sprintf( buff + 28, "%f %f\n", end_jd_new, 1.);
       if( !memcmp( buff, "# Ephemeris end:", 16))
          strcpy( buff, new_end);
       if( !memcmp( buff, "# Last updated with", 19))
