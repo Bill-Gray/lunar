@@ -70,6 +70,7 @@ all: adestest$(EXE) astcheck$(EXE) astephem$(EXE) calendar$(EXE) cgicheck$(EXE) 
 install:
 	$(MKDIR) $(INSTALL_DIR)/include
 	cp afuncs.h   $(INSTALL_DIR)/include
+	cp brentmin.h $(INSTALL_DIR)/include
 	cp cgi_func.h $(INSTALL_DIR)/include
 	cp comets.h   $(INSTALL_DIR)/include
 	cp date.h     $(INSTALL_DIR)/include
