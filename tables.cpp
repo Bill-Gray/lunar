@@ -22,6 +22,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <assert.h>
 #include "watdefs.h"
 #include "lunar.h"
 #include "date.h"
@@ -126,6 +127,7 @@ int main( int argc, char **argv)
          int j, quad0, quad1;
 
          memset( buff, 0, 40);
+         assert( i <= 30);
          get_rise_set_times( rise_set, 3,  jd, observer_lat, observer_lon,
                                                                 vsop_data);
          get_rise_set_times( rise_set + 2, 10, jd, observer_lat, observer_lon,
