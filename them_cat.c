@@ -18,6 +18,7 @@ over to replace the old file.       */
 #include <string.h>
 #include <assert.h>
 #include <unistd.h>
+#include <stdbool.h>
 #include <time.h>
 
 static FILE *err_fopen( const char *filename, const char *permits)
@@ -44,6 +45,7 @@ int main( const int argc, const char **argv)
    int i;
    bool found_end = false;
 
+   assert( argc >= 3);
    while( fgets( buff, sizeof( buff), new_file)
                   && memcmp( buff, "# Ephem range:", 14))
       ;

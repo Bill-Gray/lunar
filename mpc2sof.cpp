@@ -202,7 +202,7 @@ int main( const int argc, const char **argv)
       if( strlen( buff) == 203 &&
                        (epoch = extract_mpcorb_dat( &elem, buff)) > 0L)
          {
-         char name[30];
+         char name[13];
 
          extract_name( name, buff);
          snprintf( tbuff, 14, "%-13s", name);
