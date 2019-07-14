@@ -133,6 +133,7 @@ int DLL_FUNC calc_jsat_loc( const double jd, double DLLPTR *jsats,
    double loc[18];
    int i;
 
+   INTENTIONALLY_UNUSED_PARAMETER( precision);
    for( i = 1; i < 5; i++)
       lon[i] = tan_lat[i] = rad[i] = 0.;
 

@@ -41,7 +41,8 @@ int main( const int argc, const char **argv)
    int i, pass;
    const double J2000 = 2451545.;
 
-   t1 = get_time_from_string( 0., argv[1], FULL_CTIME_YMD, NULL);
+   t1 = get_time_from_string( 0., (argc == 1 ? "now" : argv[1]),
+                                                FULL_CTIME_YMD, NULL);
    printf( "JD %f =", t1);
    t1 = (t1 - J2000) / 365.25 + 2000.;
    printf( " year %f\n", t1);

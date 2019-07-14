@@ -45,8 +45,8 @@ reassuring unit test. */
 
 int main( const int argc, const char **argv)
 {
-   const double utc = get_time_from_string( 0., argv[1], FULL_CTIME_YMD,
-                                 NULL);
+   const double utc = get_time_from_string( 0., (argc < 2 ? "now" : argv[1]),
+                       FULL_CTIME_YMD, NULL);
    const double tdt = utc + td_minus_utc( utc) / seconds_per_day;
    int i, pass;
    const double J2000 = 2451545.;  /* JD 2451545 = 2000 Jan 1.5 */

@@ -140,3 +140,10 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 #elif defined( _MSC_VER)
    #define __restrict
 #endif
+
+/* A useful trick to suppress 'unused parameter' warnings,  modified from
+
+https://stackoverflow.com/questions/1486904/how-do-i-best-silence-a-warning-about-unused-variables
+*/
+
+#define INTENTIONALLY_UNUSED_PARAMETER( param) (void)(param)

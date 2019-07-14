@@ -115,13 +115,6 @@ g++ -Wall -Wextra -pedantic -DTEST_PROGRAM -o pluto pluto.cpp        */
 #include <stdio.h>
 #include <stdlib.h>
 
-/* A useful trick to suppress 'unused parameter' warnings,  modified from
-
-https://stackoverflow.com/questions/1486904/how-do-i-best-silence-a-warning-about-unused-variables
-*/
-
-#define INTENTIONALLY_UNUSED_PARAMETER( param) (void)(param)
-
 int main( const int argc, const char **argv)
 {
    const size_t vsop_size = 60874;

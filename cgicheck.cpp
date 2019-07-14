@@ -19,6 +19,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 #include <stdlib.h>
 #include <string.h>
 #include "cgi_func.h"
+#include "watdefs.h"
 
 /* Code to invoke the 'astcheck' routine from an HTML form.
 You'll see a _lot_ of overlap between this and 'sat_id2.cpp',
@@ -53,6 +54,8 @@ int main( const int unused_argc, const char **unused_argv)
    extern int verbose;
    double search_radius = 2.;    /* default to looking two degrees */
 
+   INTENTIONALLY_UNUSED_PARAMETER( unused_argv);
+   INTENTIONALLY_UNUSED_PARAMETER( unused_argc);
 #ifndef _WIN32                   /* If things take more than 60 seconds, */
    avoid_runaway_process( 60);   /* assume failure and give an error msg */
 #endif         /* _WIN32            to that effect                       */

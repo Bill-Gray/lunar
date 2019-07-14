@@ -18,6 +18,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 #include <stdio.h>
 #include <string.h>
 #include "cgi_func.h"
+#include "watdefs.h"
 
 /* Server-based versions of Find_Orb,  sat_id,  and astcheck (see
 'fo_serve.cpp',  'sat_id2.cpp',  cgicheck.cpp' respectively) all use
@@ -54,6 +55,7 @@ static void sighandler( int signum, siginfo_t *info, void *unused_ucontext)
 
 static void sighandler( int signum, siginfo_t *info, void *unused_ucontext)
 {
+   INTENTIONALLY_UNUSED_PARAMETER( unused_ucontext);
    if( signum == SIGXCPU)
       {
       printf( "\n\n<h1> Ran out of time </h1>\n");

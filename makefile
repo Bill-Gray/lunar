@@ -19,7 +19,7 @@
 CC=g++
 LIBSADDED=
 EXE=
-CFLAGS=-Wextra -Wall -O3 -pedantic -Wno-unused-parameter
+CFLAGS=-Wextra -Wall -O3 -pedantic
 
 # You can have your include files in ~/include and libraries in
 # ~/lib,  in which case only the current user can use them;  or
