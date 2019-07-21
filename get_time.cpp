@@ -400,6 +400,7 @@ long double DLL_FUNC get_time_from_stringl( long double initial_t2k,
    char buff[80];
    char symbol = 0;
    char *str = buff;
+   const double jan_1_1970 = 2440587.5;      /* starting point for UNIX time */
 
    if( is_ut)
       *is_ut = 0;
@@ -479,6 +480,9 @@ long double DLL_FUNC get_time_from_stringl( long double initial_t2k,
          rval = (double)( (week_and_day / 10) * 7 + week_and_day % 10)
                         + jan_6_1980 - J2000;
       }
+
+   if( !memcmp( str, "unix ", 5))
+      rval = atof( str + 5) / seconds_per_day + (jan_1_1970 - J2000);
 
    if( !memcmp( str, "now", 3))
       {
