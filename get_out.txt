@@ -63,7 +63,7 @@ format 1006    (month/day/year: 0012-oct-11)
  6 Aug 2002  6:00:00.000 0 2002-6.25-8
  1 Apr 1997  7:12:00.000 0 1.3 1997 4
 ;   Next line _should_ change between runs...
-22 Jan 2019 22:04:29.000 0 now-4d
+17 Jul 2019 14:44:44.000 0 now-4d
 ;   ...but nothing else should!
  5 Oct 2015  9:36:00.000 0 10/5.4/2015
  7 Mar 1917 18:00:00.000 0 3 1917 7.75
@@ -87,3 +87,6 @@ format 1006    (month/day/year: 0012-oct-11)
  1 Oct 2009 21:41:23.800 0 2009-10-01T21:41:23.8
 format 6       (day/month/year: 0009-aug-07)
  4 Mar 1997  3:14:16.000 0 1997-03-04T03:14:16
+; Added 2019 Jul 21 :
+21 Jul 2069  0:37:33.000 0 unix3141592653
+24 Jul 2019 13:14:12.000 0 gps20633+13h+14.2m
