@@ -267,7 +267,7 @@ int DLL_FUNC load_cospar_file( const char *filename)
    int rval, pass;
 
    cospar_filename = filename;
-   for( pass = 0; pass < 2; pass++)
+   for( pass = 0; pass < (filename ? 2 : 1); pass++)
       rval = get_cospar_data_from_text_file( (pass ? 0 : FREE_INTERNAL_DATA),
                     0, 0., NULL, NULL, NULL, NULL);
    cospar_filename = temp_name;
