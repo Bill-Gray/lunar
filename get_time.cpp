@@ -462,14 +462,14 @@ long double DLL_FUNC get_time_from_stringl( long double initial_t2k,
    if( *str == 'y')      /* decimal years */
       rval = (strtold( str + 1, NULL) - 2000.) * 365.25 - .5;
 
-   if( !memcmp( str, "mjd", 3))                 /* modified JD */
+   if( !strncmp( str, "mjd", 3))                 /* modified JD */
       {
       rval = strtold( str + 3, NULL) + 2400000.5 - J2000;
       if( is_ut)
          *is_ut = 1;
       }
 
-   if( !memcmp( str, "gps ", 4))                 /* GPS WWWWD scheme */
+   if( !strncmp( str, "gps ", 4))                 /* GPS WWWWD scheme */
       {
       int week_and_day = 0;
       const double jan_6_1980 = 2444244.5;  /* zero point of GPS system */
@@ -481,10 +481,10 @@ long double DLL_FUNC get_time_from_stringl( long double initial_t2k,
                         + jan_6_1980 - J2000;
       }
 
-   if( !memcmp( str, "unix ", 5))
+   if( !strncmp( str, "unix ", 5))
       rval = atof( str + 5) / seconds_per_day + (jan_1_1970 - J2000);
 
-   if( !memcmp( str, "now", 3))
+   if( !strncmp( str, "now", 3))
       {
       static const long double jan_1970 = 2440587.5;
 
