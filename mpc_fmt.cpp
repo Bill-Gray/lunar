@@ -51,14 +51,6 @@ static inline int get_two_digits( const char *iptr)
    return( (int)iptr[0] * 10 + (int)iptr[1] - (int)'0' * 11);
 }
 
-double minimum_observation_year = -1e+9;   /* set in console Find_Orb's */
-double maximum_observation_year =  1e+9;   /* command line      */
-
-#define J2000 2451545.
-#define YEAR_TO_JD( year) (J2000 + (year - 2000.) * 365.25)
-#define MINIMUM_OBSERVATION_JD YEAR_TO_JD( minimum_observation_year)
-#define MAXIMUM_OBSERVATION_JD YEAR_TO_JD( maximum_observation_year)
-
 /* The date/time in an 80-column MPC report line is stored in columns 16-32.
 MPC expects this to be in the form YYYY MM DD.dddddd,  with the date usually
 given to five digits = .864 second precision;  the sixth digit should only
@@ -258,8 +250,6 @@ double extract_date_from_mpc_report( const char *buff, unsigned *format)
       rval += (double)dmy_to_day( 0, month, year,
                                     CALENDAR_JULIAN_GREGORIAN) - .5;
 
-   if( rval < MINIMUM_OBSERVATION_JD || rval > MAXIMUM_OBSERVATION_JD)
-      rval = 0.;
              /* Radar obs are always given to the nearest UTC second. So  */
              /* some rounding is usually required with MPC microday data. */
    if( rval && (buff[14] == 'R' || buff[14] == 'r'))
