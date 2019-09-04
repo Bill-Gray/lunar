@@ -100,6 +100,7 @@ void avoid_runaway_process( const int max_time_to_run)
 
 void avoid_runaway_process( const int max_time_to_run)
 {
+   INTENTIONALLY_UNUSED_PARAMETER( max_time_to_run);
 }
 #endif         /* _WIN32 */
 
