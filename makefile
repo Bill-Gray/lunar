@@ -21,6 +21,10 @@ LIBSADDED=
 EXE=
 CFLAGS=-Wextra -Wall -O3 -pedantic
 
+ifdef DEBUG
+	CFLAGS += -g
+endif
+
 # You can have your include files in ~/include and libraries in
 # ~/lib,  in which case only the current user can use them;  or
 # (with root privileges) you can install them to /usr/local/include
