@@ -351,12 +351,21 @@ const char *html_header_text =
     "</HEAD>\n"
     "<BODY> <pre>\n";
 
+
+const char *kml_header_text =
+    "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+    "<kml xmlns=\"http://www.opengis.net/kml/2.2\">\n"
+    "<Folder>\n"
+    "      <name> MPC sites </name>\n"
+    "      <description> MPC observatory sites </description>\n";
+
 int main( const int argc, const char **argv)
 {
    FILE *ifile = fopen( (argc < 2 ? "ObsCodes.htm" : argv[1]), "rb");
    char buff[200];
    mpc_code_t code;
    bool google_map_links = false, dump_comments = false;
+   bool make_kml = false;
    int i;
    size_t google_offset = 0;
 
@@ -387,12 +396,18 @@ int main( const int argc, const char **argv)
                printf( "Created %s\n", ctime( &t0));
                }
                break;
+            case 'k':
+               {
+               make_kml = true;
+               printf( "%s", kml_header_text);
+               }
+               break;
             default:
                printf( "Command line option '%s' unrecognized\n", argv[i]);
                return( -1);
             }
-   printf( "%s\n", header + google_offset);
-   i = 0;
+   if( !make_kml)
+      printf( "%s\n", header + google_offset);
    while( fgets( buff, sizeof( buff), ifile))
       if( get_mpc_code_info( &code, buff) != -1)
          {
@@ -434,14 +449,31 @@ int main( const int argc, const char **argv)
             printf( "<a href=\"http://maps.google.com/maps?q=%f,%f\">",
                         code.lat, code.lon);
             }
-         printf( "%s %s", obuff + google_offset, code.name);
+         if( make_kml && code.planet == 3 && (code.lat || code.lon))
+            {
+            i = 0;
+            while( code.name[i] >= ' ')
+               i++;
+            printf( " <Placemark>\n");
+            printf( "    <name>%.3s</name>\n", code.code);
+            printf( "    <description>%.*s</description>\n", i, code.name);
+            printf( "    <Point>\n");
+            printf( "        <coordinates>%f,%f</coordinates>\n", code.lon, code.lat);
+            printf( "    </Point>\n");
+            printf( " </Placemark>\n\n");
+            }
+         if( !make_kml)
+            printf( "%s %s", obuff + google_offset, code.name);
          if( show_link_for_this_line)
             printf( "</a>");
          }
       else if( dump_comments)    /* dump everything,  including */
          printf( "%s", buff);    /* comments from input file */
    fclose( ifile);
-   printf( "%s\n", header + google_offset);
+   if( !make_kml)
+      printf( "%s\n", header + google_offset);
+   else
+      printf( "</Folder>\n</kml>\n");
    if( google_map_links)
       printf( "</pre></body></html>\n");
    return( 0);
