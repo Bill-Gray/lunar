@@ -439,6 +439,82 @@ void vincenty_direct( const double lat1, const double lon1,
    *lon2 = lon1 + big_l;
 }
 
+static void reset_max_diff( double *max_diff, const double a, const double b)
+{
+   if( *max_diff < fabs( a))
+      *max_diff = fabs( a);
+   if( *max_diff < fabs( b))
+      *max_diff = fabs( b);
+}
+
+/* A few test cases from Vincenty's paper
+(http://www.ngs.noaa.gov/PUBS_LIB/inverse.pdf).   'data' gives,  in
+order:  lat1, lat2, delta_lon, az1, distance, az2.  The first test
+case,  (a),  is for the Bessel ellipsoid,  so I skipped it.    */
+
+static void run_test_cases( void)
+{
+   const double data[] =  {
+        37. + 19. / 60. + 54.95367 / 3600., 26. + 7/60. + 42.83946 / 3600.,
+                     41 + 28./60. + 35.50729 / 3600.,
+        95. + 27. / 60. + 59.63089 / 3600., 4085966.703,   /* (b) */
+        118 + 5/60. + 58.96161 / 3600.,
+
+        35. + 16/60. + 11.24862 / 3600., 67. + 22/60. + 14.77638 / 3600.,
+                     137. + 47./60. + 28.31435 / 3600.,
+        15 + 44./60. + 23.74850 / 3600., 8084823.839,
+        144.+55./60.+39.92147 / 3600.,
+
+        1., -59. / 60. - 53.83076 / 3600.,
+                  179. + 17. / 60. + 48.02997 / 3600.,
+        89., 19960000., 91. + 6.11733 / 3600.,
+
+        1., 1. + 1./60. + 15.18952/3600.,
+               179. + 46./60. + 17.84244 / 3600.,
+        4. + 59./60. + 59.99995/3600., 19780006.558,
+              174. + 59./60. + 59.88481/3600.,
+        0. };
+   const double *tptr = data;
+   const double pi = 3.14159265358979323846264338327950288419716939937510582;
+   double max_diff = 0.;
+   const double semimajor = 6378388.0;   /* Int'l spheroid */
+
+   while( *tptr)
+      {
+      double lat, lon, dist, az1, az2;
+      const double flattening = 1. / 297.;
+
+      vincenty_direct( tptr[0] * pi / 180., 0., &lat, &lon, flattening,
+                       tptr[3] * pi / 180., tptr[4] / semimajor);
+      lat *= 180. / pi;
+      lon *= 180. / pi;
+      printf( "Result : %.9f %.9f (%.9f %.9f)\n", lat, lon,
+                     lat - tptr[1], lon - tptr[2]);
+      reset_max_diff( &max_diff, lat - tptr[1], lon - tptr[2]);
+      vincenty_direct( tptr[1] * pi / 180., 0., &lat, &lon, flattening,
+                  pi + tptr[5] * pi / 180., tptr[4] / semimajor);
+      lat *= 180. / pi;
+      lon *= 180. / pi;
+      printf( "Reverse: %.9f %.9f (%.9f %.9f)\n", lat, lon,
+                     lat - tptr[0], lon + tptr[2]);
+      reset_max_diff( &max_diff, lat - tptr[0], lon + tptr[2]);
+      dist = vincenty_earth_dist( tptr[0] * pi / 180., 0., tptr[1] * pi / 180.,
+                                  tptr[2] * pi / 180., flattening, &az1, &az2);
+      dist *= semimajor;
+      az1 *= 180. / pi;
+      az2 *= 180. / pi;
+      printf( "Dist: %.4f (%.4f)\n", dist, dist - tptr[4]);
+      reset_max_diff( &max_diff, (dist - tptr[4]) / semimajor, 0.);
+      printf( "Az1, 2: %.9f (%.9f)  %.9f (%.9f)\n",
+                  az1, az1 - tptr[3],
+                  az2, az2 - tptr[5]);
+      reset_max_diff( &max_diff, az1 - tptr[3], az2 - tptr[5]);
+      tptr += 6;
+      }
+   printf( "Max difference : %.9f degrees = %.5f meters\n",
+                 max_diff, max_diff * semimajor);
+}
+
 /* For the 'spherical earth' formula,  we use a radius of 6371 km (close to
 the average of the polar and equatorial radii.)  For the 'flattened earth',
 the equatorial radius of 6378.140 km is used. */
@@ -446,13 +522,21 @@ the equatorial radius of 6378.140 km is used. */
 int main( const int argc, const char **argv)
 {
    const double pi = 3.14159265358979323846264338327950288419716939937510582;
-   const double lat1 = atof( argv[1]) * pi / 180.;
-   const double lon1 = atof( argv[2]) * pi / 180.;
    const double flattening = 1. / 298.257223563;
    const double semimajor = 6378.137;
 // const double flattening = 1. / 298.257;
 // const double semimajor = 6378.14;
+   double lat1, lon1;
 
+   if( argc < 5)
+      {
+      printf( "usage: dist lat1 lon1 lat2 lon2\n");
+      printf( "or:    dist lat1 lon1 dist(km) azim -d\n");
+      run_test_cases( );
+      return( 0);
+      }
+   lat1 = atof( argv[1]) * pi / 180.;
+   lon1 = atof( argv[2]) * pi / 180.;
    if( argc == 6)
       {
       double lat2, lon2, back_azimuth;
@@ -472,8 +556,8 @@ int main( const int argc, const char **argv)
       double lon2 = atof( argv[4]) * pi / 180.;
       double azimuth, dist, back_azimuth;
 
-      double d1 = spherical_earth_dist( lat1, lon1, lat2, lon2);
-      double d2 =           earth_dist( lat1, lon1, lat2, lon2, flattening);
+      const double d1 = spherical_earth_dist( lat1, lon1, lat2, lon2);
+      const double d2 =           earth_dist( lat1, lon1, lat2, lon2, flattening);
 
       printf( "From lat=%f, lon=%f to lat=%f, lon=%f\n",
                            lat1 * 180. / pi, lon1 * 180. / pi,
@@ -490,11 +574,6 @@ int main( const int argc, const char **argv)
       vincenty_direct( lat1, lon1, &lat2, &lon2, flattening, azimuth, dist);
       printf( "Vincenty direct: %.10f %.10f\n",
                lat2 * 180. / pi, lon2 * 180. / pi);
-      }
-   else
-      {
-      printf( "usage: dist lat1 lon1 lat2 lon2\n");
-      printf( "or:    dist lat1 lon1 dist(km) azim -d\n");
       }
    return( 0);
 }
