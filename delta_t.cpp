@@ -90,7 +90,8 @@ static const short delta_t_table[] =
   6660,    /* 2012  1 1:   66.6030                              */
   6728,    /* 2014  1 1:   67.2810                              */
   6810,    /* 2016  1 1:   68.1024                              */
-  6897 };  /* 2018  1 1:   68.9677                              */
+  6897,    /* 2018  1 1:   68.9677                              */
+  6940 };  /* 2020  1 1:   69.4009 (estimate at 2019 Sep 13)    */
 
 /* 8 Aug 2000:  Some people have expressed an interest in being able to
    insert their own formulae for Delta-T while running Guide.  I've
@@ -410,8 +411,7 @@ double DLL_FUNC td_minus_utc( const double jd_utc)
                  JUL_1( 1993) - utc0, JUL_1( 1994) - utc0, JAN_1( 1996) - utc0,
                  JUL_1( 1997) - utc0, JAN_1( 1999) - utc0, JAN_1( 2006) - utc0,
                  JAN_1( 2009) - utc0, JUL_1( 2012) - utc0, JUL_1( 2015) - utc0,
-                 JAN_1( 2017) - utc0, JAN_1( 2020) - utc0  };
-                       /* 2020 Jan 1 leap second is not official yet */
+                 JAN_1( 2017) - utc0 };
       const int n_leap_seconds = sizeof( leap_intervals) / sizeof( leap_intervals[0]);
 
       if( imjd_utc >= JUL_1( 2020))
