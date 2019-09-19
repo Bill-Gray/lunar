@@ -14,5 +14,5 @@ include files in `/usr/local/include`.  (You will probably have to make that
 `sudo make install`.)  For BSD,  and probably OS/X,  run `gmake CLANG=Y`
 (GNU make,  with the clang compiler),  then `sudo gmake install`.
 
-On Windows,  run `nmake -f lunardll.mak` with MSVC++.  Optionally,  add
-`-BITS_32=Y` for 32-bit code.
+On Windows,  run `nmake -f lunar.mak` with MSVC++.  Optionally,  add
+`BITS_32=Y` for 32-bit code.
