@@ -27,11 +27,11 @@ LIB_OBJS= ades2mpc.obj alt_az.obj astfuncs.obj \
 LINK=link /nologo
 
 !ifdef BITS_32
-BASE_FLAGS=-nologo -W3 -Ox -MT
+BASE_FLAGS=-nologo -W3 -O2 -MT -D_CRT_SECURE_NO_WARNINGS
 LIBNAME=lunar
-RM=rm
+RM=del
 !else
-BASE_FLAGS=-nologo -W3 -Ox -D_CRT_SECURE_NO_WARNINGS
+BASE_FLAGS=-nologo -W3 -O2 -MT -D_CRT_SECURE_NO_WARNINGS
 LIBNAME=lunar64
 RM=del
 !endif
