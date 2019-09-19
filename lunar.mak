@@ -143,7 +143,7 @@ ssattest.exe: ssattest.obj $(LIBNAME).lib
    $(LINK)    ssattest.obj $(LIBNAME).lib
 
 ssats.obj: ssats.cpp
-   cl -c $(COMMON_FLAGS) -Od ssats.cpp
+   cl -c $(COMMON_FLAGS) ssats.cpp
 
 tables.exe: tables.obj riseset3.obj $(LIBNAME).lib
    $(LINK)  tables.obj riseset3.obj $(LIBNAME).lib
