@@ -109,30 +109,36 @@ int main( const int argc, const char **argv)
             strcat( obj_name, " ");
          strcat( obj_name, argv[i]);
          }
-      else switch( argv[i][1])
+      else
          {
-         case 'i':
-            intraobject_check = true;
-            if( argv[i][2])
-               ifilename = argv[i] + 2;
-            break;
-         case 'n':
-            planet_number = atoi( argv[i] + 2);
-            break;
-         case 'r':
-            reversing = true;
-            break;
-         case 'v':
-            verbose = true;
-            break;
-         default:
-            fprintf( stderr, "Command-line option '%s' not recognized\n",
-                        argv[i]);
-            break;
+         const char *arg = (i == argc - 1 || argv[i][2]) ? argv[i] + 2 :
+                                    argv[i + 1];
+
+         switch( argv[i][1])
+            {
+            case 'i':
+               intraobject_check = true;
+               break;
+            case 'f':
+               ifilename = arg;
+               break;
+            case 'n':
+               planet_number = atoi( arg);
+               break;
+            case 'r':
+               reversing = true;
+               break;
+            case 'v':
+               verbose = true;
+               break;
+            default:
+               fprintf( stderr, "Command-line option '%s' not recognized\n",
+                           argv[i]);
+               break;
+            }
          }
    ifile = fopen( ifilename, "rb");
    assert( ifile);
-   assert( argc > 1);
    if( !fgets( header, sizeof( header), ifile))
       {
       fprintf( stderr, "Didn't get test file header line\n");
