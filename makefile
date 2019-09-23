@@ -87,7 +87,7 @@ install:
 	$(MKDIR) $(LIB_DIR)
 	cp liblunar.a $(LIB_DIR)
 	$(MKDIR) $(HOME)/bin
-	cp astcheck $(HOME)/bin
+	cp astcheck$(EXE) $(HOME)/bin
 
 install_integrat:
 	cp integrat $(HOME)/bin
