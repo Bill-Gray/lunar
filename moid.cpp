@@ -76,11 +76,14 @@ static double compute_posn_and_vel( const ELEMENTS *elem,
    const double cos_true_anom = cos( true_anom);
    const double sin_true_anom = sin( true_anom);
    const double denom = 1. + elem->ecc * cos_true_anom;
-   const double true_r = elem->q * (1. + elem->ecc) / denom;
-   const double x = true_r * cos_true_anom;
-   const double y = true_r * sin_true_anom;
+   double true_r = elem->q * (1. + elem->ecc) / denom;
+   double x, y;
    int i;
 
+   if( true_r > 1000. || true_r < 0.)
+      true_r = 1000.;
+   x = true_r * cos_true_anom;
+   y = true_r * sin_true_anom;
    for( i = 0; i < 3; i++)
       posn[i] = x * matrix[0][i] + y * matrix[1][i];
    if( vel)
@@ -88,7 +91,7 @@ static double compute_posn_and_vel( const ELEMENTS *elem,
       const double dx_dtheta = -y / denom;
       const double dy_dtheta = (x + elem->ecc * true_r) / denom;
       const double vel_at_perihelion =    /* in AU/day */
-                   GAUSS_K * sqrt( 2. / elem->q - 1. / elem->major_axis);
+                   GAUSS_K * sqrt( (1. + elem->ecc) / elem->q);
       const double dtheta_dt = vel_at_perihelion * elem->q / (true_r * true_r);
       const double dx_dt = dx_dtheta * dtheta_dt;
       const double dy_dt = dy_dtheta * dtheta_dt;
@@ -147,7 +150,7 @@ static double find_point_moid_2( internal_moid_t *iptr, const double true_anomal
 
    iptr->r2 = compute_posn_and_vel( iptr->elem2, true_anomaly2,
                  iptr->xform_matrix, vect2, NULL);
-   x = vect2[0] + iptr->elem1->major_axis * iptr->elem1->ecc;
+   x = vect2[0] + iptr->elem1->q * iptr->elem1->ecc / (1. - iptr->elem1->ecc);
    y = vect2[1];   /* above shifts origin from focus to center of ellipse */
    iptr->lat = point_to_ellipse( iptr->elem1->major_axis, iptr->elem1_b,
                 x, y, &dist);
@@ -181,6 +184,7 @@ double DLL_FUNC find_moid_full( const ELEMENTS *elem1, const ELEMENTS *elem2, mo
    const double Q1 = elem1->major_axis * 2. - elem1->q;
    const double Q2 = elem2->major_axis * 2. - elem2->q;
 
+   assert( elem1->ecc < 1.);
    fill_matrix( mat1, elem1);
    fill_matrix( mat2, elem2);
    for( i = 0; i < 3; i++)
@@ -200,6 +204,7 @@ double DLL_FUNC find_moid_full( const ELEMENTS *elem1, const ELEMENTS *elem2, mo
       if( least_dist_squared > dist_squared)
          least_dist_squared = dist_squared;
       }
+   if( elem2->ecc < 1.)
    {
       double ivect[3], arg_per;
 
