@@ -51,6 +51,43 @@ void *init_ades2mpc( void)
    return( rval);
 }
 
+/* The logic of processing ADES data to 80-column punched-card format is
+somewhat convoluted.  We have to take a possible mix of PSV and XML ADES
+with 80-column data,  plus possible extraneous text,  and convert it to
+a modified version of the MPC's format.  The 'modification' is that
+the times and RA/decs can be given to greater precision,  and uncertainties
+expressed with comment lines such as
+
+COM Sigmas 0.5x0.4,0.93 m:0.02 t:0.5
+
+to indicate RA sigma = 0.5 arcsec,  dec simga = 0.4,  that the correlation
+between them is 0.93,  magnitude uncertainty is 0.02,  and the timing
+uncertainty is 0.5 seconds.  Note that the above comment can pass
+through MPC's processing,  but the actual information is left present
+for Find_Orb and other software.
+
+   But it _does_ mean that a single PSV line may be output as two or
+more lines (the above sigmas,  and finally an 80-column astrometric
+record).  With XML,  we have to read in many lines,  gradually assembling
+the sigmas and the 80-column output;  only when we reach the closing
+</optical> tag can we cough up two or more lines.  If it's an MPC
+line,  we can pass it through unaltered... _unless_ it's a Dave Tholen
+style 92-column line,  with 80 "traditional" columns and sigmas in
+the last twelve columns.
+
+   The above 'ades2mpc_t' context structure stores the various bits
+of the output line(s).  When we read a PSV line or hit the </optical>
+XML closing tag,  we set 'getting_lines' to 1,  i.e.,  "we've got
+the data we need;  start outputting corresponding lines such as
+the above comment and 80-column MPC data."
+
+   At that point,  each call to xlate_ades2mpc( ) gets passed
+along to get_a_line( ),  which checks to see if we have some sigmas
+or (for satellite observations) an object center or one or
+(for satellite,  radar,  and roving observations) two 80-column
+lines to be output.  After we've done all that,  'getting_lines'
+is reset to zero,  and we're ready to accept the next observation(s). */
+
 /* In theory,  when we reach the end of the file,  any 'state' flags that
 got set (because of encountering ADES tags) should be cleared (because of
 encountering closing tags).  */
@@ -587,6 +624,47 @@ static void setup_observation( ades2mpc_t *cptr)
    cptr->id_set = 0;
 }
 
+/* The following checks to see if the input is astrometry with "Dave
+Tholen sigmas",  such as
+
+2019 SH3      C2019 09 26.56792500 00 13.041-05 25 38.05         18.6 G      T12 0.050 0.049
+
+   If it is,  the line is converted to two lines with the designation in the
+packed form desired by MPC,  and the sigmas on a separate comment line :
+
+COM Sigmas 0.050x0.049
+     K19S03H  C2019 09 26.56792500 00 13.041-05 25 38.05         18.6 G      T12
+*/
+
+static int check_for_tholen_sigmas( ades2mpc_t *cptr, char *obuff, const char *ibuff)
+{
+   int rval = 0;
+
+   if( strlen( ibuff) >= 92 && (unsigned char)ibuff[92] < ' '
+          && ibuff[82] == '.' && ibuff[88] == '.'
+          && ibuff[80] == ' ' && ibuff[86] == ' '
+          && is_valid_mpc_code( ibuff + 77))
+      {
+      memcpy( obuff, ibuff, 80);
+      obuff[80] = '\0';
+      if( extract_date_from_mpc_report( obuff, NULL))
+         {
+         char packed_desig[13];
+
+         setup_observation( cptr);
+         memcpy( cptr->rms_ra, ibuff + 81, 5);
+         memcpy( cptr->rms_dec, ibuff + 87, 5);
+         cptr->rms_ra[5] = cptr->rms_dec[5] = '\0';
+         strcpy( cptr->line, obuff);
+         obuff[12] = '\0';
+         create_mpc_packed_desig( packed_desig, obuff);
+         memcpy( cptr->line, packed_desig, 12);
+         cptr->getting_lines = rval = 1;
+         }
+      }
+   return( rval);
+}
+
 static int process_psv_line( ades2mpc_t *cptr, char *obuff, const char *ibuff)
 {
    const char *tptr = ibuff;
@@ -733,6 +811,8 @@ int xlate_ades2mpc( void *context, char *obuff, const char *buff)
          cptr->depth = 0;
          }
       }
+   if( !rval)
+      rval = check_for_tholen_sigmas( cptr, (obuff == buff ? temp_obuff : obuff), buff);
    if( !rval && buff[1] == ' ' && (buff[0] == '#' || buff[0] == '!'))
       {
       rval = process_psv_header( cptr, (obuff == buff ? temp_obuff : obuff), buff);
