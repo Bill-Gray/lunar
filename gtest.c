@@ -8,14 +8,21 @@ function of UT1 time since 2000 Jan 1 = JD 2451545.0 :
 
 (1) gst = omega0 + rate * (jd - 2451545.0) + quadratic and cubic terms
 
-   (the extra terms are irrelevant here).
+   The official IAU 1976 expression in seconds of time is :
+
+GMST= 67310.548 + (3155760000. + 8640184.812866)*T_cen
+    = 67310.548 + (86400. + 8640184.812866 / 36525) * (jd - J2000)
+                     + quadratic and cubic terms
+
+   (the quad/cubic terms are used below,  but they're irrelevant
+for this bit of discussion.)
 
 rate = 360 + excess
 
-   where excess is 0.98564... degrees.  That is to say,  each UT
-day,  the earth turns 360 degrees plus (almost) one degree.  That
-'excess' accumulates to 360 degrees over the course of a year,
-so it's roughly 360/365.2475 degrees.
+   where excess is 0.98564... degrees,  or 236.5553... seconds.  That
+is to say,  each UT day,  the earth turns 360 degrees plus (almost)
+one degree.  That 'excess' accumulates to 360 degrees over the course
+of a year, so it's roughly 360/365.2475 degrees.
 
    We're interested in 'gst' in degrees,  and therefore not interested
 in multiples of 360 degrees.  If we used the above equation,  we might
