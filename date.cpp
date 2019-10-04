@@ -706,13 +706,16 @@ has to move ahead or back up by one year.
 
    The French Revolutionary and both Persian calendars have (over the
 long range) years of 365 + 683/2820 days.  The inverse of this is
-well-represented by the Egyptian fraction
+well-represented by the (sort of) Egyptian fraction
 
-1 / 365 - 1/ 540126 - 1 / 99956730317944
+1 / 365 - (1 - 1 / 3580417) / 550430
 
-   The mean length of the Hebrew calendar year can be similarly
-represented,  allowing for a good determination of an approximate
-year even for times near the limit of a long integer.    */
+   (in which I've gone a bit astray from the traditional sort of Egyptian
+fraction. With this,  none of the constants involved overflows 32 bits,
+but the fraction remains suitable for 64-bit machines.)  The mean length
+of the Hebrew calendar year can be similarly represented,  allowing for a
+good determination of an approximate year even for values of 'jd' near
+the limit of a 64-bit integer.   */
 
 static long approx_year( long jd, const int calendar)
 {
@@ -757,9 +760,9 @@ static long approx_year( long jd, const int calendar)
    jd -= calendar_epoch;
    if( calendar == CALENDAR_REVOLUTIONARY || calendar == CALENDAR_PERSIAN
                   || calendar == CALENDAR_MODERN_PERSIAN)
-      year = jd / 365L - jd / 550430L + jd / 1970768981732L;
+      year = jd / 365L - (jd - jd / 3580417L) / 550430L;
    else if( calendar == CALENDAR_HEBREW)
-      year = jd / 365L - jd / 540126L - jd / 99956730317944L;
+      year = jd / 365L - (jd + jd / 184943706L) / 540126L;
    else
       {
       const long day_in_cycle = mod( jd, n2);
