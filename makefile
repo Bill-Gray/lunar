@@ -1,13 +1,14 @@
 # GNU MAKE Makefile for 'lunar' basic astronomical functions library
 #  (use 'gmake' for BSD,  and probably 'gmake CLANG=Y')
 #
-# Usage: make -f [path\]linlunar.mak [CLANG=Y] [XCOMPILE=Y] [MSWIN=Y] [tgt]
+# Usage: make -f [path\]linlunar.mak [CLANG=Y] [W64=Y] [W32=Y] [MSWIN=Y] [tgt]
 #
 # where tgt can be any of:
 # [all|astcheck|astephem|calendar... clean]
 # [install|install_integrat]
 #
-#	'XCOMPILE' = cross-compile for Windows,  using MinGW,  on a Linux or BSD box
+#	'W64'/'W32' = cross-compile for Windows 64 or 32 bits,  using MinGW,
+#    on a Linux or BSD box
 #	'MSWIN' = compile for Windows,  using MinGW,  on a Windows machine
 #	'CLANG' = use clang instead of GCC;  BSD/Linux only
 # None of these: compile using g++ on BSD or Linux
@@ -56,10 +57,17 @@ endif
 
 LIB_DIR=$(INSTALL_DIR)/lib
 
-ifdef XCOMPILE
+ifdef W64
    CC=x86_64-w64-mingw32-g++
    EXE=.exe
    LIB_DIR=$(INSTALL_DIR)/win_lib
+   LIBSADDED=-L $(LIB_DIR) -mwindows
+endif
+
+ifdef W32
+   CC=i686-w64-mingw32-g++
+   EXE=.exe
+   LIB_DIR=$(INSTALL_DIR)/win_lib32
    LIBSADDED=-L $(LIB_DIR) -mwindows
 endif
 
