@@ -40,6 +40,9 @@ const double marcsec_to_radians = PI / (180. * 3600.e+3);
 http://maia.usno.navy.mil/ser7/finals.daily
 http://maia.usno.navy.mil/ser7/finals.data
 http://maia.usno.navy.mil/ser7/finals.all
+ftp://ftp.iers.org/products/eop/rapid/daily/finals.daily
+ftp://ftp.iers.org/products/eop/rapid/standard/finals.data
+ftp://ftp.iers.org/products/eop/rapid/standard/finals.all
 
    The 'daily' file gives EOPs for the last 90 days,  plus 90 days
 of predictions.  'data' starts on 1992 January 1,  and 'all' on 1973
