@@ -21,3 +21,9 @@ int get_urlencoded_form_data( const char **idata,       /* cgi_func.c */
                               char *buff, const size_t max_buff);
 int get_multipart_form_data( const char *boundary, char *field,
                 char *buff, char *filename, const size_t max_len);
+
+
+int get_cgi_data( char *field, char *data, char *filename,
+                                             const size_t max_buff);
+int initialize_cgi_reading( void);
+void free_cgi_data( void);
