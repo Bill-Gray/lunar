@@ -427,6 +427,9 @@ static int process_ades_tag( char *obuff, ades2mpc_t *cptr, const int itag,
                case ADES_submitter:
                   format = "CON %.*s\n";
                   break;
+               default:
+                  format = "COM Mangled '%.*s'\n";
+                  break;
                }
          if( format)
             sprintf( obuff, format, (int)len, tptr);
@@ -891,7 +894,7 @@ int xlate_ades2mpc( void *context, char *obuff, const char *buff)
 
          while( tptr[len] && tptr[len] != '<')
             len++;
-         while( len && tptr[len - 1] == ' ')
+         while( len && (unsigned char)tptr[len - 1] <= ' ')
             len--;
          rval = process_ades_tag( obuff, cptr, itag, tptr, len);
          tptr += len;
