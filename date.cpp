@@ -246,7 +246,15 @@ significance outside of this particular function... but it _does_ let us
 write simpler code that won't get wrong answers for large or negative
 numbers of lunations.  Let's call 25920 lunations a "glumph."  We figure
 out how many glumphs have passed and our location within that glumph,
-and the rest is easy. */
+and the rest is easy.
+
+   As a side effect of all this : since there are 235 lunations
+every 19 years,  and 765433 halakim per lunation,  there are exactly
+179876755 halakim every 19 years,  or 179876755/(1080*24) days =
+35975351/(216*24) days.  Thus,  35975351 days are exactly 19*216*24
+= 98496 years;  that is to say,  the Hebrew calendar repeats itself
+exactly every 98496 years.  Put another way,  the average length of
+a year is exactly 35975351/98496 = 365.24682220598... days.  */
 
 static void lunations_to_days_and_halakim( const long lunations, long *days,
                long *halakim)
