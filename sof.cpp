@@ -72,8 +72,8 @@ int extract_sof_data( ELEMENTS *elem, const char *buff, const char *header)
 {
    int fields_found = 0, rval;
 
-   if( strlen( buff) != strlen( header))
-      return( -1);
+// if( strlen( buff) != strlen( header))
+//    return( -1);
    memset( elem, 0, sizeof( ELEMENTS));
    elem->slope_param = 0.15;
    elem->gm = SOLAR_GM;
