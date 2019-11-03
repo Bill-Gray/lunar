@@ -62,7 +62,30 @@ At some point when I have the time,  I'll break out the main( ) portion,
 tack in the code for CCD mag limits on page 121 of the same magazine,
 and make proper header files.
 
-*/
+'Brightness',  by the way,  is in mystery units.  But line 260 of
+'vislimit.cpp' divides the brightnesses by 1.11e-15 to get nanoLamberts.
+One could (and in the example test code,  I do) divide by 1.11e-6 to
+get lamberts.
+
+Then,  the relation between sky brightness in nanoLamberts (B) and in
+magnitudes/arcsec^2 is given in the second PASP paper above as
+equation (1)
+
+B = 34.08 exp( 20.7233 - 0.92104V)
+
+   Some rearrangement gets you the inverse formula
+
+V = 3.8312 - 2.5 * log10( B)
+
+   which provides the required conversion from brightness in
+lamberts (which I've never seen an astronomer use) to brightness in
+magnitudes/arcsec^2 (which is used frequently).  If instead we
+have a brightness Bm = B * 1.11e-6 "mystery units",
+
+V = 3.8312 - 2.5 * log10( Bm / 1.11e-6)
+  = -2.5 * log10( Bm) - 11.055
+
+See the 'test program' below for example usage. */
 
 #include <math.h>
 #include "vislimit.h"
@@ -268,8 +291,8 @@ int DLL_FUNC compute_sky_brightness( BRIGHTNESS_DATA *b)
          b->brightness[i] = bn + brightness_moon +
                      min( brightness_daylight, twilight_brightness);
 #ifdef TEST_STATEMENTS
-         if( i == 0)
-            printf( "Brightnesses: %lg %lg %lg %lg\n", bn,
+         if( i == 2)
+            printf( "Brightnesses: base %lg  moon %lg   twil %lg   sun %lg\n", bn,
                   brightness_moon, twilight_brightness, brightness_daylight);
 #endif
          }
@@ -284,6 +307,7 @@ int main( const int argc, const char **argv)
 {
    BRIGHTNESS_DATA b;
    int i;
+   const char *band_name = "UBVRI";
 
    b.zenith_ang_moon = 40. * PI / 180.;
    b.zenith_ang_sun = 105. * PI / 180.;
@@ -304,6 +328,9 @@ int main( const int argc, const char **argv)
       if( argv[i][0] == '-')
          switch( argv[i][1])
             {
+            case 'd':
+               b.dist_moon = atof( argv[i] + 2) * PI / 180.;
+               break;
             case 'e':
                b.moon_elongation = atof( argv[i] + 2) * PI / 180.;
                break;
@@ -322,7 +349,14 @@ int main( const int argc, const char **argv)
    compute_sky_brightness( &b);
    compute_extinction( &b);
    for( i = 0; i < 5; i++)
-      printf( "%lf  %lg  %.5lf\n", b.k[i], b.brightness[i], b.extinction[i]);
+      {
+      const double brightness_in_mags_per_sq_arcsec =
+                   -2.5 * log10( b.brightness[i]) - 11.055;
+
+      printf( "%c : %lf  %6.2f %g %.5lf\n", band_name[i], b.k[i],
+                  brightness_in_mags_per_sq_arcsec,
+                  b.brightness[i], b.extinction[i]);
+      }
    printf( "Limiting magnitude: %.5lf\n", compute_limiting_mag( &b));
    return( 0);
 }

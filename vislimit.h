@@ -16,6 +16,10 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301, USA.    */
 
+/* Visibility is computed in five bands : U, B, V, R, I.
+Thus,  the k[0], k[1], ... k[4] values give the total extinction
+coefficients for U, B, V, R, I respectively.  */
+
 #define BRIGHTNESS_DATA struct brightness_data
 
 #pragma pack(4)
