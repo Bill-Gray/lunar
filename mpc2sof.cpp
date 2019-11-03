@@ -69,6 +69,8 @@ static void extract_name( char *name, const char *iline)
       }
    else           /* provisional desig */
       memcpy( name, iline + 175, 12);
+   if( !memcmp( name, "            ", 12))   /* temp desig */
+      memcpy( name, iline + 166, 12);
 }
 
 
@@ -195,8 +197,8 @@ int main( const int argc, const char **argv)
 
    if( !ifile)
       ifile = err_fopen( "MPCORB.DAT", "rb");
-   while( fgets( buff, sizeof( buff), ifile) && memcmp( buff, "------", 6))
-      ;           /* skip over header */
+// while( fgets( buff, sizeof( buff), ifile) && memcmp( buff, "------", 6))
+//    ;           /* skip over header */
    fprintf( ofile, "%s", sof_header);
    while( fgets( buff, sizeof( buff), ifile))
       if( strlen( buff) == 203 &&
@@ -218,46 +220,49 @@ int main( const int argc, const char **argv)
          }
    fclose( ifile);
 
-   ifile = err_fopen( (argc > 2 ? argv[2] : "ELEMENTS.COMET"), "rb");
-   for( i = 0; i < 2; i++)       /* ELEMENTS.COMET has two header lines */
-      if( !fgets( buff, sizeof( buff), ifile))
-         {
-         fprintf( stderr, "Failed to read line from ELEMENTS.COMET\n");
-         return( -2);
-         }
-   while( fgets( buff, sizeof( buff), ifile))
-      if( !parse_elements_dot_comet( &elem, buff) && elem.epoch > 1721000.)
-         {
-         char *tptr, name[13];
+   if( argc <= 2 || strcmp( argv[2], "i"))
+      {
+      ifile = err_fopen( (argc > 2 ? argv[2] : "ELEMENTS.COMET"), "rb");
+      for( i = 0; i < 2; i++)       /* ELEMENTS.COMET has two header lines */
+         if( !fgets( buff, sizeof( buff), ifile))
+            {
+            fprintf( stderr, "Failed to read line from ELEMENTS.COMET\n");
+            return( -2);
+            }
+      while( fgets( buff, sizeof( buff), ifile))
+         if( !parse_elements_dot_comet( &elem, buff) && elem.epoch > 1721000.)
+            {
+            char *tptr, name[13];
 
-         memset( name, 0, sizeof( name));
-         if( buff[2] == ' ')    /* provisional desig */
-            {
-            memcpy( name, buff + 3, 12);
-            tptr = strstr( name, " (");
-            if( tptr)
-               *tptr = '\0';
+            memset( name, 0, sizeof( name));
+            if( buff[2] == ' ')    /* provisional desig */
+               {
+               memcpy( name, buff + 3, 12);
+               tptr = strstr( name, " (");
+               if( tptr)
+                  *tptr = '\0';
+               }
+            else           /* permanent desig */
+               {
+               memcpy( name, buff, 4);
+               tptr = buff + 43;
+               while( *tptr == ' ')       /* search for end of name */
+                  tptr--;
+               if( tptr[-1] == '-')       /* one-character suffix */
+                  memcpy( name + 4, tptr - 1, 2);
+               if( tptr[-2] == '-')       /* two-character suffix */
+                  memcpy( name + 4, tptr - 2, 3);
+               }
+            snprintf( tbuff, 14, "%-12s ", name);
+            output_sof( &elem, tbuff + 13);
+            strcat( tbuff, "           ");    /* rms, number obs */
+            strcat( tbuff, "                    \n");     /* Tlast, H, G */
+            assert( strlen( tbuff) == reclen);
+            memcpy( obuff + n_out * reclen, tbuff, reclen);
+            n_out++;
+            assert( n_out < MAX_ORBITS - 1);
             }
-         else           /* permanent desig */
-            {
-            memcpy( name, buff, 4);
-            tptr = buff + 43;
-            while( *tptr == ' ')       /* search for end of name */
-               tptr--;
-            if( tptr[-1] == '-')       /* one-character suffix */
-               memcpy( name + 4, tptr - 1, 2);
-            if( tptr[-2] == '-')       /* two-character suffix */
-               memcpy( name + 4, tptr - 2, 3);
-            }
-         snprintf( tbuff, 14, "%-12s ", name);
-         output_sof( &elem, tbuff + 13);
-         strcat( tbuff, "           ");    /* rms, number obs */
-         strcat( tbuff, "                    \n");     /* Tlast, H, G */
-         assert( strlen( tbuff) == reclen);
-         memcpy( obuff + n_out * reclen, tbuff, reclen);
-         n_out++;
-         assert( n_out < MAX_ORBITS - 1);
-         }
+      }
    fclose( ifile);
    qsort( obuff, n_out, reclen, qsort_compare);
    fprintf( ofile, "%s", obuff);
