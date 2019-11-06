@@ -60,7 +60,10 @@ the preceding value.
 or wasn't in the correct format,  or memory wasn't allocated for the data.
 Otherwise,  the MJD for the last day of EOPs,  including the predictions,
 is returned.  One can use that to tell the user,  "time to get new EOPs"
-(or to automatically download them without even telling the user).
+(or to automatically download them without even telling the user).  If
+you set the 'file_date' parameter to a non-NULL value,  it will give the
+MJD for the last line to give non-predicted values (i.e.,  EOPs based
+on observations rather than extrapolations).
 
    In a multi-threaded environment,  call load_earth_orientation_params()
 before forking/threading;  the following static values will then be set
@@ -83,7 +86,8 @@ static bool is_valid_eop_line( const char *iline)
       return( true);
 }
 
-int DLL_FUNC load_earth_orientation_params( const char *filename)
+int DLL_FUNC load_earth_orientation_params( const char *filename,
+                                             int *file_date)
 {
    int rval = 0;
 
@@ -141,11 +145,13 @@ int DLL_FUNC load_earth_orientation_params( const char *filename)
                eop_usable_nutation++;
                }
             i++;
+            if( file_date && buff[16] == 'I')
+               *file_date = atoi( buff + 7);
             }
          if( i < 16371)    /* as of 2016 Oct 29,  should be _at least_ */
             rval = EOP_FILE_WRONG_FORMAT;           /* this many lines */
          if( rval)   /* slightly tricky method to free up eop_data,  if */
-            load_earth_orientation_params( NULL);  /* it's been alloced */
+            load_earth_orientation_params( NULL, NULL);  /* it's been alloced */
          else                            /* get MJD for preceding day */
             rval = atoi( buff + 7) - 1;
          }

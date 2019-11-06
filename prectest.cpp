@@ -48,10 +48,11 @@ int main( const int argc, const char **argv)
    const double utc = get_time_from_string( 0., (argc < 2 ? "now" : argv[1]),
                        FULL_CTIME_YMD, NULL);
    const double tdt = utc + td_minus_utc( utc) / seconds_per_day;
-   int i, pass;
+   int i, pass, file_date;
    const double J2000 = 2451545.;  /* JD 2451545 = 2000 Jan 1.5 */
    double year = 2000. + (tdt - J2000) / 365.25;
-   int eop_rval = load_earth_orientation_params( "../eop/finals.all");
+   int eop_rval = load_earth_orientation_params(
+                   (argc < 3 ? "../eop/finals.all" : argv[2]), &file_date);
    earth_orientation_params eo_params;
    char tbuff[80];
 
@@ -62,6 +63,10 @@ int main( const int argc, const char **argv)
       full_ctime( tbuff, 2400000.5 + (double)eop_rval,
                   FULL_CTIME_DATE_ONLY | FULL_CTIME_YMD);
       printf( "EOPs run to MJD %d = %s (including predictions)\n",
+               eop_rval, tbuff);
+      full_ctime( tbuff, 2400000.5 + (double)file_date,
+                  FULL_CTIME_DATE_ONLY | FULL_CTIME_YMD);
+      printf( "EOPs run to MJD %d = %s (without extrapolation)\n",
                eop_rval, tbuff);
       }
    full_ctime( tbuff, utc, FULL_CTIME_YMD);
@@ -102,7 +107,7 @@ int main( const int argc, const char **argv)
       for( i = 0; i < 9; i++)            /* print out the precession matrix */
          printf( "%15.11f%s", matrix[i], (i % 3 == 2) ? "\n" : " ");
       }
-   load_earth_orientation_params( NULL);   /* free up memory */
+   load_earth_orientation_params( NULL, NULL);   /* free up memory */
    return( 0);
 }
 
