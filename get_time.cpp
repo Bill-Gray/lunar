@@ -305,13 +305,6 @@ static long double set_from_lunar( const int phase_idx, const long double t2k)
    return( get_phase_time( k, phase_idx));
 }
 
-/* I ran across a system without a strtold() function.  Hard to imagine... */
-
-#ifndef strtold
-#define strtold(a,b) (long double)strtod(a,b)
-#endif
-
-
 /* get_time_from_string( ) first (*) checks for four simple types of input:
 'J' or 'JD' followed by a Julian Day,  'y' followed by a decimal year,
 'MJD' followed by a Modified Julian Day,  and a '+' or '-' followed
@@ -635,7 +628,7 @@ long double DLL_FUNC get_time_from_stringl( long double initial_t2k,
             }
          else
             {
-            ivals[1] = atof( tstr);
+            ivals[1] = strtold( tstr, NULL);
             if( strchr( tstr, '.'))   /* decimal day given */
                day_found = 2;
             }
