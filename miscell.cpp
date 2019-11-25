@@ -402,7 +402,13 @@ void DLL_FUNC full_ctimel( char *buff, long double t2k, const int format)
       if( output_format == FULL_CTIME_FORMAT_DAY && precision)
          show_remainder( day_str + 2, remains, (unsigned)precision);
 
-      if( format & FULL_CTIME_MONTH_DAY)
+      if( format & FULL_CTIME_DAY_OF_YEAR)
+         {
+         const int day_of_year = int_t2k + 2451545 - dmy_to_day( 0, 1, year, calendar);
+
+         buff += sprintf( buff, "%03d%s", day_of_year, day_str + 2);
+         }
+      else if( format & FULL_CTIME_MONTH_DAY)
          buff += sprintf( buff, "%s %s", month_str, day_str);
       else
          buff += sprintf( buff, "%s %s", day_str, month_str);

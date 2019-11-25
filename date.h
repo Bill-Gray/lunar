@@ -62,6 +62,7 @@ long double DLL_FUNC get_time_from_stringl( long double initial_t2k,
 #define FULL_CTIME_NO_SPACES            0x100000
 #define FULL_CTIME_ROUNDING             0x200000
 #define FULL_CTIME_NO_COLONS            0x400000
+#define FULL_CTIME_DAY_OF_YEAR          0x800000
 
          /* Some convenience combos of the above flags: */
 #define FULL_CTIME_YMD           (FULL_CTIME_YEAR_FIRST | FULL_CTIME_MONTH_DAY)

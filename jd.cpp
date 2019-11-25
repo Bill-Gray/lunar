@@ -232,6 +232,9 @@ int main( int argc, char **argv)
       full_ctimel( buff, t2k, CALENDAR_JULIAN_GREGORIAN | FULL_CTIME_YMD
                    | FULL_CTIME_DAY_OF_WEEK_FIRST | FULL_CTIME_12_PLACES);
       printf( "%s = JD %.8Lf\n", buff, t2k + j2000);
+      full_ctimel( buff, t2k, CALENDAR_JULIAN_GREGORIAN | FULL_CTIME_DAY_OF_YEAR
+                   | FULL_CTIME_12_PLACES | FULL_CTIME_FORMAT_DAY);
+      printf( "Day of year = %s\n", buff);
       for( calendar = 0; calendar < 9; calendar++)
          {
          int day, month;
