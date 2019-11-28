@@ -76,6 +76,11 @@ int main( const int argc, const char **argv)
       {
       rho_cos_phi = atof( argv[1]);
       rho_sin_phi = atof( argv[2]);
+      if( fabs( rho_sin_phi) > 2 || fabs( rho_cos_phi) > 2)
+         {
+         rho_cos_phi /= EARTH_MAJOR_AXIS_IN_METERS;
+         rho_sin_phi /= EARTH_MAJOR_AXIS_IN_METERS;
+         }
       lat = point_to_ellipse( 1., EARTH_MINOR_AXIS_IN_METERS / EARTH_MAJOR_AXIS_IN_METERS,
                  rho_cos_phi, rho_sin_phi, &alt);
       alt *= EARTH_MAJOR_AXIS_IN_METERS;
