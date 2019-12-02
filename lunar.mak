@@ -14,7 +14,7 @@ all: $(EXES)
 
 LIB_OBJS= ades2mpc.obj alt_az.obj astfuncs.obj \
       big_vsop.obj brentmin.obj classel.obj  \
-      cgi_func.obj com_file.obj cospar.obj date.obj \
+                   com_file.obj cospar.obj date.obj \
       de_plan.obj delta_t.obj dist_pa.obj  \
       elp82dat.obj eop_prec.obj getplane.obj \
       get_time.obj jsats.obj lunar2.obj  \
@@ -164,6 +164,7 @@ INSTALL_DIR=..\myincl
 
 install:
    copy afuncs.h   $(INSTALL_DIR)
+   copy brentmin.h $(INSTALL_DIR)
    copy cgi_func.h $(INSTALL_DIR)
    copy colors.h   $(INSTALL_DIR)
    copy comets.h   $(INSTALL_DIR)
