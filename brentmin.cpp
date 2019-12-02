@@ -64,6 +64,10 @@ void brent_min_init( brent_min_t *b, const double x1, const double y1,
    b->step_type = STEP_TYPE_INITIALIZED;
 }
 
+#if defined( _MSC_VER) && (_MSC_VER < 1900)
+   #define NAN  sqrt(-1.)
+#endif
+
 /* Fits a parabola y = ax^2 + bx + c to x[0, 1, 2] and y[0, 1, 2],  and
 returns a,  which is always computed.  If b is non-NULL,  it's computed.
 And if c is non-NULL,  it's computed also.  For some purposes -- specifically
