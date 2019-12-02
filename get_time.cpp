@@ -174,6 +174,11 @@ static inline long double collect_time_offset( char *istr)
    return( rval);
 }
 
+#if defined(_MSC_VER) && _MSC_VER < 1900
+      /* Older MSVCs lack strtold */
+   #define strtold strtod
+#endif
+
 static size_t remove_trailing_spaces( char *istr)
 {
    size_t len = strlen( istr);
