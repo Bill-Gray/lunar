@@ -64,7 +64,7 @@ void brent_min_init( brent_min_t *b, const double x1, const double y1,
    b->step_type = STEP_TYPE_INITIALIZED;
 }
 
-#if defined( _MSC_VER) && (_MSC_VER < 1900)
+#if defined( _MSC_VER) && (_MSC_VER < 1800)
    #define NAN  sqrt(-1.)
 #endif
 
