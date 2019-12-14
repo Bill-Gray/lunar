@@ -92,6 +92,7 @@ results from the chunk files together and unlinks them.     */
 static int verbose = 0, n_steps_taken = 0, resync_freq = 50;
 static int asteroid_perturber_number = -1;
 static double *position_cache;
+static int position_cache_size = 0;
 static unsigned long perturber_mask = PERTURBERS_MERCURY_TO_NEPTUNE;
       /*  PERTURBERS_MERCURY_TO_NEPTUNE | PERTURBERS_CERES_PALLAS_VESTA; */
 
@@ -362,7 +363,8 @@ static int take_step( const double jd, ELEMENTS *elems,
       {
       int cache_loc = (int)floor( (jd - position_cache[0]) / step_size + .5);
 
-      posn_data = position_cache + 2 + cache_loc * 6 * N_PERTURBERS * 3;
+      if( cache_loc >= 0 && cache_loc < position_cache_size)
+         posn_data = position_cache + 2 + cache_loc * 6 * N_PERTURBERS * 3;
       }
 
    compute_derivatives( jd, elems, ival, ivals_p[0], posn_data);
@@ -722,8 +724,11 @@ static double try_to_integrate( char *buff, const double dest_jd,
       elem.angular_momentum *= sqrt( 1. + elem.ecc);
 
       if( !position_cache)       /* gotta initialize it: */
+         {
+         position_cache_size = n_steps;
          position_cache = make_position_cache( elem.epoch,
                      (dest_jd - elem.epoch) / (double)n_steps, n_steps);
+         }
 
       integrate_orbit( &elem, elem.epoch, dest_jd, max_err, n_steps);
       centralize( &elem.mean_anomaly);
@@ -916,6 +921,7 @@ int main( int argc, const char **argv)
                         __DATE__, __TIME__, time_buff, dest_jd);
    printf( "%s", buff);
    ofile = err_fopen( argv[2], "wb");
+   setvbuf( ofile, NULL, _IONBF, 0);
    if( dest_jd != floor( dest_jd) + .5)
       {
       printf( "WARNING: the MPCORB format can only handle 'standard' 0h TD epochs.\n");
