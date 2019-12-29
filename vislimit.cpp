@@ -47,6 +47,9 @@ compute_limiting_mag( ) function.
 
 All of what follows is adapted from Brad Schaefer's article and code
 on pages 57-60,  May 1998 _Sky & Telescope_,  "To the Visual Limits",
+
+https://archive.org/stream/Sky_and_Telescope_1998-05-pdf/#page/n109/mode/2up
+
 which is in turn based on his articles in _Publications of the Astronomical
 Society of the Pacific_ :
 
