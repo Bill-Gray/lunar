@@ -176,8 +176,8 @@ int main( const int argc, const char **argv)
    if( argc > 2)
       {
       const double lon = atof( argv[2]);
-      double ltst = ltst_at_airy - lon / 360.;
-      double lmst = mtc - lon / 360.;
+      const double ltst = ltst_at_airy - lon / 360.;
+      const double lmst = mtc - lon / 360.;
 
       format_time( ltst, buff);
       printf( "LTST at loc: %s\n", buff);
