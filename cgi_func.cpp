@@ -255,7 +255,7 @@ int initialize_cgi_reading( void)
       ilen = atoi( eptr);
       assert( ilen);
       ibuff = (char *)malloc( ilen + 1);
-      if( !fgets( ibuff, ilen, stdin))
+      if( !fgets( ibuff, ilen + 1, stdin))
          return( -3);
       if( method == METHOD_PUT_URL)
          url_pointer = ibuff;
