@@ -296,6 +296,10 @@ both RAs and decs.)
            ... and so forth until...
    ddmmSSsssss       311 (dec to 10 microarcseconds)
    HHMMSSssssss      312 (RA to one microsecond)
+
+   ddd mm ss.        400   (used for RA only)
+   ddd mm ss.s       401   (used for RA only)
+   ddd mm ss.ss      402   (used for RA only)
    Undetermined      -99
 
    Please note that (at least thus far) I've only seen the first six
@@ -387,6 +391,16 @@ static double get_ra_dec( const char *ibuff, int *format, double *precision)
          *format = -((int)n_digits + 1);
          *precision = 60.;
          }
+      }
+   else if( buff[3] == ' ' && !is_dec)    /* ddd mm ss(.s) RA */
+      {
+      *precision = 1. / 15.;
+      *format = 2;
+      rval += atof( buff + 4) / 60. + atof( buff + 7) / 3600.;
+      rval /= 15;
+      for( i = 10; isdigit( buff[i]) && i < 12; i++)
+         n_digits++;
+      *format = 400 + n_digits;
       }
    else
       *format = BAD_RA_DEC_FMT;
