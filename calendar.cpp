@@ -31,10 +31,13 @@ long integers;  replaced lots of "long"s with "int32_t"s. */
 #include "afuncs.h"
 #include "date.h"
 
+static int height = 72 * 17 / 2;
+static int width = 72 * 11;
+         /* default is 8.5 x 11 inches */
+static int xsize = 105;
+
 #define X0 20
-// #define XSIZE 130
-#define XSIZE 105
-#define XEND (X0 + 7 * XSIZE)
+#define XEND (X0 + 7 * xsize)
 #define TEXT_XOFFSET 3
 
 #define Y0 20
@@ -71,7 +74,7 @@ static void show_month_text( const int month, const int year)
       sprintf( buff + strlen( buff), " (JD %ld.5)",
                   dmy_to_day( 0, month, (long)year, CALENDAR_JULIAN_GREGORIAN) - 1);
    printf( "%d %d moveto (%s) show\n",
-            X0 + 7 * XSIZE / 2 - (int)strlen( buff) * 20 / 3,
+            X0 + 7 * xsize / 2 - (int)strlen( buff) * 20 / 3,
             TOP_OF_DAYOFWK + 5, buff);
 }
 
@@ -360,7 +363,7 @@ static char **grab_dates( const int month, const int year)
 static const char * const trailer_data[51] = {
                 "%%Page: 1 1",
                 "%%PageOrientation: Landscape",
-                "gsave calendar grestore",
+                "gsave height width translate 180 rotate calendar grestore",
                 "",
                 "%%Page: 2 2",
                 "%%PageOrientation: Portrait",
@@ -453,6 +456,7 @@ static int calendar( const int month, const int year)
       printf( "%%!PS-Adobe-2.0\n");
       printf( "%%%%Pages: %d\n", (dollhouse || single_page ? 1 : 7));
       printf( "%%%%PageOrder: Ascend\n");
+      printf( "%%%%DocumentMedia: Default 612 %d 0 () ()\n", width);
       printf( "%%%%Creator: calendar.cpp\n");
       printf( "%%%%Copyright: none\n");
       printf( "%%%%Title: Calendar for %s %d\n", months[month - 1], year);
@@ -464,6 +468,8 @@ static int calendar( const int month, const int year)
       printf( "%%%%PageResources: font Times-Italic\n");
       printf( "%%%%PageResources: font Courier-Bold\n");
       printf( "%%%%EndDefaults\n");
+      printf( "\n/width %d def\n", width);
+      printf( "/height %d def\n\n", height);
       printf( "/blood {\n");
       printf( "/aa 3 def /bb 2.5 def\n");
       printf( "aa 0 rmoveto bb 0 rlineto 0 aa rlineto aa 0 rlineto 0 bb rlineto\n");
@@ -477,7 +483,7 @@ static int calendar( const int month, const int year)
    else
       {
       printf( "/calendar {\n");
-      printf( "0 792 translate -90 rotate\n");
+      printf( "0 %d translate -90 rotate\n", width);
       }
 
    for( i = 0; i <= 5; i++)             /* horizontal lines separating weeks */
@@ -487,8 +493,8 @@ static int calendar( const int month, const int year)
                                         XEND, TOP_OF_DAYOFWK);
 
    for( i = 0; i <= 7; i++)       /* vertical lines */
-      printf( "%d %d moveto %d %d lineto\n", X0 + i * XSIZE, Y0,
-                                             X0 + i * XSIZE, YEND);
+      printf( "%d %d moveto %d %d lineto\n", X0 + i * xsize, Y0,
+                                             X0 + i * xsize, YEND);
    printf( "/defaultfontsize  { 12 scalefont } def\n");
    printf( "/Times-Roman findfont defaultfontsize setfont\n");
    for( i = 0; i < 35; i++)
@@ -512,7 +518,7 @@ static int calendar( const int month, const int year)
          sprintf( buff, "%d", i);
       if( wraparound_style && ycell < 0)    /* this is a wraparound case */
          ycell = 4;
-      x0 = X0 + xcell * XSIZE;
+      x0 = X0 + xcell * xsize;
       y0 = Y0 + (ycell + 1) * YSIZE;
       if( ycell >= 0)
          {
@@ -537,7 +543,7 @@ static int calendar( const int month, const int year)
             char *text_to_show = dates[j] + 1;
             const int is_lunar_phase = (*text_to_show == '*');
             int font_to_use = (is_lunar_phase ? FONT_ITALIC : FONT_PLAIN);
-            int xloc = X0 + xcell * XSIZE + TEXT_XOFFSET +
+            int xloc = X0 + xcell * xsize + TEXT_XOFFSET +
                            ((is_lunar_phase && !double_cell) ? 24 : 0);
             int yloc = (is_lunar_phase ?
                          y0 - TEXT_YOFFSET * (1 + double_cell)
@@ -591,7 +597,7 @@ static int calendar( const int month, const int year)
                            "Wednesday", "Thursday", "Friday", "Saturday" };
 
       printf( "%d %d moveto (%s) show\n",
-                              X0 + i * XSIZE + XSIZE / 2 -
+                              X0 + i * xsize + xsize / 2 -
                               (int)strlen( day_of_week_text[i]) * 4,
                               Y0 + 5 * YSIZE + 5,
                               day_of_week_text[i]);
@@ -608,7 +614,7 @@ static int calendar( const int month, const int year)
       if( !lines_used[i])
          {
          show_small_month( month + j - 2, year,
-                     X0 + (i % 7) * XSIZE + 1, Y0 + YSIZE * (5 - i / 7));
+                     X0 + (i % 7) * xsize + 1, Y0 + YSIZE * (5 - i / 7));
          j++;
          if( j == 2)    /* avoid duplicating the 'main' month */
             j = 3;
@@ -654,6 +660,10 @@ int main( const int argc, const char **argv)
                break;
             case 'k':
                kate_style = 1;
+               break;
+            case 'l':            /* legal size */
+               width = 72 * 14;
+               xsize = 135;
                break;
             case 'w':
                wraparound_style = 1;
