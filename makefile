@@ -220,6 +220,12 @@ mpc_code$(EXE): mpc_code.cpp
 oblitest$(EXE): oblitest.o obliqui2.o liblunar.a
 	$(CC) $(CFLAGS) -o oblitest$(EXE) oblitest.o obliqui2.o liblunar.a $(LIBSADDED)
 
+parallax.cgi: parallax.cpp liblunar.a
+	$(CC) $(CFLAGS) -o parallax.cgi parallax.cpp liblunar.a $(LIBSADDED) -DCGI_VERSION
+
+parallax$(EXE): parallax.cpp liblunar.a
+	$(CC) $(CFLAGS) -o parallax$(EXE) parallax.cpp liblunar.a $(LIBSADDED)
+
 persian$(EXE): persian.o solseqn.o liblunar.a
 	$(CC) $(CFLAGS) -o persian$(EXE) persian.o solseqn.o liblunar.a $(LIBSADDED)
 
