@@ -374,7 +374,7 @@ static double get_ra_dec( const char *ibuff, int *format, double *precision)
          n_digits++;
       *format = 200 + n_digits;
       }
-   else if( buff[2] == ' ')            /* zz mm(.mmm...) or zz mm ss(.sss...)  */
+   else if( buff[2] == ' ' && i == 2)  /* zz mm(.mmm...) or zz mm ss(.sss...)  */
       {
       rval += atof( buff + 3) / 60.;
       if( buff[5] == ' ' && isdigit( buff[7]))  /* i.e., seconds are given */
@@ -392,7 +392,7 @@ static double get_ra_dec( const char *ibuff, int *format, double *precision)
          *precision = 60.;
          }
       }
-   else if( buff[3] == ' ' && !is_dec)    /* ddd mm ss(.s) RA */
+   else if( buff[3] == ' ' && i == 3 && !is_dec)    /* ddd mm ss(.s) RA */
       {
       *precision = 1. / 15.;
       *format = 2;
