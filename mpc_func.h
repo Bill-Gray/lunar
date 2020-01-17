@@ -30,6 +30,8 @@ int get_ra_dec_from_mpc_report( const char *ibuff,    /* mpc_fmt.cpp */
 
 char net_name_to_byte_code( const char *net_name);
 const char *byte_code_to_net_name( const char byte_code);
+int extract_region_data_for_lat_lon( FILE *ifile, char *buff,
+            const double lat_in_degrees, const double lon_in_degrees);
 
 typedef struct
 {

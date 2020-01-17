@@ -298,49 +298,42 @@ int get_mpc_code_info( mpc_code_t *cinfo, const char *buff)
    return( rval);
 }
 
-#ifdef TEST_CODE
-
-static bool extract_region_data_for_mpc_station( char *buff,
-            const double lat, const double lon)
+int extract_region_data_for_lat_lon( FILE *ifile, char *buff,
+            const double lat_in_degrees, const double lon_in_degrees)
 {
-   FILE *ifile = fopen( "geo_rect.txt", "rb");
-   const double lat_in_degrees = (180. / PI) * lat;
-   const double lon_in_degrees = (180. / PI) * lon;
+   char tbuff[90];
+   size_t i = 0;
 
    *buff = '\0';
-   if( ifile)
-      {
-      char tbuff[90];
-      size_t i = 0;
+   while( !*buff && fgets( tbuff, sizeof( tbuff), ifile))
+      if( *tbuff != '#')
+         {
+         double d_lon1 = atof( tbuff)      - lon_in_degrees;
+         double d_lon2 = atof( tbuff + 20) - lon_in_degrees;
+         const double d_lat1 = atof( tbuff + 10) - lat_in_degrees;
+         const double d_lat2 = atof( tbuff + 30) - lat_in_degrees;
 
-      while( !*buff && fgets( tbuff, sizeof( tbuff), ifile))
-         if( *tbuff != '#')
+         while( d_lon1 > 180.)
+            d_lon1 -= 360.;
+         while( d_lon1 < -180.)
+            d_lon1 += 360.;
+         while( d_lon2 - d_lon1 > 180.)
+            d_lon2 -= 360.;
+         while( d_lon2 - d_lon1 < -180.)
+            d_lon2 += 360.;
+         if( d_lon1 * d_lon2 < 0. && d_lat1 * d_lat2 < 0.)
             {
-            double d_lon1 = atof( tbuff)      - lon_in_degrees;
-            double d_lon2 = atof( tbuff + 20) - lon_in_degrees;
-            const double d_lat1 = atof( tbuff + 10) - lat_in_degrees;
-            const double d_lat2 = atof( tbuff + 30) - lat_in_degrees;
-
-            while( d_lon1 > 180.)
-               d_lon1 -= 360.;
-            while( d_lon1 < -180.)
-               d_lon1 += 360.;
-            while( d_lon2 - d_lon1 > 180.)
-               d_lon2 -= 360.;
-            while( d_lon2 - d_lon1 < -180.)
-               d_lon2 += 360.;
-            if( d_lon1 * d_lon2 < 0. && d_lat1 * d_lat2 < 0.)
-               {
-               strcpy( buff, tbuff + 40);
-               while( buff[i] >= ' ')
-                  i++;
-               buff[i] = '\0';   /* remove trailing CR/LF */
-               }
+            strcpy( buff, tbuff + 40);
+            while( buff[i] >= ' ')
+               i++;
+            buff[i] = '\0';   /* remove trailing CR/LF */
             }
-      fclose( ifile);
-      }
-   return( *buff ? true : false);
+         }
+   return( *buff ? 0 : -2);
 }
+
+#ifdef TEST_CODE
+
 
 const char *html_header_text =
     "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\">\n"
@@ -414,12 +407,20 @@ int main( const int argc, const char **argv)
          char region[100], obuff[200];
          bool show_link_for_this_line;
 
-         if( code.planet == 3)
-            extract_region_data_for_mpc_station( region, code.lat, code.lon);
-         else
-            *region = '\0';
          code.lat *= 180. / PI;
          code.lon *= 180. / PI;
+         *region = '\0';
+         if( code.planet == 3)
+            {
+            FILE *ifile = fopen( "geo_rect.txt", "rb");
+
+            if( ifile)
+               {
+               extract_region_data_for_lat_lon( ifile, region,
+                    code.lat, code.lon);
+               fclose( ifile);
+               }
+            }
 #ifdef BITS_32
          sprintf( obuff,
 #else
