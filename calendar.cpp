@@ -31,8 +31,11 @@ long integers;  replaced lots of "long"s with "int32_t"s. */
 #include "afuncs.h"
 #include "date.h"
 
+#define LEGAL_SIZE (72 * 14)
+#define US_LETTER_SIZE (72 * 11)
+
 static int height = 72 * 17 / 2;
-static int width = 72 * 11;
+static int width = US_LETTER_SIZE;
          /* default is 8.5 x 11 inches */
 static int xsize = 105;
 
@@ -76,56 +79,6 @@ static void show_month_text( const int month, const int year)
    printf( "%d %d moveto (%s) show\n",
             X0 + 7 * xsize / 2 - (int)strlen( buff) * 20 / 3,
             TOP_OF_DAYOFWK + 5, buff);
-}
-
-static void show_small_month( int month, int year, const int x0, int y0)
-{
-   long jd1, jd2;
-   int n_days, starting_loc, i, j, day;
-   char buff[100];
-
-   while( month <= 0)
-      {
-      month += 12;
-      year--;
-      }
-   while( month >= 13)
-      {
-      month -= 12;
-      year++;
-      }
-   jd1 = dmy_to_day( 0, month, (long)year, CALENDAR_JULIAN_GREGORIAN);
-   jd2 = dmy_to_day( 0, month + 1, (long)year, CALENDAR_JULIAN_GREGORIAN);
-   n_days = (int)( jd2 - jd1);
-   starting_loc = (int)( (jd1 + 2L) % 7L);
-   strcpy( buff, months[month - 1]);
-   sprintf( buff + strlen( buff), " %d", year);
-   y0 -= 12;
-   printf( "%d %d moveto (%s) show\n",
-            x0 + (28 - (int)strlen( buff)) * TEXT_XOFFSET / 2, y0, buff);
-   for( i = 0; i < 6; i++)
-      {
-      y0 -= 12;
-      memset( buff, ' ', 20);
-      for( j = 0; j < 7; j++)
-         {
-         day = i * 7 + j - starting_loc + 1;
-         if( day >= 1 && day <= n_days)
-            {
-            buff[j * 3] = (char)( '0' + day / 10);
-            buff[j * 3 + 1] = (char)( '0' + day % 10);
-            if( day < 10)
-               buff[j * 3] = ' ';
-            }
-         }
-      for( j = 20; j && buff[j - 1] == ' '; j--)
-         ;
-      buff[j] = buff[20] ='\0';
-      if( j)
-         printf( "%d %d moveto (%s) show\n", x0, y0, buff);
-      }
-   if( show_jd_values)
-      printf( "%d %d moveto ((JD %ld.5)) show\n", x0, y0 - 12, jd1 - 1);
 }
 
 static int get_phase_data( const double t, double *t_phases)
@@ -174,6 +127,65 @@ static int get_phase_data( const double t, double *t_phases)
       fclose( phase_file);
       }
    return( rval);
+}
+
+static void show_small_month( int month, int year, const int x0, int y0)
+{
+   long jd1, jd2;
+   int n_days, starting_loc, i, j, k, day;
+   char buff[100];
+   double t_phases[12];
+
+   while( month <= 0)
+      {
+      month += 12;
+      year--;
+      }
+   while( month >= 13)
+      {
+      month -= 12;
+      year++;
+      }
+   jd1 = dmy_to_day( 0, month, (long)year, CALENDAR_JULIAN_GREGORIAN);
+   jd2 = dmy_to_day( 0, month + 1, (long)year, CALENDAR_JULIAN_GREGORIAN);
+   n_days = (int)( jd2 - jd1);
+   starting_loc = (int)( (jd1 + 2L) % 7L);
+   strcpy( buff, months[month - 1]);
+   sprintf( buff + strlen( buff), " %d", year);
+   y0 -= 12;
+   if( get_phase_data( jd1 - 10, t_phases))
+      for( i = 0; i < 12; i++)
+         t_phases[i] = 0.;
+   printf( "%d %d moveto (%s) show\n",
+            x0 + (28 - (int)strlen( buff)) * TEXT_XOFFSET / 2, y0, buff);
+   for( i = 0; i < 6; i++)
+      {
+      y0 -= 12;
+      memset( buff, ' ', 20);
+      for( j = 0; j < 7; j++)
+         {
+         day = i * 7 + j - starting_loc + 1;
+         if( day >= 1 && day <= n_days)
+            {
+            char *tptr = buff + j * 3;
+
+            tptr[0] = (char)( '0' + day / 10);
+            tptr[1] = (char)( '0' + day % 10);
+            if( day < 10)
+               tptr[0] = ' ';
+            for( k = 0; k < 12; k++)
+               if( (long)(t_phases[k] + 0.5) == jd1 + day)
+                  memcpy( tptr, "NM 1Q FM 3Q" + (k % 4) * 3, 2);
+            }
+         }
+      for( j = 20; j && buff[j - 1] == ' '; j--)
+         ;
+      buff[j] = buff[20] ='\0';
+      if( j)
+         printf( "%d %d moveto (%s) show\n", x0, y0, buff);
+      }
+   if( show_jd_values)
+      printf( "%d %d moveto ((JD %ld.5)) show\n", x0, y0 - 12, jd1 - 1);
 }
 
 static void make_postscript_substitutions( char *buff)
@@ -607,7 +619,8 @@ static int calendar( const int month, const int year)
 
    show_month_text( month, year);
 
-   printf( "/Courier-Bold findfont 8 scalefont setfont\n");
+   printf( "/Courier-Bold findfont %d scalefont setfont\n",
+            (width == LEGAL_SIZE ? 10 : 8));
 
                /* show two preceding & two (or more) following months: */
    for( i = j = 0; i < 35; i++)
@@ -662,7 +675,7 @@ int main( const int argc, const char **argv)
                kate_style = 1;
                break;
             case 'l':            /* legal size */
-               width = 72 * 14;
+               width = LEGAL_SIZE;
                xsize = 135;
                break;
             case 'w':
