@@ -334,6 +334,29 @@ int extract_region_data_for_lat_lon( FILE *ifile, char *buff,
 
 #ifdef TEST_CODE
 
+static int text_search_and_replace( char *str, const char *oldstr,
+                                     const char *newstr)
+{
+   size_t ilen = strlen( str), rval = 0;
+   const size_t oldlen = strlen( oldstr);
+   const size_t newlen = strlen( newstr);
+
+   while( ilen >= oldlen)
+      if( !memcmp( str, oldstr, oldlen))
+         {
+         memmove( str + newlen, str + oldlen, ilen - oldlen + 1);
+         memcpy( str, newstr, newlen);
+         str += newlen;
+         ilen -= oldlen;
+         rval++;
+         }
+      else
+         {
+         str++;
+         ilen--;
+         }
+   return( (int)rval);
+}
 
 const char *html_header_text =
     "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\">\n"
@@ -386,7 +409,9 @@ int main( const int argc, const char **argv)
                google_map_links = true;
                google_offset = 3;
                printf( "%s", html_header_text);
-               printf( "Created %s\n", ctime( &t0));
+               printf( "<b>Created %s", ctime( &t0));
+               printf( "Code/lon/lat links to a G__gle(R) map;  the rest of "
+                       "the line links to a Bing(TM) map</b>\n\n");
                }
                break;
             case 'k':
@@ -450,13 +475,15 @@ int main( const int argc, const char **argv)
             printf( "<a href=\"http://maps.google.com/maps?q=%f,%f\">",
                         code.lat, code.lon);
             }
+         if( make_kml || show_link_for_this_line)
+            text_search_and_replace( buff, "&", "&amp;");
          if( make_kml && code.planet == 3 && (code.lat || code.lon))
             {
             i = 0;
             while( code.name[i] >= ' ')
                i++;
             printf( " <Placemark>\n");
-            printf( "    <name>%.3s</name>\n", code.code);
+            printf( "    <name>%.4s</name>\n", code.code);
             printf( "    <description>%.*s</description>\n", i, code.name);
             printf( "    <Point>\n");
             printf( "        <coordinates>%f,%f</coordinates>\n", code.lon, code.lat);
@@ -464,9 +491,20 @@ int main( const int argc, const char **argv)
             printf( " </Placemark>\n\n");
             }
          if( !make_kml)
-            printf( "%s %s", obuff + google_offset, code.name);
-         if( show_link_for_this_line)
-            printf( "</a>");
+            {
+            if( show_link_for_this_line)
+               {
+               char bing_link[100];
+
+               snprintf( bing_link, sizeof( bing_link),
+                     "<a href='https://www.bing.com/maps/?cp=%.7f~%.7f&amp;lvl=20&amp;style=a'>",
+                              code.lat, code.lon);
+               printf( "%.27s</a> %s%s %s</a>", obuff + google_offset,
+                        bing_link, obuff + google_offset + 28, code.name);
+               }
+            else
+               printf( "%s %s", obuff + google_offset, code.name);
+            }
          }
       else if( dump_comments)    /* dump everything,  including */
          printf( "%s", buff);    /* comments from input file */
