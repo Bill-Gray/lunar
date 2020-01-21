@@ -358,16 +358,6 @@ static int text_search_and_replace( char *str, const char *oldstr,
    return( (int)rval);
 }
 
-const char *html_header_text =
-    "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\">\n"
-    "<HTML>\n"
-    "<HEAD>\n"
-    "   <TITLE> MPC station sites</TITLE>\n"
-    "   <META http-equiv=Content-Type content=\"text/html; charset=utf-8\">\n"
-    "</HEAD>\n"
-    "<BODY> <pre>\n";
-
-
 const char *kml_header_text =
     "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
     "<kml xmlns=\"http://www.opengis.net/kml/2.2\">\n"
@@ -405,13 +395,17 @@ int main( const int argc, const char **argv)
             case 'g':
                {
                const time_t t0 = time( NULL);
+               FILE *hdr_ifile = fopen( "mpc_hdr.htm", "rb");
 
+               assert( hdr_ifile);
                google_map_links = true;
                google_offset = 3;
-               printf( "%s", html_header_text);
-               printf( "<b>Created %s", ctime( &t0));
-               printf( "Code/lon/lat links to a G__gle(R) map;  the rest of "
-                       "the line links to a Bing(TM) map</b>\n\n");
+               while( fgets( buff, sizeof( buff), hdr_ifile))
+                  if( strstr( buff, "%s"))
+                     printf( buff, ctime( &t0));
+                  else if( *buff != '#')
+                     printf( "%s", buff);
+               fclose( hdr_ifile);
                }
                break;
             case 'k':
