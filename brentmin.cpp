@@ -223,7 +223,7 @@ double brent_min_next( brent_min_t *b)
    b->prev_range = range;
                /* If the proposed step goes outside the brackets,
                   fall back on the golden section search : */
-   if( rval <= b->xmin || rval >= b->xmax)
+   if( rval <= b->xmin || rval >= b->xmax || b->n_iterations > 30)
       b->step_type = STEP_TYPE_GOLDEN;
    if( b->step_type == STEP_TYPE_GOLDEN)
       rval = b->x[0] + (right > left ? right : -left) * (1. - b->gold_ratio);
