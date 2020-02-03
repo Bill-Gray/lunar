@@ -102,8 +102,6 @@ static double compute_posn_and_vel( const ELEMENTS *elem,
    return( true_r);
 }
 
-#define dot_prod( a, b) (a[0] * b[0] + a[1] * b[1] + a[2] * b[2])
-
 static double true_anomaly_to_eccentric( const double true_anom,
                                          const double ecc)
 {
@@ -189,7 +187,7 @@ double DLL_FUNC find_moid_full( const ELEMENTS *elem1, const ELEMENTS *elem2, mo
    fill_matrix( mat2, elem2);
    for( i = 0; i < 3; i++)
       for( j = 0; j < 3; j++)
-         idata.xform_matrix[i][j] = dot_prod( mat1[j], mat2[i]);
+         idata.xform_matrix[i][j] = dot_product( mat1[j], mat2[i]);
    idata.mdata = (mdata ? mdata : &mdata2);
    idata.compute_obj_1_data = false;
    idata.elem1_b = elem1->major_axis * elem1->minor_to_major;
@@ -212,8 +210,8 @@ double DLL_FUNC find_moid_full( const ELEMENTS *elem1, const ELEMENTS *elem2, mo
       ivect[0] = -idata.xform_matrix[2][1];   /* a vector perpendicular to zaxis, */
       ivect[1] =  idata.xform_matrix[2][0];    /* lying in the x/y plane */
       ivect[2] = 0.;
-      arg_per = -atan2( dot_prod( ivect, idata.xform_matrix[1]),
-                        dot_prod( ivect, idata.xform_matrix[0]));
+      arg_per = -atan2( dot_product( ivect, idata.xform_matrix[1]),
+                        dot_product( ivect, idata.xform_matrix[0]));
 //    printf( " Arg per %f\n", arg_per * 180. / PI);
       for( pass = 0; pass < 2; pass++)
          {                     /* check ascending & descending nodes */
@@ -278,12 +276,6 @@ double DLL_FUNC find_moid_full( const ELEMENTS *elem1, const ELEMENTS *elem2, mo
                   least_dist_squared = dist_squared;
                   }
                brent_min_add( &b, dist_squared);
-//             printf( "%d Minimum bracketed %f to %f (%.8f):",
-//                         b.n_iterations - 3,
-//                         b.xmin * 180. / PI,
-//                         b.xmax * 180. / PI, (b.xmax - b.xmin) * 180. / PI);
-//             printf( "%f -> %.13f (%d)\n", new_true * 180. / PI, sqrt( dist_squared),
-//                            b.step_type);
                }
             }
          }
