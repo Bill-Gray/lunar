@@ -86,6 +86,8 @@ void DLL_FUNC rotate_vector( double DLLPTR *v, const double angle,
 void DLL_FUNC polar3_to_cartesian( double *vect, const double lon,
                                           const double lat);
 double DLL_FUNC vector3_length( const double *vect);
+double DLL_FUNC dot_product( const double *a, const double *b);
+double DLL_FUNC normalize_vect3( double *vect);
 void DLL_FUNC vector_cross_product( double *xprod, const double *a,
                                 const double *b);
          /* Following two functions convert 3-D vectors to/from */

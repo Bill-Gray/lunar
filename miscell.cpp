@@ -473,6 +473,25 @@ double DLL_FUNC vector3_length( const double *vect)
    return( sqrt( vect[0] * vect[0] + vect[1] * vect[1] + vect[2] * vect[2]));
 }
 
+double DLL_FUNC dot_product( const double *a, const double *b)
+{
+   return( a[0] * b[0] + a[1] * b[1] + a[2] * b[2]);
+}
+
+double DLL_FUNC normalize_vect3( double *vect)
+{
+   const double d2 = vect[0] * vect[0] + vect[1] * vect[1]
+                                       + vect[2] * vect[2];
+   const double d = sqrt( d2);
+   if( d)
+      {
+      vect[0] /= d;
+      vect[1] /= d;
+      vect[2] /= d;
+      }
+   return( d);
+}
+
 /* Greenwich sidereal time from UT.  Based on Meeus' _Astronomical
    Algorithms_,  pp 87-88 (2nd edition).  Note that UT0 should be
    used,  the version that reflects the earth's current rotational

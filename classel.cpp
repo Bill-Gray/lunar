@@ -66,11 +66,6 @@ static double asinh( const double x)
    it to 0 if you don't care about the angular elements (inclination,
    longitude of ascending node,  argument of perihelion).         */
 
-static double dot_product( const double *a, const double *b)
-{
-   return( a[0] * b[0] + a[1] * b[1] + a[2] * b[2]);
-}
-
 /* In determining the mean anomaly from the eccentricity and
 eccentric anomaly,  use of the "normal" formulae
 
