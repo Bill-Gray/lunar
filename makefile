@@ -262,6 +262,9 @@ test_ref$(EXE):                    test_ref.o refract.o refract4.o
 testprec$(EXE):                    testprec.o liblunar.a
 	$(CC) $(CFLAGS) -o testprec$(EXE) testprec.o liblunar.a $(LIBSADDED)
 
+test_min$(EXE):                    test_min.o brentmin.o
+	$(CC) $(CFLAGS) -o test_min$(EXE) test_min.o brentmin.o $(LIBSADDED)
+
 themis$(EXE):                    themis.o liblunar.a
 	$(CC) $(CFLAGS) -o themis$(EXE) themis.o liblunar.a $(LIBSADDED)
 
