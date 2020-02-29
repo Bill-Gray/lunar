@@ -28,7 +28,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 
    Written in reply to an inquiry from Christopher Watson;  see
 
-http://groups.yahoo.com/group/amastro/message/13964
+https://groups.io/g/amastro/message/13921
 
    The code in 'supergal.cpp' gets a similar result,  using equatorial values
 for the position of the supergalactic plane.  However,  the RA/dec values
