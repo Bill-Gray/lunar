@@ -41,6 +41,10 @@ static const char *get_arg( const int argc, const char **argv, const int idx)
       return( argv[idx + 1]);
 }
 
+         /* JD 2454101.5 = 2007 Jan 1.  The THEMIS satellites were launched */
+         /* early that year.  We shouldn't see ephems before this date.    */
+#define MIN_JD 2454101.5
+
 int main( const int argc, const char **argv)
 {
    double jd_start = 0., jd_end = 0.;
@@ -98,8 +102,8 @@ int main( const int argc, const char **argv)
             {
             int intl_letter = 0;
 
-            assert( jd_start);
-            assert( jd_end);
+            assert( jd_start > MIN_JD);
+            assert( jd_end > MIN_JD);
             assert( norad_id);
             if( norad_id >= 30580 && norad_id <= 30582)
                intl_letter = 'A' + norad_id - 30580;
@@ -121,6 +125,8 @@ int main( const int argc, const char **argv)
          }
       }
    fclose( ifile);
+   assert( jd_start > MIN_JD);
+   assert( jd_end > MIN_JD);
    fprintf( ofile, "\nCreated from 'themis.cpp' (q.v.)\n");
    full_ctime( buff, jd_start, CALENDAR_JULIAN_GREGORIAN);
    fprintf( ofile, "Ephemeris start: %s\n", buff);
