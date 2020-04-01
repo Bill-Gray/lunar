@@ -21,9 +21,14 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 
 /* Heavily modified version of method from chapter 35 of Meeus' _Astronomical
 Algorithms_,  "Near-Parabolic Motion",  which describes a method due to
-Werner Landgraf.  WARNING:  this was of intellectual interest.  As will
-be described,  I don't see this method as being practically useful,  even
-with the enhancements I've made.
+Werner Landgraf,  published in _Sky & Telescope_,  Vol. 73,  pages 535-536,
+May 1987.  This method is in turn based on Karl Stumpff's work
+_Himmelsmechanik_, Vol. I (Berlin, 1959).
+
+WARNING:  this was of intellectual interest.  As will be described,  I
+don't see this method as being practically useful,  even with the
+enhancements I've made.  (I really needed code that would converge for
+all cases,  not just those near perihelion.)
 
    Specifically,  I modified the way in which (35.1) is solved.  That
 equation,  rearranged slightly and using 'y' for 'gamma', reads
@@ -33,13 +38,21 @@ f(s) = Qt - s - (1-2y)s^3/3 + y(2-3y)s^5/5 - y^2(3-4y)s^7/7 + ....
    ...and we need to do a root-finding such that f(s) = 0.   Meeus
 suggests a pretty simple root-finder that has some convergence issues.
 In the following,  Newton-Raphson is used.  Fortunately, it's quite easy
-to compute f(s) and f'(s) at the same time.
+to compute f(s) and f'(s) at the same time,  extending the range of
+convergence a bit (and speeding up the algorithm).
 
    Theoretically,  the result will always converge for all hyperbolic
 cases and for all elliptical cases until you reach the ends of the
-semimajor axes (equivalently,  the eccentric anomaly is +/- 90 degrees),
+semiminor axes (equivalently,  the eccentric anomaly is +/- 90 degrees),
 which occurs at 'max_t',  or if s > 1/sqrt(y).  In practice,  a tremendous
-number of iterations is required as you approach that point.         */
+number of iterations is required as you approach that point.  That
+may be part of why the original algorithm took a simpler approach :
+yes,  you could make the algorithm work for a wider range of cases,
+but on a 1980s-era computer in BASIC,  it would be horribly slow.
+
+   The N-R iteration can take you to a value of t > max_t.  In such
+cases,  the new value is replaced by one that takes you closer to,
+but not past,  max_t.       */
 
 /* Paul Schlyter's approximation for near-parabolic orbits,  from
 
@@ -73,6 +86,22 @@ static double paul_schlyter_soln( const double e, const double q, const double d
 
    return( v);
 }
+
+/* Run as
+
+landgraf ecc q t
+
+   Add an extra command-line argument to force use of Paul Schlyter's estimate
+for the true anomaly as your starting point.  Example values from Meeus'
+_Astronomical Algorithms_ :
+
+ecc         q(AU)       t(days)     true anom   dist(AU)
+1.          0.921326    138.4783    102.74426   2.364192
+0.987       0.1         254.9       164.50029   4.063777
+0.99997     0.123456    -30.47      221.91190   0.965053
+1.05731     3.363943   1237.1       109.40598  10.668551
+0.9672746   0.5871018    20          52.85331   0.729116
+0.9672746   0.5871018     0           0         0.5871018         */
 
 int main( const int argc, const char **argv)
 {
