@@ -660,8 +660,8 @@ static int check_for_tholen_sigmas( ades2mpc_t *cptr, char *obuff, const char *i
          cptr->rms_ra[5] = cptr->rms_dec[5] = '\0';
          strcpy( cptr->line, obuff);
          obuff[12] = '\0';
-         create_mpc_packed_desig( packed_desig, obuff);
-         memcpy( cptr->line, packed_desig, 12);
+         if( !create_mpc_packed_desig( packed_desig, obuff))
+            memcpy( cptr->line, packed_desig, 12);
          cptr->getting_lines = rval = 1;
          }
       }
