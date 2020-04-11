@@ -575,17 +575,23 @@ static char mutant_hex( const int ival)
 
 /* create_mpc_packed_desig( ) takes a "normal" name for a comet/asteroid,
 such as P/1999 Q1a or 2005 FF351,  and turns it into the 12-byte packed
-format used in MPC reports and element files.  Documentation of this format
-is given on the MPC Web site.  A 'test main' at the end of this file
-shows the usage of this function.
+format used in MPC reports and element files.  ('packed_desig' will
+_always_ be a 12-byte-long,  null-terminated string.)  Documentation of
+the (somewhat cryptic) packed format is given on the MPC Web site.  A
+'test main' at the end of this file shows the usage of this function.
+
    This should handle all "normal" asteroid and comet designations.
-It doesn't handle natural satellites.  */
+It doesn't handle natural satellites yet.  If the designation can't be
+turned into a valid packed designation,  you get a tilde (~) followed
+by the first eleven bytes of 'obj_name'.  Find_Orb,  at least,  will
+recognize a "packed designation" starting with ~ as meaning "a literal,
+unpacked name follows".    */
 
 int create_mpc_packed_desig( char *packed_desig, const char *obj_name)
 {
-   int i, j, rval = 0;
+   int i, j, rval = -1, len;
    unsigned number;
-   char buff[20], comet_desig = 0;
+   char comet_desig = 0;
 
    while( *obj_name == ' ')
       obj_name++;
@@ -599,88 +605,107 @@ int create_mpc_packed_desig( char *packed_desig, const char *obj_name)
       obj_name += 2;
       }
 
-               /* Create a version of the name with all spaces removed: */
-   for( i = j = 0; obj_name[i] && j < 19; i++)
-      if( obj_name[i] != ' ')
-         buff[j++] = obj_name[i];
-   buff[j] = '\0';
-
    memset( packed_desig, ' ', 12);
    packed_desig[12] = '\0';
-   number = atoi( buff);
+   number = atoi( obj_name);
    i = 0;
-   while( isdigit( buff[i]))
+   while( isdigit( obj_name[i]))
       i++;
-   if( buff[i] == 'P' && buff[i + 1] == '\0' && number < 10000)
+   len = strlen( obj_name);
+   while( len && obj_name[len - 1] == ' ')
+      len--;         /* ignore trailing spaces */
+   if( obj_name[i] == 'P' && i + 1 == len && number < 10000 && number)
+      {
       snprintf( packed_desig, 13, "%04uP       ", number);
+      return( 0);
+      }
+   if( obj_name[i] == ' ')
+      i++;
                /* If the name starts with four digits followed by an */
                /* uppercase letter,  it's a provisional designation: */
-   else if( number > 999 && number < 9000 && isupper( buff[4]))
+   if( rval && number > 999 && number < 9000 && isupper( obj_name[i]))
       {
       int sub_designator;
 
-      for( i = 0; i < 4; i++)
+      for( j = 0; j < 4; j++)
          {
          const char *surveys[4] = { "P-L", "T-1", "T-2", "T-3" };
 
-         if( !strcmp( buff + 4, surveys[i]))
+         if( !strcmp( obj_name + i, surveys[j]))
             {
             const char *surveys_packed[4] = {
                      "PLS", "T1S", "T2S", "T3S" };
 
-            memcpy( packed_desig + 8, buff, 4);
-            memcpy( packed_desig + 5, surveys_packed[i], 3);
-            return( rval);
+            memcpy( packed_desig + 8, obj_name, 4);
+            memcpy( packed_desig + 5, surveys_packed[j], 3);
+            return( 0);
             }
          }
 
       snprintf( packed_desig + 5, 4, "%c%02d",
                   mutant_hex( number / 100), number % 100);
-      packed_desig[6] = buff[2];    /* decade */
-      packed_desig[7] = buff[3];    /* year */
+      packed_desig[6] = obj_name[2];    /* decade */
+      packed_desig[7] = obj_name[3];    /* year */
 
-      packed_desig[8] = (char)toupper( buff[4]);    /* prelim desigs are */
-      i = 5;                                        /* _very_ scrambled  */
-      if( isupper( buff[i]))                        /* when packed:      */
+      packed_desig[8] = (char)toupper( obj_name[i]);    /* prelim desigs */
+      i++;                            /* are _very_ scrambled when packed */
+      if( isupper( obj_name[i]))
          {
-         packed_desig[11] = buff[i];
+         packed_desig[11] = obj_name[i];
          i++;
          }
       else
          packed_desig[11] = '0';
 
-      sub_designator = atoi( buff + i);
-      assert( sub_designator >= 0 && sub_designator < 620);
-      packed_desig[10] = mutant_hex( sub_designator % 10);
-      packed_desig[9] = mutant_hex( sub_designator / 10);
-      if( comet_desig)
+      sub_designator = atoi( obj_name + i);
+      if( sub_designator >= 0 && sub_designator < 620)
          {
-         packed_desig[4] = comet_desig;
-         while( isdigit( buff[i]))
+         packed_desig[10] = mutant_hex( sub_designator % 10);
+         packed_desig[9] = mutant_hex( sub_designator / 10);
+         while( isdigit( obj_name[i]))
             i++;
-         if( buff[i] >= 'a' && buff[i] <= 'z')
-            packed_desig[11] = buff[i];
+         if( comet_desig)
+            {
+            packed_desig[4] = comet_desig;
+            if( obj_name[i] >= 'a' && obj_name[i] <= 'z')
+               packed_desig[11] = obj_name[i++];
+            }
+         if( i == len)     /* successfully unpacked desig */
+            rval = 0;
          }
       }
-   else if( !buff[i] && number < 620000
+   else if( i == len && number < 620000 && number > 0
                && (!comet_desig || number < 10000))
       {                         /* simple numbered asteroid or comet */
-      const int number = atoi( buff);
-
+      rval = 0;
       if( comet_desig)
          sprintf( packed_desig, "%04d%c       ", number, comet_desig);
       else
          sprintf( packed_desig, "%c%04d       ", mutant_hex( number / 10000),
                number % 10000);
       }
-   else                 /* strange ID that isn't decipherable.  For this, */
-      {                 /* we just copy the first eleven non-space bytes, */
-      while( j < 11)                              /* padding with spaces. */
-         buff[j++] = ' ';
-      buff[11] = '\0';
-      *packed_desig = '~';
-      strcpy( packed_desig + 1, buff);
-      rval = -1;
+   if( rval == -1)       /* strange ID that isn't decipherable.  For this, */
+      {                  /* this,  we just start with ~ and copy the first  */
+      if( comet_desig)   /* eleven bytes of the input name. */
+         obj_name -= 2;
+      *packed_desig++ = '~';
+      for( j = 0; j < 11 && obj_name[j]; j++)
+         packed_desig[j] = obj_name[j];
       }
    return( rval);
 }
+
+#ifdef TEST_MAIN
+/* Compile with :
+
+g++ -Wall -Wextra -pedantic -DTEST_MAIN -o mpc_fmt mpc_fmt.cpp date.cpp */
+
+int main( const int argc, const char **argv)
+{
+   char buff[100];
+   int rval = create_mpc_packed_desig( buff, argv[1]);
+
+   printf( "%2d: '%s'\n", rval, buff);
+   return( 0);
+}
+#endif
