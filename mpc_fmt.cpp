@@ -577,21 +577,28 @@ static char mutant_hex( const int ival)
 such as P/1999 Q1a or 2005 FF351,  and turns it into the 12-byte packed
 format used in MPC reports and element files.  ('packed_desig' will
 _always_ be a 12-byte-long,  null-terminated string.)  Documentation of
-the (somewhat cryptic) packed format is given on the MPC Web site.  A
-'test main' at the end of this file shows the usage of this function.
+the (somewhat cryptic) packed format is given on the MPC Web site :
+
+https://minorplanetcenter.net//iau/info/PackedDes.html
+
+   A 'test' main( ) at the end of this file shows the usage of this function.
 
    This should handle all "normal" asteroid and comet designations.
 It doesn't handle natural satellites yet.  If the designation can't be
-turned into a valid packed designation,  you get a tilde (~) followed
-by the first eleven bytes of 'obj_name'.  Find_Orb,  at least,  will
-recognize a "packed designation" starting with ~ as meaning "a literal,
-unpacked name follows".    */
+turned into a valid packed designation,  you get a dollar sign ($)
+followed by the first eleven bytes of 'obj_name'.  Find_Orb,  at least,
+will recognize a "packed designation" starting with $ as meaning "a
+literal, unpacked name follows".
+
+   The maximum number that can be packed under the current MPC scheme
+is 620000 + 62^4.  */
 
 int create_mpc_packed_desig( char *packed_desig, const char *obj_name)
 {
    int i, j, rval = -1, len;
    unsigned number;
    char comet_desig = 0;
+   const int max_number = 620000 + 62 * 62 * 62 * 62;
 
    while( *obj_name == ' ')
       obj_name++;
@@ -619,7 +626,7 @@ int create_mpc_packed_desig( char *packed_desig, const char *obj_name)
       snprintf( packed_desig, 13, "%04uP       ", number);
       return( 0);
       }
-   if( obj_name[i] == ' ')
+   if( i < len && obj_name[i] == ' ')
       i++;
                /* If the name starts with four digits followed by an */
                /* uppercase letter,  it's a provisional designation: */
@@ -642,7 +649,8 @@ int create_mpc_packed_desig( char *packed_desig, const char *obj_name)
             }
          }
 
-      snprintf( packed_desig + 5, 4, "%c%02d",
+      if( number < 6200)
+         snprintf( packed_desig + 5, 4, "%c%02d",
                   mutant_hex( number / 100), number % 100);
       packed_desig[6] = obj_name[2];    /* decade */
       packed_desig[7] = obj_name[3];    /* year */
@@ -658,7 +666,7 @@ int create_mpc_packed_desig( char *packed_desig, const char *obj_name)
          packed_desig[11] = '0';
 
       sub_designator = atoi( obj_name + i);
-      if( sub_designator >= 0 && sub_designator < 620)
+      if( sub_designator >= 0 && sub_designator < 620 && number < 6200)
          {
          packed_desig[10] = mutant_hex( sub_designator % 10);
          packed_desig[9] = mutant_hex( sub_designator / 10);
@@ -674,21 +682,28 @@ int create_mpc_packed_desig( char *packed_desig, const char *obj_name)
             rval = 0;
          }
       }
-   else if( i == len && number < 620000 && number > 0
+   else if( i == len && number < max_number && number > 0
                && (!comet_desig || number < 10000))
       {                         /* simple numbered asteroid or comet */
       rval = 0;
       if( comet_desig)
          sprintf( packed_desig, "%04d%c       ", number, comet_desig);
-      else
+      else if( number < 620000)
          sprintf( packed_desig, "%c%04d       ", mutant_hex( number / 10000),
                number % 10000);
+      else
+         {
+         packed_desig[0] = '~';
+         number -= 620000;
+         for( i = 4; i > 0; i--, number /= 62)
+            packed_desig[i] = mutant_hex( number % 62);
+         }
       }
    if( rval == -1)       /* strange ID that isn't decipherable.  For this, */
-      {                  /* this,  we just start with ~ and copy the first  */
+      {                  /* this,  we just start with $ and copy the first  */
       if( comet_desig)   /* eleven bytes of the input name. */
          obj_name -= 2;
-      *packed_desig++ = '~';
+      *packed_desig++ = '$';
       for( j = 0; j < 11 && obj_name[j]; j++)
          packed_desig[j] = obj_name[j];
       }
