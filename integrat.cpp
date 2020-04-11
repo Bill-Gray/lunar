@@ -285,6 +285,43 @@ static double relative_mass[14] = { 1.,
          3.003489596331057e-006 / EARTH_MOON_RATIO, /* Moon */
          4.7622e-10, 1.0775e-10, 1.3412e-10 };    /* Ceres,  Pallas, Vesta */
 
+#define MERCURY_R   (2439.4 / AU_IN_KM)
+#define VENUS_R     (6051. / AU_IN_KM)
+#define EARTH_R     (6378.140 / AU_IN_KM)
+#define MARS_R      (3397.0 / AU_IN_KM)
+#define JUPITER_R   (71492. / AU_IN_KM)
+#define SATURN_R    (60330. / AU_IN_KM)
+#define URANUS_R    (25559. / AU_IN_KM)
+#define NEPTUNE_R   (25225. / AU_IN_KM)
+#define PLUTO_R     (1500. / AU_IN_KM)
+#define MOON_R      (1748.2 / AU_IN_KM)
+
+/* See 'runge.cpp' in Find_Orb for an explanation of this.  Basically,
+it keeps accelerations from reaching infinity as an object passes through
+a planet.  Integrate backward,  and 2018 LA,  2008 TC3,  and 2014 AA
+will do exactly that,  and the integration step size can drop to zero.
+The following code ramps acceleration _down_ as you approach the center
+of a planet.  */
+
+#define FUDGE_FACTOR   0.9
+
+static double compute_accel_multiplier( double fraction)
+{
+   const double r0 = .8;  /* acceleration drops to zero at 80% of planet radius */
+   double rval;
+
+   assert( fraction >= 0. && fraction <= 1.);
+   if( fraction < r0)
+      rval = 0.;
+   else
+      {
+      fraction = (fraction - r0) / (1. - r0);
+      assert( fraction >= 0. && fraction <= 1.);
+      rval =  fraction * fraction * (3. - 2. * fraction);
+      }
+   return( rval);
+}
+
 static int compute_derivatives( const double jd, ELEMENTS *elems,
                double *delta, double *derivs, double *posn_data)
 {
@@ -297,8 +334,15 @@ static int compute_derivatives( const double jd, ELEMENTS *elems,
       if( (perturber_mask >> i) & 1ul)
          {
          double perturber_loc[3], diff[3], diff_squared = 0., dfactor;
-         double radius_squared = 0., rfactor;
+         double radius_squared = 0., rfactor, d, r;
          int j;
+         static const double planet_radius[10] = {
+                         MERCURY_R * FUDGE_FACTOR,
+                        VENUS_R * FUDGE_FACTOR, EARTH_R * FUDGE_FACTOR,
+                        MARS_R * FUDGE_FACTOR, JUPITER_R * FUDGE_FACTOR,
+                        SATURN_R * FUDGE_FACTOR, URANUS_R * FUDGE_FACTOR,
+                        NEPTUNE_R * FUDGE_FACTOR, PLUTO_R * FUDGE_FACTOR,
+                        MOON_R * FUDGE_FACTOR };
 
          if( posn_data)
             memcpy( perturber_loc, posn_data + i * 3, 3 * sizeof( double));
@@ -313,8 +357,17 @@ static int compute_derivatives( const double jd, ELEMENTS *elems,
             diff_squared += diff[j] * diff[j];
             radius_squared += perturber_loc[j] * perturber_loc[j];
             }
-         dfactor = relative_mass[i + 1] / (diff_squared * sqrt( diff_squared));
-         rfactor = relative_mass[i + 1] / (radius_squared * sqrt( radius_squared));
+         d = sqrt( diff_squared);
+         r = sqrt( radius_squared);
+         dfactor = relative_mass[i + 1] / (diff_squared * d);
+         rfactor = relative_mass[i + 1] / (radius_squared * r);
+         if( i < 10)
+            {
+            if( d < planet_radius[i])
+               dfactor *= compute_accel_multiplier( d / planet_radius[i]);
+            if( r < planet_radius[i])
+               rfactor *= compute_accel_multiplier( r / planet_radius[i]);
+            }
          for( j = 0; j < 3; j++)
             accel[j] += diff[j] * dfactor - perturber_loc[j] * rfactor;
          }
