@@ -595,7 +595,8 @@ is 620000 + 62^4.  */
 
 int create_mpc_packed_desig( char *packed_desig, const char *obj_name)
 {
-   int i, j, rval = -1, len;
+   size_t i, j, len;
+   int rval = -1;
    unsigned number;
    char comet_desig = 0;
    const int max_number = 620000 + 62 * 62 * 62 * 62;
