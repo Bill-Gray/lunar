@@ -40,6 +40,7 @@ int main( const int argc, const char **argv)
          }
       }
    rval = free_ades2mpc_context( ades_context);
+   fclose( ifile);
    printf( "rval = %d\n", rval);
    return( 0);
 }
