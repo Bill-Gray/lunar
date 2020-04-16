@@ -84,22 +84,24 @@ long double DLL_FUNC get_time_from_stringl( long double initial_t2k,
    /* And up to fifteen decimal places can be shown... though I'd expect    */
    /* serious loss of precision with 64-bit floating-point math!            */
 
-#define FULL_CTIME_0_PLACES                0
-#define FULL_CTIME_1_PLACE              0x10
-#define FULL_CTIME_2_PLACES             0x20
-#define FULL_CTIME_3_PLACES             0x30
-#define FULL_CTIME_4_PLACES             0x40
-#define FULL_CTIME_5_PLACES             0x50
-#define FULL_CTIME_6_PLACES             0x60
-#define FULL_CTIME_7_PLACES             0x70
-#define FULL_CTIME_8_PLACES             0x80
-#define FULL_CTIME_9_PLACES             0x90
-#define FULL_CTIME_10_PLACES            0xa0
-#define FULL_CTIME_11_PLACES            0xb0
-#define FULL_CTIME_12_PLACES            0xc0
-#define FULL_CTIME_13_PLACES            0xd0
-#define FULL_CTIME_14_PLACES            0xe0
-#define FULL_CTIME_15_PLACES            0xf0
+#define FULL_CTIME_N_PLACES( n)            ((n) << 4)
+
+#define FULL_CTIME_0_PLACES             FULL_CTIME_N_PLACES( 0)
+#define FULL_CTIME_1_PLACE              FULL_CTIME_N_PLACES( 1)
+#define FULL_CTIME_2_PLACES             FULL_CTIME_N_PLACES( 2)
+#define FULL_CTIME_3_PLACES             FULL_CTIME_N_PLACES( 3)
+#define FULL_CTIME_4_PLACES             FULL_CTIME_N_PLACES( 4)
+#define FULL_CTIME_5_PLACES             FULL_CTIME_N_PLACES( 5)
+#define FULL_CTIME_6_PLACES             FULL_CTIME_N_PLACES( 6)
+#define FULL_CTIME_7_PLACES             FULL_CTIME_N_PLACES( 7)
+#define FULL_CTIME_8_PLACES             FULL_CTIME_N_PLACES( 8)
+#define FULL_CTIME_9_PLACES             FULL_CTIME_N_PLACES( 9)
+#define FULL_CTIME_10_PLACES            FULL_CTIME_N_PLACES( 10)
+#define FULL_CTIME_11_PLACES            FULL_CTIME_N_PLACES( 11)
+#define FULL_CTIME_12_PLACES            FULL_CTIME_N_PLACES( 12)
+#define FULL_CTIME_13_PLACES            FULL_CTIME_N_PLACES( 13)
+#define FULL_CTIME_14_PLACES            FULL_CTIME_N_PLACES( 14)
+#define FULL_CTIME_15_PLACES            FULL_CTIME_N_PLACES( 15)
 
 /* Some convenience macros combining units and defined number of decimal */
 /* places... also given just as examples of how to mix-and-match your own: */

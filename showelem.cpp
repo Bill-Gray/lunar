@@ -157,7 +157,8 @@ int DLL_FUNC elements_in_mpc_format( char *obuff, const ELEMENTS *elem,
    const double asc_node = zero_to_two_pi( elem->asc_node);
    const double arg_per = zero_to_two_pi( elem->arg_per);
    const int precision = (format & SHOWELEM_PRECISION_MASK);
-   int n_lines = 0, n_digits_to_show;
+   const int n_digits_to_show = (precision > 10 ? precision : 10);
+   int n_lines = 0;
    char *tptr;
 
    FSTRCPY( obuff, obj_id);
@@ -174,16 +175,18 @@ int DLL_FUNC elements_in_mpc_format( char *obuff, const ELEMENTS *elem,
 
       dday = decimal_day_to_dmy( elem->perih_time, &year, &month,
                                              CALENDAR_JULIAN_GREGORIAN);
-      sprintf( obuff, "   Peri%s %ld %s %.6f TT", pericenter_name, year,
-              set_month_name( month, NULL), dday);
+      sprintf( obuff, "   Peri%s %ld %s %.*f TT", pericenter_name, year,
+              set_month_name( month, NULL), precision, dday);
       if( format & SHOWELEM_PERIH_TIME_MASK)
          {
          char hhmmss[20];
+         int format = FULL_CTIME_TIME_ONLY | CALENDAR_JULIAN_GREGORIAN;
 
-         full_ctime( hhmmss, elem->perih_time,
-                        FULL_CTIME_TIME_ONLY | CALENDAR_JULIAN_GREGORIAN);
-         sprintf( obuff + strlen( obuff), " = %s (JD %.6f)",
-                               hhmmss, elem->perih_time);
+         if( precision > 5)
+            format |= FULL_CTIME_N_PLACES( precision - 5);
+         full_ctime( hhmmss, elem->perih_time, format);
+         sprintf( obuff + strlen( obuff), " = %s (JD %.*f)",
+                               hhmmss, precision, elem->perih_time);
          }
       obuff += strlen( obuff) + 1;
       n_lines++;
@@ -203,7 +206,6 @@ int DLL_FUNC elements_in_mpc_format( char *obuff, const ELEMENTS *elem,
 
    obuff += strlen( obuff) + 1;
    n_lines++;
-   n_digits_to_show = (precision > 10 ? precision : 10);
    if( is_cometary || elem->ecc >= 1.)
       {
       *obuff = 'q';
