@@ -63,10 +63,10 @@ extern "C" {
 
 void DLL_FUNC make_var_desig( char DLLPTR *buff, int var_no);
 int DLL_FUNC decipher_var_desig( const char DLLPTR *desig);
-int DLL_FUNC setup_precession( double DLLPTR *matrix, double t1,
-                               double t2);    /* precess.c */
+int DLL_FUNC setup_precession( double DLLPTR *matrix, const double year_from,
+                               const double year_to);   /* precess.c */
 int DLL_FUNC setup_ecliptic_precession( double DLLPTR *matrix,
-                    const double t1, const double t2);
+                    const double year_from, const double year_to);
 int DLL_FUNC setup_precession_with_nutation( double DLLPTR *matrix,
                     const double year);         /* precess.c */
 int DLL_FUNC setup_precession_with_nutation_delta( double DLLPTR *matrix,
