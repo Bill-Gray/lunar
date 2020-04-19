@@ -385,12 +385,18 @@ static int get_a_line( char *obuff, ades2mpc_t *cptr)
    return( cptr->getting_lines);
 }
 
+/* Returns 1 if it's a properly handled header tag,  0 if it's some
+other tag or among the remaining unhandled header tags (I'm not
+dealing with the telescope details yet,  for example.) */
+
 static int process_ades_tag( char *obuff, ades2mpc_t *cptr, const int itag,
                  const char *tptr, size_t len)
 {
    int rval = 0;
    char name[40];
 
+   assert( obuff);
+   *obuff = '\0';
    if( len < sizeof( name))
       {
       memcpy( name, tptr, len);
@@ -597,6 +603,10 @@ static int process_ades_tag( char *obuff, ades2mpc_t *cptr, const int itag,
       case ADES_mag:
          memcpy( cptr->line + 65, tptr, (len < 5) ? len : 5);
          break;
+      default:
+         strcpy( obuff, "COM Unhandled ");
+         strcat( obuff, tptr);
+         break;
       }
    return( rval);
 }
@@ -770,9 +780,8 @@ static int process_psv_header( ades2mpc_t *cptr, char *obuff, const char *ibuff)
          i = 0;
          while( ibuff[i] >= ' ')
             i++;
-         process_ades_tag( obuff, cptr, itag, ibuff, i);
+         rval = process_ades_tag( obuff, cptr, itag, ibuff, i);
          cptr->depth = 0;
-         rval = 1;
          }
       }
    return( rval);
@@ -847,6 +856,7 @@ int xlate_ades2mpc( void *context, char *obuff, const char *buff)
       {
       orig_obuff = obuff;
       obuff = temp_obuff;
+      *temp_obuff = '\0';
       }
    tptr = skip_whitespace( buff);
    while( rval >= 0 && *tptr)
