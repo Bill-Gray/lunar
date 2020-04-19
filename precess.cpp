@@ -278,7 +278,13 @@ int DLL_FUNC precess_vector( const double DLLPTR *matrix,
                                       double DLLPTR *v2)
 {
    int i = 3;
+   double temp_v[3];
 
+   if( v1 == v2)        /* allow precession in place */
+      {
+      memcpy( temp_v, v1, 3 * sizeof( double));
+      v1 = temp_v;
+      }
    while( i--)
       {
       *v2++ = matrix[0] * v1[0] + matrix[1] * v1[1] + matrix[2] * v1[2];
@@ -292,7 +298,13 @@ int DLL_FUNC deprecess_vector( const double DLLPTR *matrix,
                                       double DLLPTR *v2)
 {
    int i = 3;
+   double temp_v[3];
 
+   if( v1 == v2)        /* allow precession in place */
+      {
+      memcpy( temp_v, v1, 3 * sizeof( double));
+      v1 = temp_v;
+      }
    while( i--)
       {
       *v2++ = matrix[0] * v1[0] + matrix[3] * v1[1] + matrix[6] * v1[2];
