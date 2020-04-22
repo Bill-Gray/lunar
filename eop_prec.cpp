@@ -68,9 +68,15 @@ on observations rather than extrapolations).
    In a multi-threaded environment,  call load_earth_orientation_params()
 before forking/threading;  the following static values will then be set
 and used thereafter in a read-only manner.  Call the function again with
-a NULL filename to release the eop_data buffer.
+a NULL filename and file date to release the eop_data buffer.
+
+   If called with a NULL filename and _non_-null file date,  the MJDs
+of the start of the EOP array,  the last 'fully usable' day,  and the
+last day of nutations are provided in the returned array.
 
    See 'prectest.cpp' for example usage.    */
+
+double default_td_minus_ut( const double jd);      /* delta_t.cpp */
 
 static double *eop_data = NULL, eop_jd0;
 static int eop_size, eop_usable, eop_usable_nutation;
@@ -91,6 +97,18 @@ int DLL_FUNC load_earth_orientation_params( const char *filename,
 {
    int rval = 0;
 
+   if( !filename && file_date)      /* just trying to get info on what */
+      {                             /* we currently have for EOPs */
+      if( !eop_data)
+         file_date[0] = file_date[1] = file_date[2] = 0;
+      else
+         {
+         file_date[0] = (int)( eop_jd0 - 2400000.499);
+         file_date[1] = file_date[0] + eop_usable;
+         file_date[2] = file_date[0] + eop_usable_nutation;
+         }
+      return( eop_data ? 0 : -1);
+      }
    if( eop_data)
       {
       free( eop_data);
@@ -161,17 +179,20 @@ int DLL_FUNC load_earth_orientation_params( const char *filename,
    return( rval);
 }
 
-/* If the above function was called and successfully loaded EOPs,  and if all
-five parameters are successfully interpolated,  the return value is zero.  If
-we don't have EOPs,  or they don't extend to the given JD,  a bit field is set
-for each uncomputed parameter (and that parameter is set to zero).  The predictions
-for polar motion and UT1-UTC run further than those for dEps and dPhi.  If you're
-completely out of coverage (before the start time of the file or after the
-predictions),  the return value is 31 = 11111 base 2.  If you're just past
-the predictions for dPhi/dEps,  the return value is 24 = 11000 base 2.  */
+/* If the above function was called and successfully loaded EOPs,  the params
+specified by the 'desired_params_mask' will be computed.  (Can be,  for
+example,  0x1f to compute all five parameters,  or 0x4 if all you need
+is Delta-T.)  Bits will be set in the return value to indicate values
+for which we lack data.  Note that the predictions for polar motion and
+UT1-UTC run further than those for dEps and dPhi.  If we don't have the
+desired value,  zero is returned.
+
+   Further,  if we try to get a Delta-T value from the EOPs and fail,
+one is computed from the 'default' algorithm in delta_t.cpp. */
 
 int DLL_FUNC get_earth_orientation_params( const double jd,
-                              earth_orientation_params *params)
+                              earth_orientation_params *params,
+                              int desired_params_mask)
 {
    int i, rval = 0;
    double results[5];
@@ -182,30 +203,31 @@ int DLL_FUNC get_earth_orientation_params( const double jd,
       {
       const double dt = jd - eop_jd0;
 
-      for( i = 0; i < 5; i++)
-         {
-         int t_rval;
-         double result;
+      for( i = 0; i < 5; i++, desired_params_mask >>= 1)
+         if( desired_params_mask & 1)
+            {
+            int t_rval;
+            double result;
 
-         result = cubic_spline_interpolate_within_table(
-                  eop_data + eop_size * i,
-                  (i < 3 ? eop_usable : eop_usable_nutation),
-                  dt, &t_rval);
-         if( t_rval)
-            rval |= (1 << i);
-         else
-            results[i] = result;
-         }
+            result = cubic_spline_interpolate_within_table(
+                     eop_data + eop_size * i,
+                     (i < 3 ? eop_usable : eop_usable_nutation),
+                     dt, &t_rval);
+            if( t_rval)
+               rval |= (1 << i);
+            else
+               results[i] = result;
+            }
       }
    else
       rval = -1;
-   if( !results[2])        /* fill in using default Delta-T formula if we */
-      results[2] = td_minus_ut( jd);   /* don't get a value from EOP data */
    params->dX = results[0];
    params->dY = results[1];
    params->tdt_minus_ut1 = results[2];
    params->dPsi = results[3];
    params->dEps = results[4];
+   if( (desired_params_mask & 4) && !params->tdt_minus_ut1)
+      params->tdt_minus_ut1 = default_td_minus_ut( jd);
    return( rval);
 }
 
@@ -225,7 +247,7 @@ int DLL_FUNC setup_precession_with_nutation_eops( double DLLPTR *matrix,
    const double jdt = J2000 + (year - 2000.) * 365.25;
    earth_orientation_params eo_params;
    double ut1, rotation;
-   const int rval = get_earth_orientation_params( jdt, &eo_params);
+   const int rval = get_earth_orientation_params( jdt, &eo_params, 31);
 
    setup_precession_with_nutation_delta( matrix, year,
                                     eo_params.dPsi, eo_params.dEps);

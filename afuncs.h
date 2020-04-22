@@ -163,10 +163,10 @@ typedef struct
 int DLL_FUNC load_earth_orientation_params( const char *filename,
                                              int *file_date);
 int DLL_FUNC get_earth_orientation_params( const double jd,  /* eop_prec.c */
-                              earth_orientation_params *params);
+                              earth_orientation_params *params,
+                              int desired_params_mask);
 int DLL_FUNC setup_precession_with_nutation_eops( double DLLPTR *matrix,
                     const double year);            /* eop_prec.c */
-
 
 #ifdef __cplusplus
 }

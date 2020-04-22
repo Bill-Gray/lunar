@@ -186,7 +186,7 @@ Delta-T string:
 from the _Five Millennium Catalogue of Solar Eclipses_ by Espenak and
 Meeus,  as defined in the above default_delta_t_string.  */
 
-double DLL_FUNC td_minus_ut( const double jd)
+double default_td_minus_ut( const double jd)
 {
    const double year = 2000. + (jd - 2451545.) / 365.25;
    double rval;
@@ -235,6 +235,19 @@ double DLL_FUNC td_minus_ut( const double jd)
       }
 #endif
    return( rval);
+}
+
+/* If an Earth Orientation Parameters (EOP) file has been loaded,  and
+its time span covers the input JD,  you'll get a very precise Delta-T
+value.  (See eop_prec.cpp.)  If that doesn't work out,  it'll fill in
+a Delta-T using the above method.   */
+
+double DLL_FUNC td_minus_ut( const double jd)
+{
+   earth_orientation_params eop;
+
+   get_earth_orientation_params( jd, &eop, 4);
+   return( eop.tdt_minus_ut1);
 }
 
 /* Some notes for other time systems that I may,  someday,  get around
