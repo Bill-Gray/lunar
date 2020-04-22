@@ -299,7 +299,7 @@ int DLL_FUNC calc_planet_orientation( const int planet_no, const int system_no,
    static double prev_matrix[9];
    int i, rval;
    bool is_retrograde;
-   double pole_ra, pole_dec, omega;
+   double pole_ra, pole_dec, omega, tdt;
 
    if( planet_no == prev_planet_no && system_no == prev_system_no
                            && jd == prev_jd)
@@ -311,29 +311,26 @@ int DLL_FUNC calc_planet_orientation( const int planet_no, const int system_no,
    prev_planet_no = planet_no;
    prev_system_no = system_no;
    prev_jd = jd;
+   tdt = jd + td_minus_ut( jd) / seconds_per_day;
 
    if( planet_no == 3)        /* handle earth with "normal" precession: */
       {
       const double J2000 = 2451545.;   /* 1.5 Jan 2000 = JD 2451545 */
-      const double t_cen = (jd - J2000) / 36525.;
+      const double year = 2000. + (tdt - J2000) / 365.25;
 
-//    setup_precession( matrix, 2000., 2000. + t_cen * 100.);
-      setup_precession_with_nutation( matrix, 2000. + t_cen * 100.);
+      setup_precession_with_nutation_eops( matrix, year);
+               /* Precession generates a right-handed matrix,  with the */
+               /* y-axis pointing at W90.  Silly IAU conventions require */
+               /* it to point at E90... go figure.       */
       for( i = 3; i < 6; i++)
          matrix[i] = -matrix[i];
-      spin_matrix( matrix, matrix + 3, green_sidereal_time( jd));
       memcpy( prev_matrix, matrix, 9 * sizeof( double));
       prev_rval = 0;
       return( 0);
       }
 
-         /* For everybody else,  we use TD.  Only the earth uses UT. */
-         /* (This correction added 5 Nov 98,  after G Seronik pointed */
-         /* out an error in the Saturn central meridian.)             */
-
    rval = get_cospar_data_from_text_file( planet_no, system_no,
-              jd + td_minus_ut( jd) / seconds_per_day,
-              &pole_ra, &pole_dec, &omega, &is_retrograde);
+              tdt, &pole_ra, &pole_dec, &omega, &is_retrograde);
    pole_ra *= PI / 180.;
    pole_dec *= PI / 180.;
    polar3_to_cartesian( matrix, pole_ra - PI / 2., 0.);
