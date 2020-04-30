@@ -599,7 +599,7 @@ int create_mpc_packed_desig( char *packed_desig, const char *obj_name)
    int rval = -1;
    unsigned number;
    char comet_desig = 0;
-   const int max_number = 620000 + 62 * 62 * 62 * 62;
+   const unsigned max_number = 620000 + 62 * 62 * 62 * 62;
 
    while( *obj_name == ' ')
       obj_name++;
