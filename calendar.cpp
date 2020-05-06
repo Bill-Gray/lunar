@@ -56,6 +56,9 @@ static const char *months[12] =  { "January", "February", "March",
                "October", "November", "December" };
 static int show_jd_values = 0, dollhouse = 0, single_page = 0;
 
+#define SHOW_JD    1
+#define SHOW_MJD   2
+
       /* Kate prefers calendars without lunar phases or DST data: */
 static int kate_style = 0;
       /* By default,  if the 24th and 31st land on Sundays or Mondays, */
@@ -74,8 +77,15 @@ static void show_month_text( const int month, const int year)
 
    sprintf( buff, "%s %d", months[month - 1], year);
    if( show_jd_values)
-      sprintf( buff + strlen( buff), " (JD %ld.5)",
-                  dmy_to_day( 0, month, (long)year, CALENDAR_JULIAN_GREGORIAN) - 1);
+      {
+      const long jd = dmy_to_day( 0, month, (long)year, CALENDAR_JULIAN_GREGORIAN) - 1;
+
+      if( show_jd_values == SHOW_JD)
+         sprintf( buff + strlen( buff), " (JD %ld.5)", jd);
+      else
+         sprintf( buff + strlen( buff), " (MJD %ld)", jd - 2400000L);
+      }
+
    printf( "%d %d moveto (%s) show\n",
             X0 + 7 * xsize / 2 - (int)strlen( buff) * 20 / 3,
             TOP_OF_DAYOFWK + 5, buff);
@@ -185,7 +195,14 @@ static void show_small_month( int month, int year, const int x0, int y0)
          printf( "%d %d moveto (%s) show\n", x0, y0, buff);
       }
    if( show_jd_values)
-      printf( "%d %d moveto ((JD %ld.5)) show\n", x0, y0 - 12, jd1 - 1);
+      {
+      jd1--;
+      printf( "%d %d moveto ", x0, y0 - 12);
+      if( show_jd_values == SHOW_JD)
+         printf( "((JD %ld.5)) show\n", jd1);
+      else
+         printf( "((MJD %ld)) show\n", jd1 - 2400000L);
+      }
 }
 
 static void make_postscript_substitutions( char *buff)
@@ -666,7 +683,7 @@ int main( const int argc, const char **argv)
          switch( argv[i][1])
             {
             case 'j':
-               show_jd_values = 1;
+               show_jd_values = SHOW_JD;
                break;
             case 's':
                single_page = 1;
@@ -677,6 +694,9 @@ int main( const int argc, const char **argv)
             case 'l':            /* legal size */
                width = LEGAL_SIZE;
                xsize = 135;
+               break;
+            case 'm':
+               show_jd_values = SHOW_MJD;
                break;
             case 'w':
                wraparound_style = 1;
