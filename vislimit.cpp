@@ -331,6 +331,9 @@ int main( const int argc, const char **argv)
       if( argv[i][0] == '-')
          switch( argv[i][1])
             {
+            case 'a':
+               b.ht_above_sea_in_meters = atof( argv[i] + 2);
+               break;
             case 'd':
                b.dist_moon = atof( argv[i] + 2) * PI / 180.;
                break;
@@ -351,14 +354,14 @@ int main( const int argc, const char **argv)
    set_brightness_params( &b);
    compute_sky_brightness( &b);
    compute_extinction( &b);
+   printf( "Band  k  mag/arcsec^2 Ext\n");
    for( i = 0; i < 5; i++)
       {
       const double brightness_in_mags_per_sq_arcsec =
                    -2.5 * log10( b.brightness[i]) - 11.055;
 
-      printf( "%c : %lf  %6.2f %g %.5lf\n", band_name[i], b.k[i],
-                  brightness_in_mags_per_sq_arcsec,
-                  b.brightness[i], b.extinction[i]);
+      printf( "%c : %6.3f %6.2f %6.3lf\n", band_name[i], b.k[i],
+                  brightness_in_mags_per_sq_arcsec, b.extinction[i]);
       }
    printf( "Limiting magnitude: %.5lf\n", compute_limiting_mag( &b));
    return( 0);
