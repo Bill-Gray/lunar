@@ -933,6 +933,29 @@ int xlate_ades2mpc_in_place( void *context, char *buff)
    return( rval);
 }
 
+/* 'fgets' with trailing LF, CR/LF,  or CR trimmed.  For a CR terminator,
+we may actually read in some extra bytes and therefore have to fseek()
+backward to the point right after the CR in question... fortunately,
+such files are quite rare as of 2020 (they were more common a couple of
+decades earlier.) */
+
+static char *fgets_trimmed( char *buff, const int len, FILE *ifile)
+{
+   char *rval = fgets( buff, len, ifile);
+
+   if( rval)
+      {
+      int i = 0;
+
+      while( buff[i] != 10 && buff[i] != 13 && buff[i])
+         i++;
+      if( buff[i] == 13 && buff[i + 1] != 10)   /* CR terminated */
+         fseek( ifile, 1L + (long)i - (long)strlen( buff), SEEK_CUR);
+      buff[i] = '\0';
+      }
+   return( rval);
+}
+
 int fgets_with_ades_xlation( char *buff, const size_t len,
                         void *ades_context, FILE *ifile)
 {
@@ -941,7 +964,7 @@ int fgets_with_ades_xlation( char *buff, const size_t len,
 
    if( prev_rval)
       prev_rval = xlate_ades2mpc_in_place( ades_context, buff);
-   while( !prev_rval && fgets( buff, (int)len, ifile))
+   while( !prev_rval && fgets_trimmed( buff, (int)len, ifile))
       prev_rval = xlate_ades2mpc_in_place( ades_context, buff);
    while( *buff && *buff != 10 && *buff != 13)
       buff++;
