@@ -242,9 +242,9 @@ double brent_min_next( brent_min_t *b)
 
 int brent_min_add( brent_min_t *b, const double next_y)
 {
-   const int idx = (b->n_iterations ? 4 : 3);
+   int idx = (b->n_iterations ? 4 : 3);
 
-   if( next_y < b->y[0])      /* we have a new minimum */
+   if( next_y <= b->y[0])      /* we have a new minimum */
       {
       if( b->next_x < b->x[0])
          b->xmax = b->x[0];
@@ -263,8 +263,18 @@ int brent_min_add( brent_min_t *b, const double next_y)
          b->gold_ratio = (PHI + b->gold_ratio) / 2.;
       }
    b->n_iterations++;
+   while( idx && next_y <= b->y[idx - 1])
+      {
+      b->x[idx] = b->x[idx - 1];
+      b->y[idx] = b->y[idx - 1];
+      idx--;
+      }
    b->x[idx] = b->next_x;
    b->y[idx] =    next_y;
-   bubble_down( b, idx);
+   assert( b->y[0] <= b->y[1]);
+   assert( b->y[1] <= b->y[2]);
+   assert( b->y[2] <= b->y[3]);
+   assert( b->x[0] > b->xmin);
+   assert( b->x[0] < b->xmax);
    return( is_done( b));
 }
