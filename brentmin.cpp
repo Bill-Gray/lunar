@@ -83,27 +83,16 @@ it's not static to this file). */
 double fit_parabola( const double *x, const double *y, double *b, double *c)
 {
    const double x21 = x[2] - x[1], x01 = x[0] - x[1], x20 = x[2] - x[0];
+   const double y21 = y[2] - y[1], y01 = y[0] - y[1];
    double a;
 
-   if( !x21 || !x20 || !x01)
+   assert( x21 && x20 && x01);
+   a = (y21 / x21 - y01 / x01) / x20;
+   if( b)
       {
-      a = NAN;
-      if( b)
-         *b = NAN;
+      *b = y01 / x01 - a * (x[1] + x[0]);
       if( c)
-         *c = NAN;
-      }
-   else
-      {
-      const double y21 = y[2] - y[1], y01 = y[0] - y[1];
-
-      a = (y21 / x21 - y01 / x01) / x20;
-      if( b)
-         {
-         *b = y01 / x01 - a * (x[1] + x[0]);
-         if( c)
-            *c = y[0] - x[0] * (*b + a * x[0]);
-         }
+         *c = y[0] - x[0] * (*b + a * x[0]);
       }
    return( a);
 }
@@ -143,8 +132,7 @@ static double cubic_min( const double *x, const double *y)
    const double k13_denom = x1 * x3 * (x1 - x3);
    double k12, k13, a, b, c, discr, rval;
 
-   if( !k12_denom || !k13_denom || x2 == x3)
-      return( NAN);              /* two or more x values are equal */
+   assert( k12_denom && k13_denom && x2 != x3);
    k12 = (y1 * x2 - y2 * x1) / k12_denom;
    k13 = (y1 * x3 - y3 * x1) / k13_denom;
    a = (k12 - k13) / (x2 - x3);
