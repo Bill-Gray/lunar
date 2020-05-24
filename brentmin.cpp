@@ -36,6 +36,11 @@ static void bubble_down( brent_min_t *b, int count)
 #define STEP_TYPE_SHRINK      3
 #define STEP_TYPE_QUADRATIC   4
 
+#if defined( __GNUC__) && !defined( __x86_64__)
+   #pragma GCC push_options
+   #pragma GCC optimize( "O1")
+#endif
+
 void brent_min_init( brent_min_t *b, const double x1, const double y1,
                                      const double x2, const double y2,
                                      const double x3, const double y3)
@@ -160,6 +165,8 @@ static double cubic_min( const double *x, const double *y)
 
 static int is_done( const brent_min_t *b)
 {
+   if( b->n_iterations > 3 && b->y[3] == b->y[0])
+      return( 1);
    return( b->xmax - b->xmin <= b->tolerance);
 }
 
