@@ -33,7 +33,6 @@ static void bubble_down( brent_min_t *b, int count)
 #define STEP_TYPE_DONE        0
 #define STEP_TYPE_GOLDEN      1
 #define STEP_TYPE_CUBIC       2
-#define STEP_TYPE_SHRINK      3
 #define STEP_TYPE_QUADRATIC   4
 
 #if defined( __GNUC__) && !defined( __x86_64__)
@@ -162,7 +161,6 @@ double brent_min_next( brent_min_t *b)
 {
    double rval;
    const double right = b->xmax - b->x[0], left = b->x[0] - b->xmin;
-   const double ratio = right / left;
    const double range = b->xmax - b->xmin;
 
    if( is_done( b))
@@ -171,12 +169,7 @@ double brent_min_next( brent_min_t *b)
       return( b->x[0]);
       }
    b->step_type = STEP_TYPE_GOLDEN;
-   if( ratio > 10. || ratio < 0.1)  /* lopsided */
-      {
-      rval = b->x[0] + (ratio > 1. ? left : -right) * 3.;
-      b->step_type = STEP_TYPE_SHRINK;
-      }
-   else if( b->n_iterations)
+   if( b->n_iterations)
       {
       rval = cubic_min( b->x, b->y);
 #ifdef NOT_WORKING_CORRECTLY
