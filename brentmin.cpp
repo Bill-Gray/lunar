@@ -35,11 +35,6 @@ static void bubble_down( brent_min_t *b, int count)
 #define STEP_TYPE_CUBIC       2
 #define STEP_TYPE_QUADRATIC   4
 
-#if defined( __GNUC__) && !defined( __x86_64__)
-   #pragma GCC push_options
-   #pragma GCC optimize( "O1")
-#endif
-
 void brent_min_init( brent_min_t *b, const double x1, const double y1,
                                      const double x2, const double y2,
                                      const double x3, const double y3)
@@ -61,6 +56,8 @@ void brent_min_init( brent_min_t *b, const double x1, const double y1,
       b->xmax = x3;
    bubble_down( b, 2);     /* full bubble sort of three items */
    bubble_down( b, 2);
+   assert( b->x[0] > b->xmin);
+   assert( b->x[0] < b->xmax);
    b->gold_ratio = PHI;
    b->n_iterations = 0;
    b->prev_range = b->prev_range2 = 0.;
@@ -163,6 +160,8 @@ double brent_min_next( brent_min_t *b)
    const double right = b->xmax - b->x[0], left = b->x[0] - b->xmin;
    const double range = b->xmax - b->xmin;
 
+   assert( right);
+   assert( left);
    if( is_done( b))
       {
       b->step_type = STEP_TYPE_DONE;
@@ -172,8 +171,7 @@ double brent_min_next( brent_min_t *b)
    if( b->n_iterations)
       {
       rval = cubic_min( b->x, b->y);
-      if( rval > b->xmin && rval < b->xmax)
-         b->step_type = STEP_TYPE_CUBIC;
+      b->step_type = STEP_TYPE_CUBIC;
       }
    else     /* with only three points,  we'll try a quadratic step */
       {
@@ -181,8 +179,7 @@ double brent_min_next( brent_min_t *b)
 
       quad = fit_parabola( b->x, b->y, &linear, NULL);
       rval = -linear * .5 / quad;
-      if( rval > b->xmin && rval < b->xmax)
-         b->step_type = STEP_TYPE_QUADRATIC;
+      b->step_type = STEP_TYPE_QUADRATIC;
       }
    b->prev_range2 = b->prev_range;
    b->prev_range = range;
@@ -216,6 +213,7 @@ double brent_min_next( brent_min_t *b)
       rval = b->x[0] + (right > left ? right : -left) * (1. - b->gold_ratio);
    assert( rval >= b->xmin);
    assert( rval <= b->xmax);
+   assert( rval != b->x[0]);
    b->next_x = rval;
    return( rval);
 }
