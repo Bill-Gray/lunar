@@ -143,11 +143,11 @@ static double cubic_min( const double *x, const double *y)
    if( discr < 0.)
       return( NAN);     /* cubic is monotonically increasing or decreasing */
    discr = sqrt( discr);
-   if( b < 0.)             /* pick smallest root */
-      rval = -b - discr;
+   if( b < 0.)                   /* quadratic formula rearranged */
+      rval = -b + discr;         /* slightly to reduce loss of precision */
    else
-      rval = -b + discr;
-   return( x[0] + 0.5 * rval / a);
+      rval = -b - discr;
+   return( x[0] + 2. * c / rval);
 }
 
 static int is_done( const brent_min_t *b)
