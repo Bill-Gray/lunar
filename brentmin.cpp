@@ -186,10 +186,32 @@ double brent_min_next( brent_min_t *b)
       }
    b->prev_range2 = b->prev_range;
    b->prev_range = range;
-               /* If the proposed step goes outside the brackets,
-                  fall back on the golden section search : */
-   if( rval <= b->xmin || rval >= b->xmax || b->n_iterations > 30)
-      b->step_type = STEP_TYPE_GOLDEN;
+         /* Unless it's a golden section step,  make sure we're at least
+          b->tolerance away from x[0],  xmin,  and ymin.  (With a GS step,
+          we'll be safe anyway.)  */
+   if( b->step_type != STEP_TYPE_GOLDEN)
+      {
+      const double tol = b->tolerance * .9;
+
+      if( rval > b->x[0] - tol && rval < b->x[0] + tol)
+         rval = b->x[0] + (right > left ? tol : -tol);
+      else if( rval < b->x[0])
+         {
+         if( rval < b->xmin)
+            b->step_type = STEP_TYPE_GOLDEN;
+         else if( rval < b->xmin + tol)
+            rval = b->xmin + tol;
+         }
+      else           /* mirror image of preceding section */
+         {
+         if( rval > b->xmax)
+            b->step_type = STEP_TYPE_GOLDEN;
+         else if( rval > b->xmax - tol)
+            rval = b->xmax - tol;
+         }
+      if( b->n_iterations > 30 && (b->n_iterations & 1))
+         b->step_type = STEP_TYPE_GOLDEN;
+      }
    if( b->step_type == STEP_TYPE_GOLDEN)
       rval = b->x[0] + (right > left ? right : -left) * (1. - b->gold_ratio);
    assert( rval >= b->xmin);
