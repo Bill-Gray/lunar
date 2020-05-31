@@ -172,29 +172,6 @@ double brent_min_next( brent_min_t *b)
    if( b->n_iterations)
       {
       rval = cubic_min( b->x, b->y);
-#ifdef NOT_WORKING_CORRECTLY
-         /* Tried comparing quadratic & cubic results,  thinking */
-         /* the difference could give an error estimate.  Not a bad */
-         /* idea,  but doesn't currently seem to help.   */
-                     {
-                     double quad, linear, qval;
-                     double diff;
-
-                     quad = fit_parabola( b->x, b->y, &linear, NULL);
-                     qval = -linear * .5 / quad;
-                     diff = fabs( qval - rval);
-                     printf( "\nquad %.15f, cubic %.15f, diff %.15f\n",
-                            qval, rval, diff);
-                     if( rval < b->x[0])
-                        {
-                        if( rval > (b->x[0] + b->xmin) * .5)
-                           diff = -diff;
-                        }
-                     else if( rval > (b->x[0] + b->xmax) * .5)
-                        diff = -diff;
-//                   rval += diff;
-                     }
-#endif
       if( rval > b->xmin && rval < b->xmax)
          b->step_type = STEP_TYPE_CUBIC;
       }
