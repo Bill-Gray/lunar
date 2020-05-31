@@ -64,7 +64,7 @@ void brent_min_init( brent_min_t *b, const double x1, const double y1,
    b->gold_ratio = PHI;
    b->n_iterations = 0;
    b->prev_range = b->prev_range2 = 0.;
-   b->tolerance = 0.;
+   b->tolerance = b->ytolerance = 0.;
    b->step_type = STEP_TYPE_INITIALIZED;
 }
 
@@ -152,9 +152,9 @@ static double cubic_min( const double *x, const double *y)
 
 static int is_done( const brent_min_t *b)
 {
-   if( b->n_iterations > 3 && b->y[3] == b->y[0])
+   if( b->n_iterations > 3 && b->y[3] - b->y[0] <= b->ytolerance)
       return( 1);
-   return( b->xmax - b->xmin <= b->tolerance);
+   return( b->xmax - b->x[0] < b->tolerance && b->x[0] - b->xmin < b->tolerance);
 }
 
 double brent_min_next( brent_min_t *b)

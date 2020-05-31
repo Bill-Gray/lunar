@@ -30,7 +30,7 @@ typedef struct
    double xmin, xmax;         /* bracketing values */
    double next_x;
    double gold_ratio;         /* variable;  see brentmin.cpp */
-   double tolerance;
+   double tolerance, ytolerance;
    double prev_range, prev_range2;
    int step_type, n_iterations;
 } brent_min_t;
