@@ -65,10 +65,6 @@ void brent_min_init( brent_min_t *b, const double x1, const double y1,
    b->step_type = STEP_TYPE_INITIALIZED;
 }
 
-#if defined( _MSC_VER) && (_MSC_VER < 1800)
-   #define NAN  sqrt(-1.)
-#endif
-
 /* Fits a parabola y = ax^2 + bx + c to x[0, 1, 2] and y[0, 1, 2],  and
 returns a,  which is always computed.  If b is non-NULL,  it's computed.
 And if c is non-NULL,  it's computed also.  For some purposes -- specifically
@@ -118,9 +114,12 @@ k13 = (y1 * x3 - y3 * x1) / (x1 * x3 * (x1 - x3)) = a * (x1 + x3) + b
    The slope of y (remember,  we're after the minimum of the cubic here)
 is dy/xy = 3ax^2 + 2bx + c,  and we're looking for zeroes of that.  Triple
 a and double b,  and the quadratic we need to solve is plain ol ax^2+bx+c.
-*/
 
-static double cubic_min( const double *x, const double *y)
+   There will actually be zero or two minima.  In the first case,  the
+cubic is monotonic and we fail safely.  In the second,  we take the
+minimum with smallest absolute value (i.e.,  closest to x0.)  */
+
+static double cubic_min( const double *x, const double *y, int *err)
 {
    const double x1 = x[1] - x[0], x2 = x[2] - x[0], x3 = x[3] - x[0];
    const double y1 = y[1] - y[0], y2 = y[2] - y[0], y3 = y[3] - y[0];
@@ -128,6 +127,7 @@ static double cubic_min( const double *x, const double *y)
    const double k13_denom = x1 * x3 * (x1 - x3);
    double k12, k13, a, b, c, discr, rval;
 
+   *err = 0;
    assert( k12_denom && k13_denom && x2 != x3);
    k12 = (y1 * x2 - y2 * x1) / k12_denom;
    k13 = (y1 * x3 - y3 * x1) / k13_denom;
@@ -137,8 +137,11 @@ static double cubic_min( const double *x, const double *y)
    a *= 3.;
    b += b;
    discr = b * b - 4. * a * c;
-   if( discr < 0.)
-      return( NAN);     /* cubic is monotonically increasing or decreasing */
+   if( discr < 0.)      /* cubic is monotonically increasing or decreasing */
+      {
+      *err = 1;
+      return( 0);
+      }
    discr = sqrt( discr);
    if( b < 0.)                   /* quadratic formula rearranged */
       rval = -b + discr;         /* slightly to reduce loss of precision */
@@ -170,8 +173,11 @@ double brent_min_next( brent_min_t *b)
    b->step_type = STEP_TYPE_GOLDEN;
    if( b->n_iterations)
       {
-      rval = cubic_min( b->x, b->y);
-      b->step_type = STEP_TYPE_CUBIC;
+      int err;
+
+      rval = cubic_min( b->x, b->y, &err);
+      if( !err)
+         b->step_type = STEP_TYPE_CUBIC;
       }
    else     /* with only three points,  we'll try a quadratic step */
       {

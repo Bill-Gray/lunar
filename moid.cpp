@@ -264,18 +264,20 @@ double DLL_FUNC find_moid_full( const ELEMENTS *elem1, const ELEMENTS *elem2, mo
 
             brent_min_init( &b, x[0], y[0], x[1], y[1], x[2], y[2]);
             b.tolerance  = .000001 * PI / 180.;
+            b.ytolerance  = .0000001;
             while( b.step_type)
                {
                const double new_true = brent_min_next( &b);
                const double dist_squared = find_point_moid_2( &idata, new_true);
 
-               assert( b.n_iterations < 30);
+               assert( b.n_iterations < 200);
                if( least_dist_squared > dist_squared)
                   {
                   min_true2 = new_true;
                   least_dist_squared = dist_squared;
                   }
-               brent_min_add( &b, dist_squared);
+               if( b.step_type)
+                  brent_min_add( &b, dist_squared);
                }
             }
          }
