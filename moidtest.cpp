@@ -4,7 +4,6 @@
 #include <string.h>
 #include <math.h>
 #include "watdefs.h"
-#include "brentmin.h"
 #include "comets.h"
 #include "afuncs.h"
 #include "mpc_func.h"
