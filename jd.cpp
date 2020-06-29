@@ -209,6 +209,8 @@ int main( int argc, char **argv)
       for( i = 2; i < argc; i++)
          if( !memcmp( argv[i], "-c", 2))
             calendar = atoi( argv[i] + 2);
+         else if( !memcmp( argv[i], "-e", 2))
+            load_earth_orientation_params( argv[i] + 2, NULL);
          else
             {
             strcat( buff, " ");
