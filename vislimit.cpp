@@ -138,7 +138,9 @@ int DLL_FUNC set_brightness_params( BRIGHTNESS_DATA *b)
    const double k_water_coeff = .94 * (b->relative_humidity / 100.) *
                        exp( b->temperature_in_c / 15.) *
                        exp( -b->ht_above_sea_in_meters / 8200.);
-   const double moon_elong = b->moon_elongation * 180. / PI;
+              /* 'moon_angle' = distance of moon from opposition,  in     */
+              /* degrees.  It's near 0 degrees at full moon,  180 at new. */
+   const double moon_angle = 180. - b->moon_elongation * 180. / PI;
    double k_aerosol_coeff = .1 * exp( -b->ht_above_sea_in_meters / 1500.);
    int i;
 
@@ -163,8 +165,8 @@ int DLL_FUNC set_brightness_params( BRIGHTNESS_DATA *b)
          /* assume accuracy deteriorates for years far from 1992.          */
    b->air_mass_moon = compute_air_mass( b->zenith_ang_moon);
    b->air_mass_sun  = compute_air_mass( b->zenith_ang_sun);
-   b->lunar_mag = -12.73 + moon_elong * (.026 +
-                           4.e-9 * (moon_elong * moon_elong * moon_elong));
+   b->lunar_mag = -12.73 + moon_angle * (.026 +
+                           4.e-9 * (moon_angle * moon_angle * moon_angle));
                /* line 2180 in B Schaefer code */
    for( i = 0; i < 5; i++)
       {
