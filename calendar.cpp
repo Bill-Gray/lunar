@@ -694,6 +694,7 @@ int main( const int argc, const char **argv)
             case 'l':            /* legal size */
                width = LEGAL_SIZE;
                xsize = 135;
+               fprintf( stderr, "Use Atril;  specify US legal-size\n");
                break;
             case 'm':
                show_jd_values = SHOW_MJD;
