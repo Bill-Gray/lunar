@@ -367,7 +367,8 @@ const char *kml_header_text =
 
 int main( const int argc, const char **argv)
 {
-   FILE *ifile = fopen( (argc < 2 ? "ObsCodes.htm" : argv[1]), "rb");
+   FILE *ifile;
+   const char *ifilename = "ObsCodes.htm";
    char buff[200];
    mpc_code_t code;
    bool google_map_links = false, dump_comments = false;
@@ -378,15 +379,10 @@ int main( const int argc, const char **argv)
    const char *header =
             "Pl Code Longitude  Latitude     Altitude rho_cos   rho_sin_phi  region";
 
-   if( !ifile)
-      ifile = fopen( "ObsCodes.html", "rb");
-   if( !ifile)
-      {
-      printf( "ObsCodes not opened\n");
-      return( -1);
-      }
    for( i = 1; i < argc; i++)
-      if( argv[i][0] == '-')
+      if( argv[i][0] != '-')
+         ifilename = argv[i];
+      else
          switch( argv[i][1])
             {
             case 'v':
@@ -418,6 +414,14 @@ int main( const int argc, const char **argv)
                printf( "Command line option '%s' unrecognized\n", argv[i]);
                return( -1);
             }
+   ifile = fopen( ifilename, "rb");
+   if( !ifile)
+      ifile = fopen( "ObsCodes.html", "rb");
+   if( !ifile)
+      {
+      printf( "ObsCodes not opened\n");
+      return( -1);
+      }
    if( !make_kml)
       printf( "%s\n", header + google_offset);
    while( fgets( buff, sizeof( buff), ifile))
@@ -431,8 +435,14 @@ int main( const int argc, const char **argv)
          *region = '\0';
          if( code.planet == 3)
             {
-            FILE *ifile = fopen( "geo_rect.txt", "rb");
+            FILE *ifile;
 
+            strcpy( obuff, argv[0]);
+            i = strlen( obuff);
+            while( i && obuff[i - 1] != '/' && obuff[i - 1] != '\\')
+               i--;
+            strcpy( obuff + i, "geo_rect.txt");
+            ifile = fopen( obuff, "rb");
             if( ifile)
                {
                extract_region_data_for_lat_lon( ifile, region,
