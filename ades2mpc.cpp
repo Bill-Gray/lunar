@@ -552,6 +552,9 @@ static int process_ades_tag( char *obuff, ades2mpc_t *cptr, const int itag,
          assert( len < sizeof( cptr->rms_ra));
          strcpy( cptr->rms_ra, name);
          break;
+      case ADES_notes:
+         cptr->line[13] = name[0];
+         break;
       case ADES_rmsDec:
          assert( len < sizeof( cptr->rms_dec));
          strcpy( cptr->rms_dec, name);
