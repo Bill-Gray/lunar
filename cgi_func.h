@@ -15,6 +15,11 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301, USA. */
 
+#ifdef __cplusplus
+extern "C" {
+#endif /* #ifdef __cplusplus */
+
+
 void avoid_runaway_process( const int max_time_to_run);   /* cgi_func.c */
 int get_urlencoded_form_data( const char **idata,       /* cgi_func.c */
                               char *field, const size_t max_field,
@@ -27,3 +32,8 @@ int get_cgi_data( char *field, char *data, char *filename,
                                              const size_t max_buff);
 int initialize_cgi_reading( void);
 void free_cgi_data( void);
+int get_load_data( void);
+
+#ifdef __cplusplus
+}
+#endif  /* #ifdef __cplusplus */
