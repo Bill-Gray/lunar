@@ -145,6 +145,12 @@ clean:
 	$(RM) test_ref$(EXE) testprec$(EXE) themis$(EXE) transit$(EXE)
 	$(RM) uranus1$(EXE) utc_test$(EXE) liblunar.a
 
+add_off$(EXE): add_off.o liblunar.a
+	$(CC) $(CFLAGS) -o add_off$(EXE) add_off.o liblunar.a $(LIBSADDED)
+
+add_off.cgi: add_off.c liblunar.a
+	$(CC) $(CFLAGS) -o add_off.cgi -DON_LINE_VERSION add_off.c liblunar.a $(LIBSADDED)
+
 adestest$(EXE): adestest.o liblunar.a
 	$(CC) $(CFLAGS) -o adestest$(EXE) adestest.o liblunar.a $(LIBSADDED)
 
