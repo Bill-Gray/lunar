@@ -44,9 +44,7 @@ static double get_sat_obs_jd( const char *buff)
 
 /* The following conversion table is going to need occasional fixes.
 Cas = Cassini,  SoO = Solar Orbiter,  and PSP = Parker Solar Probe
-are _not_ official MPC codes.  On the flip side, NEOSSAT is in
-Horizons,  but with TLE-based positions... I'll have to figure that
-one out;  any TLE-based position is suspect.    */
+are _not_ official MPC codes.  */
 
 typedef struct
 {
@@ -66,7 +64,7 @@ static int get_horizons_idx( const char *mpc_code)
           {"C50",    -235 },   /* STEREO-B           */
           {"C51",    -163 },   /* WISE               */
           {"C52", -128485 },   /* Swift              */
-          {"C53",       0 },   /* NEOSSAT            */
+          {"C53", -139089 },   /* NEOSSAT            */
           {"C54",     -98 },   /* New Horizons       */
           {"C55",    -227 },   /* Kepler             */
           {"C56", -141043 },   /* LISA Pathfinder    */
