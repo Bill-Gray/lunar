@@ -41,25 +41,43 @@ static double get_sat_obs_jd( const char *buff)
 }
 
 /* The following conversion table is going to need occasional fixes.
-Cas = Cassini,  SoO = Solar Orbiter,  and PSP = Parker Space Probe
-are placeholders until those spacecraft get MPC codes.
+Cas = Cassini,  SoO = Solar Orbiter,  and PSP = Parker Solar Probe
+are _not_ official MPC codes.  On the flip side, NEOSSAT is in
+Horizons,  but with TLE-based positions... I'll have to figure that
+one out;  any TLE-based position is suspect.    */
 
-249 = SOHO              245 = Spitzer
-250 = Hubble            C54 = SWIFT
-C49 = STEREO-A          C51 = WISE
-C50 = STEREO-B          258 = Gaia
-C57 = TESS                                      */
+typedef struct
+{
+   char mpc_code[4];
+   int jpl_desig;
+} xref_t;
 
 static int get_horizons_idx( const char *mpc_code)
 {
-   const char *codes = "249 250 Cas C49 C50 SoO C57 245 PSP C54 C51 258";
-   const int horizon_indices[ ] = {
-            -21, -48, -82, -234, -235, -144, -95, -79, -96, -98, -163, -139479, 0 };
-   int i = 0;
+   static const xref_t xrefs[] = {
+          {"245",     -79 },   /* Spitzer            */
+          {"249",     -21 },   /* SOHO               */
+          {"250",     -48 },   /* Hubble             */
+          {"258", -139479 },   /* Gaia               */
+          {"Cas",     -82 },   /* Cassini            */
+          {"C49",    -234 },   /* STEREO-A           */
+          {"C50",    -235 },   /* STEREO-B           */
+          {"C51",    -163 },   /* WISE               */
+          {"C52", -128485 },   /* Swift              */
+          {"C53",       0 },   /* NEOSSAT            */
+          {"C54",     -98 },   /* New Horizons       */
+          {"C55",    -227 },   /* Kepler             */
+          {"C56", -141043 },   /* LISA Pathfinder    */
+          {"C57",     -95 },   /* TESS               */
+          {"PSP",     -96 },   /* Parker Solar Probe */
+          {"SoO",    -144 }};  /* Solar Orbiter      */
+   size_t i;
+   const size_t n_xrefs = sizeof( xrefs) / sizeof( xrefs[0]);
 
-   while( horizon_indices[i] && memcmp( mpc_code, codes + i * 4, 3))
-      i++;
-   return( horizon_indices[i]);
+   for( i = 0; i < n_xrefs; i++)
+      if( !memcmp( mpc_code, xrefs[i].mpc_code, 3))
+         return( xrefs[i].jpl_desig);
+   return( 0);
 }
 
 /* The following modifies an 'S' (satellite RA/dec line) into an 's' line
