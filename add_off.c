@@ -9,6 +9,7 @@ on-line one;  see https://www.projectpluto.com/add_off.htm . */
 #include <stdlib.h>
 #include <assert.h>
 #include <string.h>
+#include <time.h>
 #include <math.h>
 #include "watdefs.h"
 #include "afuncs.h"
@@ -22,6 +23,7 @@ typedef struct
 
 const double tolerance = 1e-5;
 int verbose = 0;
+int n_positions_set = 0, n_positions_failed = 0;
 
 /* If the observation is from a spacecraft,  return the JDE of the
 observation.  (Horizons expects times for vector ephems in JDE,  not
@@ -185,20 +187,22 @@ static int set_offsets( offset_t *offsets, const int n_offsets)
          if( strstr( buff, " = A.D. ") && strstr( buff, " TDB"))
             {
             const double jd = atof( buff);
+            int j;
 
             if( verbose)
                printf( "Found locations\n%s", buff);
             if( fgets( buff, sizeof( buff), ifile))
-               for( i = 0; i < n_offsets; i++)
-                  if( !strcmp( offsets[i].mpc_code, offsets[0].mpc_code)
-                           && fabs( offsets[i].jd - jd) < tolerance)
+               for( j = 0; j < i; j++)
+                  if( !strcmp( offsets[j].mpc_code, offsets[0].mpc_code)
+                           && fabs( offsets[j].jd - jd) < tolerance)
                      {
                      const int n_found = sscanf( buff, "%lf %lf %lf",
-                           &offsets[i].xyz[0], &offsets[i].xyz[1], &offsets[i].xyz[2]);
+                           &offsets[j].xyz[0], &offsets[j].xyz[1], &offsets[j].xyz[2]);
 
                      if( verbose)
-                        printf( "Set for offset %d\n", i);
+                        printf( "Set for offset %d\n", j);
                      assert( n_found == 3);
+                     n_positions_set++;
                      }
             }
       fclose( ifile);
@@ -208,6 +212,15 @@ static int set_offsets( offset_t *offsets, const int n_offsets)
       printf( "Error with system() : '%s'\n", strerror( errno));
       printf( "'%s'\n", buff);
       }
+         /* If some or all obs weren't set,  zero their MPC codes.  That */
+         /* will keep us from making repeated failed requests for them.  */
+   for( i--; i > 0; i--)
+      if( !strcmp( offsets[i].mpc_code, offsets[0].mpc_code))
+         if( !offsets[i].xyz[0])
+            {
+            n_positions_failed++;
+            offsets[i].mpc_code[0] = '\0';
+            }
    return( 0);
 }
 
@@ -241,7 +254,7 @@ int process_file( const char *filename)
       {
       if( verbose)
          printf( "%d: JD %.5lf; code '%s'\n", i, offsets[i].jd, offsets[i].mpc_code);
-      if( !offsets[i].xyz[0])
+      if( !offsets[i].xyz[0] && offsets[i].mpc_code[0])
          set_offsets( offsets + i, n_offsets - i);
       }
    fseek( ifile, 0, SEEK_SET);
@@ -259,6 +272,10 @@ int process_file( const char *filename)
          }
    fclose( ifile);
    free( offsets);
+   printf( "COM %d positions set by add_off; %d failed in %.2f seconds\n",
+         n_positions_set, n_positions_failed,
+         (double)clock( ) / (double)CLOCKS_PER_SEC);
+   printf( "COM add_off ver " __DATE__ " " __TIME__ "\n");
    return( 0);
 }
 
