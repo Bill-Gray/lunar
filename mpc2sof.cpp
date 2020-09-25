@@ -180,7 +180,7 @@ int qsort_compare( const void *a, const void *b)
    return( rval);
 }
 
-#define MAX_ORBITS 1000000
+#define MAX_ORBITS 2000000
 #define MAX_OUT 200
 
 int main( const int argc, const char **argv)
