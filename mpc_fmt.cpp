@@ -676,8 +676,11 @@ int create_mpc_packed_desig( char *packed_desig, const char *obj_name)
          if( comet_desig)
             {
             packed_desig[4] = comet_desig;
-            if( obj_name[i] >= 'a' && obj_name[i] <= 'z')
-               packed_desig[11] = obj_name[i++];
+            if( obj_name[i] == '-' && isupper( obj_name[i + 1]))
+               {        /* Comet fragment such as C/2018 F4-A */
+               i++;     /* pack as,  e.g.,  CK18F04a */
+               packed_desig[11] = obj_name[i++] + 'a' - 'A';
+               }
             }
          if( i == len)     /* successfully unpacked desig */
             rval = 0;
