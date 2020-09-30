@@ -629,10 +629,12 @@ static int pack_provisional_natsat( char *packed, const char *fullname)
       const int year = atoi( fullname + 2);
       const int num = atoi( fullname + 9);
 
-      if( year > 1900 && year < 2100 && num > 0 && num < 100)
+      if( year > 1900 && year < 2100 && num > 0 && num < 620)
          {
-         sprintf( packed, "    S%c%02d%c%02d0",
-               'A' + (year / 100) - 10, year % 100, fullname[7], num);
+         sprintf( packed, "    S%c%02d%c%c%c0",
+               'A' + (year / 100) - 10, year % 100, fullname[7],
+                     int_to_mutant_hex_char( num / 10),
+                     '0' + num % 10);
          return( 0);
          }
       }
@@ -707,7 +709,7 @@ int create_mpc_packed_desig( char *packed_desig, const char *obj_name)
       i++;
                /* If the name starts with four digits followed by an */
                /* uppercase letter,  it's a provisional designation: */
-   if( rval && number > 999 && number < 9000 && isupper( obj_name[i]))
+   if( number > 999 && number < 9000 && isupper( obj_name[i]))
       {
       int sub_designator;
 
@@ -801,18 +803,36 @@ int create_mpc_packed_desig( char *packed_desig, const char *obj_name)
             }
          }
       }
+   else if( number >= 1957 && number < 2100 && obj_name[4] == '-' && len >= 9
+                  && len <= 11)
+      {
+      if( isdigit( obj_name[5]) && isdigit( obj_name[6]) && isdigit( obj_name[7])
+                  && isupper( obj_name[8]))
+         {
+         rval = 0;     /* artsat desig such as '1992-044A' or '2000-357KHA' */
+         memcpy( packed_desig, obj_name, len);
+         }
+      }
    else if( pack_permanent_natsat( packed_desig, obj_name) >= 0)
       rval = 0;
    else if( pack_provisional_natsat( packed_desig, obj_name) >= 0)
       rval = 0;
 
-   if( rval == -1)       /* strange ID that isn't decipherable.  For this, */
-      {                  /* this,  we just start with $ and copy the first  */
-      if( comet_desig)   /* eleven bytes of the input name. */
+   if( rval == -1)       /* Undeciphered.  If 7 chars or less,  assume it's */
+      {                  /* an observer-supplied desig.  8 or more chars,   */
+      if( comet_desig)   /* start with '$' and put in up to eleven bytes of */
+         {               /* the input name. */
          obj_name -= 2;
-      *packed_desig++ = '$';
-      for( j = 0; j < 11 && obj_name[j]; j++)
-         packed_desig[j] = obj_name[j];
+         len += 2;
+         }
+      if( len <= 7)
+         memcpy( packed_desig + 5, obj_name, len);
+      else
+         {
+         *packed_desig++ = '$';
+         for( j = 0; j < 11 && obj_name[j]; j++)
+            packed_desig[j] = obj_name[j];
+         }
       }
    return( rval);
 }
