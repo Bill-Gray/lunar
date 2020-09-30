@@ -1,0 +1,27 @@
+# Test input for 'test_des'.  See 'test_des.cpp'.
+# Packed      Typ  Fullname
+     J95X00A  0 1995 XA
+     K07Tf8A  0 2007 TA418
+    SK03J020  4 S/2003 J 2
+    SJ45Ux90  4 S/1945 U 599
+0041P         3 P/41
+3141P      e  3 P/3141-E
+3141P     az  3 P/3141-AZ
+    DJ65Az9c  2 D/1965 A619-C
+    XJ65K810  2 X/1965 K81
+     PLS2040  0 2040 P-L
+     T3S3141  0 3141 T-3
+00433         1 (433)
+n1415         1 (491415)
+~0000         1 (620000)
+~000a         1 (620036)
+~00A0         1 (620620)
+~zzzz         1 (15396335)
+U024S         5 Uranus XXIV
+N924S         5 Neptune CMXXIV
+N089S         5 Neptune LXXXIX
+U410S         5 Uranus CDX
+1992-044A     6 1992-044A
+1963-731KHG   6 1963-731KHG
+     WT1190F -1 WT1190F
+     ZTF0Ep4 -1 ZTF0Ep4

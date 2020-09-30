@@ -77,7 +77,8 @@ all: adestest$(EXE) astcheck$(EXE) astephem$(EXE) calendar$(EXE) cgicheck$(EXE) 
    jevent$(EXE) jpl2b32$(EXE) jsattest$(EXE) lun_test$(EXE) marstime$(EXE) \
    moidtest$(EXE) mpc2sof$(EXE) oblitest$(EXE) persian$(EXE) phases$(EXE) \
    prectest$(EXE) prectes2$(EXE) ps_1996$(EXE) ssattest$(EXE) tables$(EXE) \
-   test_ref$(EXE) testprec$(EXE) themis$(EXE) uranus1$(EXE) utc_test$(EXE)
+   test_des$(EXE) test_ref$(EXE) testprec$(EXE) \
+   themis$(EXE) uranus1$(EXE) utc_test$(EXE)
 
 install:
 	$(MKDIR) $(INSTALL_DIR)/include
@@ -133,7 +134,7 @@ clean:
 	$(RM) jevent.o jpl2b32.o jsattest.o lun_test.o lun_tran.o mms.o
 	$(RM) moidtest.o mpcorb.o oblitest.o obliqui2.o persian.o phases.o
 	$(RM) prectes2.o prectest.o ps_1996.o refract.o refract4.o riseset3.o solseqn.o
-	$(RM) ssattest.o tables.o test_ref.o testprec.o
+	$(RM) ssattest.o tables.o test_des.o test_ref.o testprec.o
 	$(RM) themis.o transit.o uranus1.o utc_test.o
 	$(RM) add_off$(EXE) add_off.cgi
 	$(RM) adestest$(EXE) astcheck$(EXE) astephem$(EXE) calendar$(EXE) cgicheck$(EXE) colors$(EXE)
@@ -143,7 +144,7 @@ clean:
 	$(RM) mpc2sof$(EXE) oblitest$(EXE) persian$(EXE)
 	$(RM) phases$(EXE) prectest$(EXE) prectes2$(EXE)
 	$(RM) ps_1996$(EXE) relativi$(EXE) solseqn$(EXE) ssattest$(EXE) tables$(EXE)
-	$(RM) test_ref$(EXE) testprec$(EXE) themis$(EXE) transit$(EXE)
+	$(RM) test_des$(EXE) test_ref$(EXE) testprec$(EXE) themis$(EXE) transit$(EXE)
 	$(RM) uranus1$(EXE) utc_test$(EXE) liblunar.a
 
 add_off$(EXE): add_off.o liblunar.a
@@ -262,6 +263,9 @@ ssattest$(EXE): ssattest.o liblunar.a
 
 tables$(EXE):                    tables.o riseset3.o liblunar.a
 	$(CC) $(CFLAGS) -o tables$(EXE) tables.o riseset3.o liblunar.a $(LIBSADDED)
+
+test_des$(EXE):                    test_des.o liblunar.a
+	$(CC) $(CFLAGS) -o test_des$(EXE) test_des.o liblunar.a
 
 test_ref$(EXE):                    test_ref.o refract.o refract4.o
 	$(CC) $(CFLAGS) -o test_ref$(EXE) test_ref.o refract.o refract4.o $(LIBSADDED)
