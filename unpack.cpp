@@ -111,7 +111,7 @@ int unpack_mpc_desig( char *obuff, const char *packed)
 {
    int rval = OBJ_DESIG_OTHER;
    size_t i;
-   int mask = 1, digit_mask = 0, space_mask = 0;
+   int mask = 1, digit_mask = 0, space_mask = 0, digit;
    char provisional_desig[40];
 
    if( *packed == '$')         /* Find_Orb extension to allow storing of */
@@ -157,7 +157,8 @@ int unpack_mpc_desig( char *obuff, const char *packed)
          rval = OBJ_DESIG_NATSAT_NUMBERED;
          }
       else if( strchr( "MVEJSUNP", packed[8])
-               && (digit_mask & 0xec0) == 0xec0 && space_mask == 0xf
+               && (digit_mask & 0xcc0) == 0xcc0 && space_mask == 0xf
+               && (digit = mutant_hex_char_to_int( packed[9])) >= 0
                && packed[11] == '0' && packed[5] >= 'H' && packed[5] <= 'Z')
          {
          if( obuff)
@@ -167,17 +168,13 @@ int unpack_mpc_desig( char *obuff, const char *packed)
             obuff[6] = ' ';
             obuff[7] = packed[8];       /* planet identifier */
             obuff[8] = ' ';
-            if( packed[9] > '0')     /* double-digit ID (unlikely, */
-               {                           /* but it _can_ happen)       */
-               obuff[9] = packed[9];
-               obuff[10] = packed[10];
-               obuff[11] = '\0';
-               }
-            else                 /* more usual single-digit case: */
-               {
-               obuff[9] = packed[10];
-               obuff[10] = '\0';
-               }
+            i = 9;
+            if( digit > 10)
+               obuff[i++] = '0' + digit / 10;
+            if( digit)
+               obuff[i++] = '0' + digit % 10;
+            obuff[i++] = packed[10];
+            obuff[i] = '\0';
             }
          rval = OBJ_DESIG_NATSAT_PROVISIONAL;
          }
@@ -192,8 +189,7 @@ int unpack_mpc_desig( char *obuff, const char *packed)
 
       for( i = 1; i < 5; i++)
          {
-         const int digit = mutant_hex_char_to_int( packed[i]);
-
+         digit = mutant_hex_char_to_int( packed[i]);
          if( digit == -1)
             break;
          else
