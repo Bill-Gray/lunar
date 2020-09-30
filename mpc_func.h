@@ -62,6 +62,18 @@ int xlate_ades2mpc_in_place( void *context, char *buff);
 int free_ades2mpc_context( void *context);
 int fgets_with_ades_xlation( char *buff, const size_t len,
                                       void *ades_context, FILE *ifile);
+int mutant_hex_char_to_int( const char c);
+char int_to_mutant_hex_char( const int ival);
+int unpack_mpc_desig( char *obuff, const char *packed);
+
+#define OBJ_DESIG_ASTEROID_PROVISIONAL   0
+#define OBJ_DESIG_ASTEROID_NUMBERED      1
+#define OBJ_DESIG_COMET_PROVISIONAL      2
+#define OBJ_DESIG_COMET_NUMBERED         3
+#define OBJ_DESIG_NATSAT_PROVISIONAL     4
+#define OBJ_DESIG_NATSAT_NUMBERED        5
+#define OBJ_DESIG_ARTSAT                 6
+#define OBJ_DESIG_OTHER                 -1
 
 #ifdef __cplusplus
 }

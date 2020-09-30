@@ -552,25 +552,91 @@ char net_name_to_byte_code( const char *net_name)
    return( rval);
 }
 
-/* "Mutant hex" uses the usual hex digits 0123456789ABCDEF for numbers
-0 to 15,  followed by G...Z for 16...35 and a...z for 36...61.  MPC stores
-epochs and certain other numbers using this scheme to save space.  */
+/* Currently used to determine that,  e.g., Jupiter XLVIII = Jupiter 48. */
 
-static char mutant_hex( const int ival)
+static int extract_roman_numeral( const char *str)
 {
-   int rval = -1;
+   int rval = 0;
 
-   if( ival >= 0)
+   while( *str)
       {
-      if( ival < 10)
-         rval = '0';
-      else if( ival < 36)
-         rval = 'A' - 10;
-      else if( ival < 62)
-         rval = 'a' - 36;
+      switch( *str)
+         {
+         case 'I':
+            rval += (str[1] == 'V' || str[1] == 'X' ? -1 : 1);
+            break;
+         case 'V':
+            rval += 5;
+            break;
+         case 'X':
+            rval += (str[1] == 'L' || str[1] == 'C' ? -10 : 10);
+            break;
+         case 'L':
+            rval += 50;
+            break;
+         case 'C':
+            rval += (str[1] == 'D' || str[1] == 'M' ? -100 : 100);
+            break;
+         case 'D':
+            rval += 500;
+            break;
+         case 'M':
+            rval += 1000;
+            break;
+         default:
+            return( -1);
+            break;
+         }
+      str++;
       }
-   assert( rval >= 0);
-   return( (char)( rval + ival));
+   return( rval);
+}
+
+/* Packs desigs such as 'Uranus XXIV' or 'Earth I' or 'Saturn DCCXLVIII'.  */
+
+static int pack_permanent_natsat( char *packed, const char *fullname)
+{
+   size_t i, len;
+   extern const char *planet_names_in_english[];      /* unpack.cpp */
+   int roman;
+
+   for( i = 0; i < 8; i++)
+      {
+      len = strlen( planet_names_in_english[i]);
+
+      if( !strncmp( fullname, planet_names_in_english[i], len)
+               && fullname[len] == ' ')
+         {
+         roman = extract_roman_numeral( fullname + len + 1);
+         if( roman > 0 && roman < 1000)
+            {
+            sprintf( packed, "%c%03dS       ", *fullname, roman);
+            return( i);
+            }
+         }
+      }
+   return( -1);
+}
+
+/* Packs desigs such as 'S/1999 J 1' or 'S/2013 N 42'.   */
+
+static int pack_provisional_natsat( char *packed, const char *fullname)
+{
+   if( *fullname == 'S' && fullname[1] == '/' && strlen( fullname) > 9
+            && fullname[6] == ' ' && fullname[8] == ' '
+            && strchr( "MVEMJSUNP", fullname[7]))
+      {
+      const int year = atoi( fullname + 2);
+      const int num = atoi( fullname + 9);
+
+      if( year > 1900 && year < 2100 && num > 0 && num < 100)
+         {
+         sprintf( packed, "    S%c%02d%c%02d0",
+               'A' + (year / 100) - 10, year % 100, fullname[7], num);
+         return( 0);
+         }
+      }
+   return( -1);
 }
 
 /* create_mpc_packed_desig( ) takes a "normal" name for a comet/asteroid,
@@ -597,17 +663,27 @@ int create_mpc_packed_desig( char *packed_desig, const char *obj_name)
 {
    size_t i, j, len;
    int rval = -1;
+   bool in_parentheses = false;
    unsigned number;
    char comet_desig = 0;
    const unsigned max_number = 620000 + 62 * 62 * 62 * 62;
 
    while( *obj_name == ' ')
       obj_name++;
-
+   if( *obj_name == '(')   /* possible numbered desig such as (433),  etc. */
+      {
+      j = 1;
+      while( isdigit( obj_name[j]))
+         j++;
+      if( obj_name[j] == ')' && !obj_name[j + 1])
+         {
+         obj_name++;
+         in_parentheses = true;
+         }
+      }
                /* Check for comet-style desigs such as 'P/1995 O1' */
                /* and such.  Leading character can be P, C, X, D, or A. */
-               /* Or 'S' for natural satellites.  */
-   if( strchr( "PCXDAS", *obj_name) && obj_name[1] == '/')
+   if( strchr( "PCXDA", *obj_name) && obj_name[1] == '/')
       {
       comet_desig = *obj_name;
       obj_name += 2;
@@ -620,13 +696,13 @@ int create_mpc_packed_desig( char *packed_desig, const char *obj_name)
    while( isdigit( obj_name[i]))
       i++;
    len = strlen( obj_name);
+   if( in_parentheses)
+      len--;
    while( len && obj_name[len - 1] == ' ')
       len--;         /* ignore trailing spaces */
-   if( obj_name[i] == 'P' && i + 1 == len && number < 10000 && number)
-      {
-      snprintf( packed_desig, 13, "%04uP       ", number);
-      return( 0);
-      }
+   if( obj_name[i] == 'P' && number < 10000 && number)
+      assert( 1);          /* don't think this does anything */
+
    if( i < len && obj_name[i] == ' ')
       i++;
                /* If the name starts with four digits followed by an */
@@ -652,7 +728,7 @@ int create_mpc_packed_desig( char *packed_desig, const char *obj_name)
 
       if( number < 6200)
          snprintf( packed_desig + 5, 4, "%c%02d",
-                  mutant_hex( number / 100), number % 100);
+                  int_to_mutant_hex_char( number / 100), number % 100);
       packed_desig[6] = obj_name[2];    /* decade */
       packed_desig[7] = obj_name[3];    /* year */
 
@@ -669,8 +745,8 @@ int create_mpc_packed_desig( char *packed_desig, const char *obj_name)
       sub_designator = atoi( obj_name + i);
       if( sub_designator >= 0 && sub_designator < 620 && number < 6200)
          {
-         packed_desig[10] = mutant_hex( sub_designator % 10);
-         packed_desig[9] = mutant_hex( sub_designator / 10);
+         packed_desig[10] = int_to_mutant_hex_char( sub_designator % 10);
+         packed_desig[9] = int_to_mutant_hex_char( sub_designator / 10);
          while( isdigit( obj_name[i]))
             i++;
          if( comet_desig)
@@ -686,23 +762,50 @@ int create_mpc_packed_desig( char *packed_desig, const char *obj_name)
             rval = 0;
          }
       }
-   else if( i == len && number < max_number && number > 0
-               && (!comet_desig || number < 10000))
-      {                         /* simple numbered asteroid or comet */
+   else if( i == len && number < max_number && number > 0 && !comet_desig)
+      {           /* permanently numbered asteroid */
       rval = 0;
-      if( comet_desig)
-         sprintf( packed_desig, "%04d%c       ", number, comet_desig);
-      else if( number < 620000)
-         sprintf( packed_desig, "%c%04d       ", mutant_hex( number / 10000),
+      if( number < 620000)
+         sprintf( packed_desig, "%c%04d       ",
+               int_to_mutant_hex_char( number / 10000),
                number % 10000);
       else
          {
          packed_desig[0] = '~';
          number -= 620000;
          for( i = 4; i > 0; i--, number /= 62)
-            packed_desig[i] = mutant_hex( number % 62);
+            packed_desig[i] = int_to_mutant_hex_char( number % 62);
          }
       }
+   else if( number < 10000 && number > 0 && comet_desig)
+      {           /* permanently numbered asteroid */
+      int n_fragment_letters = 0;
+
+      if( obj_name[i] == '-' && isupper( obj_name[i + 1]))
+         {
+         if( i + 2 == len)
+            n_fragment_letters = 1;
+         else if( i + 3 == len && isupper( obj_name[i + 2]))
+            n_fragment_letters = 2;
+         }
+      if( i == len || n_fragment_letters)
+         {
+         rval = 0;
+         sprintf( packed_desig, "%04d%c       ", number, comet_desig);
+         if( n_fragment_letters == 1)
+            packed_desig[11] = obj_name[i + 1] + 'a' - 'A';
+         if( n_fragment_letters == 2)
+            {
+            packed_desig[10] = obj_name[i + 1] + 'a' - 'A';
+            packed_desig[11] = obj_name[i + 2] + 'a' - 'A';
+            }
+         }
+      }
+   else if( pack_permanent_natsat( packed_desig, obj_name) >= 0)
+      rval = 0;
+   else if( pack_provisional_natsat( packed_desig, obj_name) >= 0)
+      rval = 0;
+
    if( rval == -1)       /* strange ID that isn't decipherable.  For this, */
       {                  /* this,  we just start with $ and copy the first  */
       if( comet_desig)   /* eleven bytes of the input name. */
