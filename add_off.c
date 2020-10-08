@@ -161,9 +161,21 @@ static int set_offsets( offset_t *offsets, const int n_offsets)
 {
    char buff[1700];     /* supports 89 times at a go */
    int i;
+   const int horizons_idx = get_horizons_idx( offsets->mpc_code);
 
+   if( !horizons_idx)
+      {
+      printf( "ERROR! MPC code '%s' wasn't found.\n", offsets->mpc_code);
+      printf( "Either it's not an MPC code,  or it's not one of the spacecraft\n");
+      printf( "that this software knows about.  Check the 'add_loc.c' source\n");
+      printf( "code,  and/or contact the author.\n");
+      for( i = 0; i < n_offsets; i++)
+         if( !strcmp( offsets[i].mpc_code, offsets[0].mpc_code))
+            offsets[i].xyz[0] = -0.1;     /* mark as "don't try again" */
+      return( 0);
+      }
    snprintf( buff, sizeof( buff), cmd_start,
-            (verbose ? "" : "-q "), get_horizons_idx( offsets->mpc_code));
+            (verbose ? "" : "-q "), horizons_idx);
    for( i = 0; i < n_offsets; i++)
       if( !strcmp( offsets[i].mpc_code, offsets[0].mpc_code))
          {
