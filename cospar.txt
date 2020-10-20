@@ -451,10 +451,10 @@ Obj: 9005 # Styx/Pluto V = S/2012 (134340) 1      (n)
    d0= -6.163
    W=11.7 +17.8551357d
 
-Obj: -1      # Ceres  (r)
-   a0=291.418           # +/- 0.03
-   d0=66.764            # +/- 0.03
-   W=170.650 +952.1532d  # rate is +/- 0.00003 deg/day
+Obj: -1      # Ceres  (r), (t)
+   a0=291.42763
+   d0=66.76033
+   W=170.309 +952.1532635d
 
 Obj: -2     # Pallas
    a0= 33
@@ -566,6 +566,8 @@ Feb 07, 2008:
    ftp://ssd.jpl.nasa.gov/pub/eph/satellites/orientation/iom.392R-17-004.pdf
    This has a small effect on Deimos and a larger one on Phobos,  partly
    because the sign for the sin(M1) term was reversed.
+(t) Ceres now uses v06 from Dawn.  See 2020 Oct 19 "news item" at
+   https://ssd.jpl.nasa.gov/?horizons_news .
 
 Satellites for which no suitable data are yet available have been omitted
 from this table. Nereid is not included in this table because it is not in
