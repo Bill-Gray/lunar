@@ -297,7 +297,12 @@ int main( const int argc, const char **argv)
 {
    int i;
 
-   assert( argc > 1);
+   if( argc < 2)
+      {
+      fprintf( stderr, "'add_loc' takes the name of an input file of astrometry\n"
+                       "as a command-line argument.\n");
+      return( -1);
+      }
    for( i = 2; i < argc; i++)
       if( argv[i][0] == '-')
          switch( argv[i][1])
