@@ -611,7 +611,7 @@ static int pack_permanent_natsat( char *packed, const char *fullname)
          if( roman > 0 && roman < 1000)
             {
             sprintf( packed, "%c%03dS       ", *fullname, roman);
-            return( i);
+            return( (int)i);
             }
          }
       }
