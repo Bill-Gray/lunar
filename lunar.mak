@@ -21,8 +21,8 @@ LIB_OBJS= ades2mpc.obj alt_az.obj astfuncs.obj \
       miscell.obj mpc_code.obj mpc_fmt.obj moid.obj \
       nutation.obj obliquit.obj pluto.obj precess.obj  \
       refract.obj refract4.obj rocks.obj showelem.obj sof.obj \
-      snprintf.obj \
-      spline.obj ssats.obj triton.obj vislimit.obj vsopson.obj
+      snprintf.obj spline.obj ssats.obj \
+      unpack.obj triton.obj vislimit.obj vsopson.obj
 
 LINK=link /nologo
 
