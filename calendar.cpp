@@ -178,6 +178,7 @@ static void show_small_month( int month, int year, const int x0, int y0)
          if( day >= 1 && day <= n_days)
             {
             char *tptr = buff + j * 3;
+            const char *phase_text = "NM 1Q FM 3Q";
 
             tptr[0] = (char)( '0' + day / 10);
             tptr[1] = (char)( '0' + day % 10);
@@ -185,7 +186,7 @@ static void show_small_month( int month, int year, const int x0, int y0)
                tptr[0] = ' ';
             for( k = 0; k < 12; k++)
                if( (long)(t_phases[k] + 0.5) == jd1 + day)
-                  memcpy( tptr, "NM 1Q FM 3Q" + (k % 4) * 3, 2);
+                  memcpy( tptr, phase_text + (k % 4) * 3, 2);
             }
          }
       for( j = 20; j && buff[j - 1] == ' '; j--)
