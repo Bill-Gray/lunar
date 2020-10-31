@@ -5,23 +5,28 @@ on: [push, pull_request]
 jobs:
   buildUbuntu:
     runs-on: ubuntu-latest
-    
+
     steps:
     - uses: actions/checkout@master
     - name: make
       run: make
-      
+    - name: Archive lib
+      uses: actions/upload-artifact@v2
+      with:
+         name: lib
+         path: liblunar.a
+
   buildOSX:
     runs-on: macOS-latest
-    
+
     steps:
     - uses: actions/checkout@master
     - name: make
       run: make CLANG=Y
-      
+
   buildWindows:
     runs-on: windows-latest
-    
+
     steps:
     - uses: actions/checkout@master
     - name: make
