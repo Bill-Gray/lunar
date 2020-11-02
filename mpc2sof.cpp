@@ -30,6 +30,8 @@ const double PI =
 #define GAUSS_K .01720209895
 #define SOLAR_GM (GAUSS_K * GAUSS_K)
 
+#define IS_POWER_OF_TWO( n)    (((n) & ((n)-1)) == 0)
+
 static int parse_elements_dot_comet( ELEMENTS *elem, const char *buff)
 {
    int rval = -1;
@@ -103,6 +105,8 @@ static FILE *err_fopen( const char *filename, const char *permits)
       {
       fprintf( stderr, "Failed to open '%s'", filename);
       perror( " ");
+      fprintf( stderr, "Comments at the top of 'mpc2sof.cpp' should tell you\n"
+                       "where to find this file.\n");
       exit( -1);
       }
    return( rval);
@@ -180,20 +184,19 @@ int qsort_compare( const void *a, const void *b)
    return( rval);
 }
 
-#define MAX_ORBITS 2000000
 #define MAX_OUT 200
 
 int main( const int argc, const char **argv)
 {
    const size_t reclen = strlen( sof_header);
-   char buff[400], *obuff = (char *)calloc( MAX_ORBITS, reclen);
+   char buff[400], *obuff = NULL;
    char tbuff[MAX_OUT];
    FILE *ifile = fopen( (argc > 1 ? argv[1] : "mpcorb.dat"), "rb");
    FILE *ofile = err_fopen( "mpcorb.sof", "wb");
    ELEMENTS elem;
    long epoch;
    int i;
-   size_t n_out = 0;
+   size_t n_out = 0, n_written;
 
    if( !ifile)
       ifile = err_fopen( "MPCORB.DAT", "rb");
@@ -214,9 +217,10 @@ int main( const int argc, const char **argv)
          sprintf( tbuff + strlen( tbuff), "%.8s %.5s %.5s\n",
                   buff + 194, buff + 8, buff + 14);        /* Tlast, H, G */
          assert( strlen( tbuff) == reclen);
-         memcpy( obuff + n_out * reclen, tbuff, reclen);
          n_out++;
-         assert( n_out < MAX_ORBITS - 1);
+         if( IS_POWER_OF_TWO( n_out))
+            obuff = (char *)realloc( obuff, n_out * 2 * reclen);
+         memcpy( obuff + (n_out - 1) * reclen, tbuff, reclen);
          }
    fclose( ifile);
 
@@ -260,12 +264,12 @@ int main( const int argc, const char **argv)
             assert( strlen( tbuff) == reclen);
             memcpy( obuff + n_out * reclen, tbuff, reclen);
             n_out++;
-            assert( n_out < MAX_ORBITS - 1);
             }
       }
    fclose( ifile);
    qsort( obuff, n_out, reclen, qsort_compare);
-   fprintf( ofile, "%s", obuff);
+   n_written = fwrite( obuff, reclen, n_out, ofile);
+   assert( n_written == n_out);
    free( obuff);
    fclose( ofile);
    return( 0);
