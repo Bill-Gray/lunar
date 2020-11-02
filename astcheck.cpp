@@ -531,7 +531,14 @@ int main( const int argc, const char **argv)
    if( !mpc_station_file)        /* perhaps stored with truncated extension? */
       mpc_station_file = get_file_from_path( "ObsCodes.htm", "rb");
    if( !mpc_station_file)
+      {
       printf( "ObsCodes.html not found; parallax won't be included!\n");
+      printf( "Astcheck can run without this file,  but will produce better\n");
+      printf( "results if it has it :\n\n");
+      printf( "https://www.minorplanetcenter.net/iau/lists/ObsCodes.html\n\n");
+      printf( "Download this file and put it in the directory in which\n");
+      printf( "astcheck is running.\n");
+      }
    if( argc < 2)
       {
       printf( "No input file name specified\n");
@@ -545,7 +552,9 @@ int main( const int argc, const char **argv)
    if( !orbits_file)
       {
       printf( "Couldn't open '%s'\n", sof_filename);
-      err_message( );
+      printf( "Astcheck gets orbital elements from 'mpcorb.sof'.  See\n"
+              "https://www.projectpluto.com/astcheck.htm#setup for details on\n"
+              "how to create/maintain that file.\n");
       return( -2);
       }
    if( !ifile)
