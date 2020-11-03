@@ -954,6 +954,8 @@ static char *fgets_trimmed( char *buff, const int len, FILE *ifile)
          i++;
       if( buff[i] == 13 && buff[i + 1] != 10)   /* CR terminated */
          fseek( ifile, 1L + (long)i - (long)strlen( buff), SEEK_CUR);
+      while( i && buff[i - 1] == ' ')
+         i--;           /* drop trailing spaces */
       buff[i] = '\0';
       }
    return( rval);
