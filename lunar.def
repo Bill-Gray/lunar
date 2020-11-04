@@ -106,3 +106,6 @@ EXPORTS
    xlate_ades2mpc_in_place                @105
    fgets_with_ades_xlation                @106
    find_moid_full                         @107
+   mutant_hex_char_to_int                 @108
+   int_to_mutant_hex_char                 @109
+   unpack_mpc_desig                       @110
