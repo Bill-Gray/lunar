@@ -145,7 +145,7 @@ $(LIBLUNAR): $(OBJS)
 clean:
 	$(RM) $(OBJS)
 	$(RM) adestest.o add_off.o astcheck.o astephem.o calendar.o cgicheck.o
-	$(RM) cosptest.o get_test.o gtest.o gust86.o htc20b.o integrat.o jd.o
+	$(RM) cosptest.o csv2ades.o get_test.o gtest.o gust86.o htc20b.o integrat.o jd.o
 	$(RM) jevent.o jpl2b32.o jsattest.o lun_test.o lun_tran.o mms.o
 	$(RM) moidtest.o mpcorb.o oblitest.o obliqui2.o persian.o phases.o
 	$(RM) prectes2.o prectest.o ps_1996.o refract.o refract4.o riseset3.o solseqn.o
@@ -157,7 +157,7 @@ clean:
 	$(RM) colors2$(EXE) cosptest$(EXE) csv2ades$(EXE) dist$(EXE)
 	$(RM) easter$(EXE) get_test$(EXE) gtest$(EXE) htc20b$(EXE)
 	$(RM) integrat$(EXE) jd$(EXE) jevent$(EXE) jpl2b32$(EXE)
-	$(RM) jsattest$(EXE) lun_test$(EXE) marstime$(EXE) mms$(EXE)
+	$(RM) jsattest$(EXE) lun_test$(EXE) marstime$(EXE) moidtest$(EXE) mms$(EXE)
 	$(RM) mpc2sof$(EXE) oblitest$(EXE) parallax$(EXE) parallax.cgi
 	$(RM) persian$(EXE) phases$(EXE) prectest$(EXE) prectes2$(EXE)
 	$(RM) ps_1996$(EXE) relativi$(EXE) solseqn$(EXE) ssattest$(EXE) tables$(EXE)
@@ -208,6 +208,9 @@ easter$(EXE): easter.cpp $(LIBLUNAR)
 
 get_test$(EXE): get_test.o $(LIBLUNAR)
 	$(CC) $(CFLAGS) -o get_test$(EXE) get_test.o $(LIBLUNAR) $(LIBSADDED)
+
+gtest$(EXE): gtest.c
+	$(CC) $(FLAGS) -o gtest$(EXE) gtest.c
 
 htc20b$(EXE): htc20b.cpp $(LIBLUNAR)
 	$(CC) $(CFLAGS) -o htc20b$(EXE) -DTEST_MAIN htc20b.cpp $(LIBLUNAR) $(LIBSADDED)
@@ -298,6 +301,9 @@ testprec$(EXE):                    testprec.o $(LIBLUNAR)
 
 test_min$(EXE):                    test_min.o brentmin.o
 	$(CC) $(CFLAGS) -o test_min$(EXE) test_min.o brentmin.o $(LIBSADDED)
+
+them_cat$(EXE): them_cat.c
+	$(CC) $(FLAGS) -o them_cat$(EXE) them_cat.c
 
 themis$(EXE):                    themis.o $(LIBLUNAR)
 	$(CC) $(CFLAGS) -o themis$(EXE) themis.o $(LIBLUNAR) $(LIBSADDED)
