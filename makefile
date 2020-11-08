@@ -82,14 +82,16 @@ else
 	LIBLUNAR = liblunar.a
 endif
 
-all: adestest$(EXE) astcheck$(EXE) astephem$(EXE) calendar$(EXE) cgicheck$(EXE)  \
-   colors$(EXE) colors2$(EXE) cosptest$(EXE) dist$(EXE) easter$(EXE) \
-   get_test$(EXE) htc20b$(EXE) jd$(EXE) \
-   jevent$(EXE) jpl2b32$(EXE) jsattest$(EXE) lun_test$(EXE) marstime$(EXE) \
-   moidtest$(EXE) mpc2sof$(EXE) oblitest$(EXE) persian$(EXE) phases$(EXE) \
-   prectest$(EXE) prectes2$(EXE) ps_1996$(EXE) ssattest$(EXE) tables$(EXE) \
-   test_des$(EXE) test_ref$(EXE) testprec$(EXE) \
-   themis$(EXE) uranus1$(EXE) utc_test$(EXE)
+all: add_off$(EXE) adestest$(EXE) astcheck$(EXE) astephem$(EXE) \
+   calendar$(EXE) cgicheck$(EXE) chinese$(EXE) colors$(EXE) \
+   colors2$(EXE) cosptest$(EXE) csv2ades$(EXE) dist$(EXE) \
+   easter$(EXE) get_test$(EXE) gtest$(EXE) htc20b$(EXE) jd$(EXE)\
+   jevent$(EXE) jpl2b32$(EXE) jsattest$(EXE) lun_test$(EXE) \
+   marstime$(EXE) moidtest$(EXE) mpc2sof$(EXE) oblitest$(EXE) \
+   persian$(EXE) parallax$(EXE) parallax.cgi phases$(EXE) \
+   prectest$(EXE) prectes2$(EXE) ps_1996$(EXE) ssattest$(EXE) \
+   tables$(EXE) test_des$(EXE) test_ref$(EXE) testprec$(EXE) \
+   themis$(EXE) them_cat$(EXE) uranus1$(EXE) utc_test$(EXE)
 
 install:
 	$(MKDIR) $(INSTALL_DIR)/include
@@ -143,22 +145,24 @@ $(LIBLUNAR): $(OBJS)
 clean:
 	$(RM) $(OBJS)
 	$(RM) adestest.o add_off.o astcheck.o astephem.o calendar.o cgicheck.o
-	$(RM) cosptest.o get_test.o gust86.o htc20b.o integrat.o jd.o
+	$(RM) cosptest.o get_test.o gtest.o gust86.o htc20b.o integrat.o jd.o
 	$(RM) jevent.o jpl2b32.o jsattest.o lun_test.o lun_tran.o mms.o
 	$(RM) moidtest.o mpcorb.o oblitest.o obliqui2.o persian.o phases.o
 	$(RM) prectes2.o prectest.o ps_1996.o refract.o refract4.o riseset3.o solseqn.o
 	$(RM) ssattest.o tables.o test_des.o test_ref.o testprec.o
 	$(RM) themis.o transit.o uranus1.o utc_test.o
 	$(RM) add_off$(EXE) add_off.cgi
-	$(RM) adestest$(EXE) astcheck$(EXE) astephem$(EXE) calendar$(EXE) cgicheck$(EXE) colors$(EXE)
-	$(RM) colors2$(EXE) cosptest$(EXE) dist$(EXE) easter$(EXE) get_test$(EXE)
-	$(RM) htc20b$(EXE) integrat$(EXE) jd$(EXE) jevent$(EXE) jpl2b32$(EXE) jsattest$(EXE)
-	$(RM) lun_test$(EXE) marstime$(EXE) mms$(EXE)
-	$(RM) mpc2sof$(EXE) oblitest$(EXE) persian$(EXE)
-	$(RM) phases$(EXE) prectest$(EXE) prectes2$(EXE)
+	$(RM) adestest$(EXE) astcheck$(EXE) astephem$(EXE) calendar$(EXE)
+	$(RM) cgicheck$(EXE) chinese$(EXE) colors$(EXE)
+	$(RM) colors2$(EXE) cosptest$(EXE) csv2ades$(EXE) dist$(EXE)
+	$(RM) easter$(EXE) get_test$(EXE) gtest$(EXE) htc20b$(EXE)
+	$(RM) integrat$(EXE) jd$(EXE) jevent$(EXE) jpl2b32$(EXE)
+	$(RM) jsattest$(EXE) lun_test$(EXE) marstime$(EXE) mms$(EXE)
+	$(RM) mpc2sof$(EXE) oblitest$(EXE) parallax$(EXE) parallax.cgi
+	$(RM) persian$(EXE) phases$(EXE) prectest$(EXE) prectes2$(EXE)
 	$(RM) ps_1996$(EXE) relativi$(EXE) solseqn$(EXE) ssattest$(EXE) tables$(EXE)
-	$(RM) test_des$(EXE) test_ref$(EXE) testprec$(EXE) themis$(EXE) transit$(EXE)
-	$(RM) uranus1$(EXE) utc_test$(EXE) $(LIBLUNAR)
+	$(RM) test_des$(EXE) test_ref$(EXE) testprec$(EXE) themis$(EXE)
+	$(RM) them_cat$(EXE) transit$(EXE) uranus1$(EXE) utc_test$(EXE) $(LIBLUNAR)
 
 add_off$(EXE): add_off.o $(LIBLUNAR)
 	$(CC) $(CFLAGS) -o add_off$(EXE) add_off.o $(LIBLUNAR) $(LIBSADDED)
@@ -181,6 +185,9 @@ calendar$(EXE): calendar.o $(LIBLUNAR)
 cgicheck$(EXE): astcheck.cpp $(LIBLUNAR) cgicheck.o
 	$(CC) $(CFLAGS) -o cgicheck$(EXE) -DCGI_VERSION cgicheck.o astcheck.cpp $(LIBLUNAR) $(LIBSADDED)
 
+chinese$(EXE): chinese.cpp
+	$(CC) $(CFLAGS) -o chinese$(EXE) chinese.cpp
+
 colors$(EXE): colors.cpp
 	$(CC) $(CFLAGS) -o colors$(EXE) colors.cpp -DSIMPLE_TEST_PROGRAM
 
@@ -189,6 +196,9 @@ colors2$(EXE): colors2.cpp
 
 cosptest$(EXE): cosptest.o $(LIBLUNAR)
 	$(CC) $(CFLAGS) -o cosptest$(EXE) cosptest.o   $(LIBLUNAR) $(LIBSADDED)
+
+csv2ades$(EXE): csv2ades.o $(LIBLUNAR)
+	$(CC) $(CFLAGS) -o csv2ades$(EXE) csv2ades.o   $(LIBLUNAR) $(LIBSADDED)
 
 dist$(EXE): dist.cpp
 	$(CC) $(CFLAGS) -o dist$(EXE) dist.cpp $(LIBSADDED)
