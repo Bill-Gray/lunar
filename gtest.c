@@ -62,6 +62,17 @@ of a mere 0.030802 degrees :
 This results in a still greater decrease in the magnitude of gst,
 causing still less roundoff after (2) is applied.
 
+   For still larger values,  green_sidereal_time_lunatic( ) takes
+advantage of the fact that 46751 days is almost exactly 128 years.
+(One of the proposals for the French Republican calendar would
+have made use of this as well,  spreading 31 leap days over 128
+years to get a "nearly perfect forever" calendar.  But I digress.)
+
+   After handling multiples of 46751 days,  the value will be
+small enough that we handle multiples of 365 days with no risk
+of large numbers occurring.  So,  essentially a two-step variant
+of green_sidereal_time_better( ).
+
    The whole point is somewhat theoretical here.  Our knowledge of the
 earth's rotation,  and its unpredictable irregular nature,  are greater
 sources of error.  But it _would_ be relevant in similar situations
@@ -75,10 +86,15 @@ const double pi =
 const double omega0 = 280.460618375;
 const double excess =
    0.9856473662863335614875655943417750399269906456764772986;
+#ifdef REAL_VALUES
 const double quad_term =
    0.0003879333333333333333333333333333333333333333333333333333;
 const double cubic_term =
    -2.58333333333e-8;
+#else
+const double quad_term = 0.;
+const double cubic_term = 0.;
+#endif
 
 double green_sidereal_time( double jd_ut)
 {
@@ -133,6 +149,35 @@ double green_sidereal_time_best( double jd_ut)
    return( rval * pi / 180.);
 }
 
+double green_sidereal_time_lunatic( double jd_ut)
+{
+   long double t_cen, rval, base_t;
+   long idays, n;
+   const long double excess_365 = -0.238711305488250057038558065252110426648414328085786011;
+   const long double excess_46751 = 0.0000212523803331051791010723248916267396760209901868486;
+
+   jd_ut -= 2451545.0;        /* set relative to 2000.0 */
+   t_cen = jd_ut / 36525.;    /* convert to julian centuries */
+   base_t = floorl( jd_ut);
+   jd_ut -= base_t;
+   idays = (long)base_t;
+
+   n = idays / 46751;
+   rval = omega0 + n * excess_46751;
+   idays -= n * 46751;
+
+   n = idays / 365;
+   rval += n * excess_365;
+   idays -= n * 365;
+
+   rval += idays * excess + (360. + excess) * jd_ut
+            + t_cen * t_cen * (quad_term + t_cen * cubic_term);
+
+         /* See p 84,  in Meeus:  the following should get apparent */
+         /* Greenwich sidereal time: */
+   return( (double)( rval * pi / 180.));
+}
+
 static double fix_ang( double ang)
 {
    ang = fmod( ang, 360.);
@@ -143,13 +188,21 @@ static double fix_ang( double ang)
 
 int main( const int argc, const char **argv)
 {
-   const double jd = atof( argv[1]);
-   double v1 = green_sidereal_time( jd) * 180. / pi;
-   double v2 = green_sidereal_time_better( jd) * 180. / pi;
-   double v3 = green_sidereal_time_best( jd) * 180. / pi;
+   if( argc == 2)
+      {
+      const double jd = atof( argv[1]);
+      double v1 = green_sidereal_time( jd) * 180. / pi;
+      double v2 = green_sidereal_time_better( jd) * 180. / pi;
+      double v3 = green_sidereal_time_best( jd) * 180. / pi;
+      double v4 = green_sidereal_time_lunatic( jd) * 180. / pi;
 
-   printf( "v1 %30.15f %25.15f (simple)\n", v1, fix_ang( v1));
-   printf( "v2 %30.15f %25.15f (Meeus) \n", v2, fix_ang( v2));
-   printf( "v3 %30.15f %25.15f ('best')\n", v3, fix_ang( v3));
+      printf( "v1 %30.15f %25.15f (simple)\n", v1, fix_ang( v1));
+      printf( "v2 %30.15f %25.15f (Meeus) \n", v2, fix_ang( v2));
+      printf( "v3 %30.15f %25.15f ('best')\n", v3, fix_ang( v3));
+      printf( "v4 %30.15f %25.15f ('lunatic')\n", v4, fix_ang( v4));
+      }
+   else
+      printf( "'gtest' takes a JD as a command line argument and computes\n"
+              "GST using four different algorithms.  See 'gtest.c'.\n");
    return( 0);
 }
