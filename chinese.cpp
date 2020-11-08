@@ -15,10 +15,52 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301, USA. */
 
+/* This is code written to create the pre-generated table required for
+Chinese calendar conversion in 'date.cpp' (see the 'get_chinese_year_data'
+function).  The actual "astronomy" bit (computing times of New Moons
+and principal terms) takes place in 'phases.cpp';  that program
+emits a list of times of those events,  along with the (integer)
+JD of the time after adjusting for longitude 120 East.
+
+   One then sorts that log file and feeds it to this program,
+which crunches it into a binary form in which each year requires
+only three bytes of data.  The bit-packing may be considered extreme,
+but was significant when this code was written circa 1995.  It
+meant that a table for ten millennia could be fitted into a 30K
+file (see 'chinese.dat',  which is that file for Gregorian years
+-3000 to +7000).
+
+   Also see https://projectpluto.com/calendar.htm#chinese for a
+better explanation of how the Chinese calendar and this system work.
+
+   Note also that this is an observational calendar,  and is susceptible
+to uncertainties in Delta-T.  I computed 'chinese.dat' using the best
+available TD-UT formula in 1995;  running again in 2020,  I see the
+first discrepancy in the future at (Gregorian) 2173,  with the number
+of discrepancies gradually increasing as you go forward.  Going
+backward,  I see discrepancies in 1570.  (With the added warning that
+I seriously doubt the Chinese calendar was measured precisely enough
+back then to allow my computation to match the historical record.
+Though actually,  it'd probably be good for any month where New Moon
+didn't occur really close to the start/end of the day.)
+
+   To make 'chinese.dat',  I ran (and you can run)
+
+./phases -3000 -m8000 -c -l/tmp/log.txt
+
+   I edited /tmp/log.txt and sorted it in straight ASCII order,
+causing principal term data and new moon times to become interleaved,
+and saved the result.  Then :
+
+./chinese /tmp/log.txt 10000
+
+   generated the actual 'chinese.dat' file.        */
+
 #include <stdio.h>
-#include <math.h>
+#include <stdint.h>
 #include <string.h>
 #include <stdlib.h>
+#include <math.h>
 
 #define YEAR_DATA struct year_data
 
@@ -26,14 +68,14 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 
 YEAR_DATA
    {
-   unsigned short mask;
-   unsigned char intercalary_month, offset;
+   uint16_t mask;
+   uint8_t intercalary_month, offset;
    } *ydata;
 
 #pragma pack()
 
-short n_years, year0;
-unsigned short bitmask = 1u;
+int16_t n_years, year0;
+uint16_t bitmask = 1u;
 long prev_jd;
 
 static void dump_data( char *text[], const int n_found)
@@ -120,6 +162,8 @@ int main( const int argc, const char **argv)
       text[i] = buff + i * 60;
    while( fgets( ibuff, 60, ifile))
       {
+      if( ibuff[26] == ':')      /* workaround for years before -999 */
+         memmove( ibuff + 17, ibuff + 18, strlen( ibuff + 17));
       strcpy( text[n_found], ibuff);
       if( ibuff[33] == '1' && ibuff[34] == '1')
          {
