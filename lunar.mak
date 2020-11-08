@@ -3,12 +3,13 @@
 # to build a version that is either 32 or 64 bit;
 # and which either builds the library as a DLL or statically
 
-EXES= astcheck.exe astephem.exe calendar.exe cosptest.exe dist.exe \
-      easter.exe get_test.exe htc20b.exe jd.exe jevent.exe \
-      jpl2b32.exe jsattest.exe lun_test.exe marstime.exe oblitest.exe \
-      persian.exe phases.exe prectest.exe ps_1996.exe \
-      relativi.exe ssattest.exe tables.exe \
-      testprec.exe test_ref.exe uranus1.exe utc_test.exe
+EXES= add_off.exe adestest.exe astcheck.exe astephem.exe \
+      calendar.exe chinese.exe colors.exe colors2.exe cosptest.exe csv2ades.exe dist.exe \
+      easter.exe get_test.exe gtest.exe htc20b.exe jd.exe jevent.exe \
+      jpl2b32.exe jsattest.exe lun_test.exe marstime.exe moidtest.exe oblitest.exe \
+      parallax.exe persian.exe phases.exe prectest.exe prectes2.exe ps_1996.exe \
+      relativi.exe ssattest.exe tables.exe test_des.exe test_ref.exe \
+      testprec.exe test_ref.exe themis.exe them_cat.exe uranus1.exe utc_test.exe
 
 all: $(EXES)
 
@@ -57,18 +58,27 @@ $(LIBNAME).lib: $(LIB_OBJS)
 clean:
    $(RM) $(LIB_OBJS)
    $(RM) $(EXES)
-   $(RM) ades2mpc.obj astcheck.obj astephem.obj
-   $(RM) calendar.obj cosptest.obj dist.obj
-   $(RM) easter.obj get_test.obj htc20b.obj jd.obj jevent.obj
-   $(RM) jpl2b32.obj jsattest.obj lun_test.obj marstime.obj
-   $(RM) mpc_code.obj mpc_fmt.obj oblitest.obj
-   $(RM) persian.obj phases.obj ps_1996.obj prectest.obj
-   $(RM) relativi.obj ssattest.obj tables.obj
-   $(RM) testprec.obj test_ref.obj uranus1.obj utc_test.obj
-   $(RM) eart2000.obj gust86.obj lun_tran.obj mpcorb.obj obliqui2.obj
-   $(RM) riseset3.obj sof.obj solseqn.obj spline.obj
+   $(RM) add_off.obj ades2mpc.obj adestest.obj astcheck.obj
+   $(RM) astephem.obj calendar.obj chinese.obj colors.obj
+   $(RM) colors2.obj csv2ades.obj cosptest.obj dist.obj
+   $(RM) eart2000.obj easter.obj get_test.obj gtest.obj
+   $(RM) gust86.obj htc20b.obj jd.obj jevent.obj
+   $(RM) jpl2b32.obj jsattest.obj lun_test.obj lun_tran.obj
+   $(RM) marstime.obj mpc_code.obj mpc_fmt.obj mpcorb.obj
+   $(RM) moidtest.obj obliqui2.obj oblitest.obj
+   $(RM) parallax.obj persian.obj phases.obj ps_1996.obj
+   $(RM) prectest.obj prectes2.obj relativi.obj riseset3.obj
+   $(RM) sof.obj solseqn.obj spline.obj ssattest.obj tables.obj
+   $(RM) testprec.obj test_des.obj test_ref.obj themis.obj
+   $(RM) them_cat.obj uranus1.obj utc_test.obj
    $(RM) $(LIBNAME).lib $(LIBNAME).map $(LIBNAME).exp
    $(RM) $(LIBNAME).dll
+
+add_off.exe:  add_off.obj $(LIBNAME).lib
+   $(LINK)    add_off.obj $(LIBNAME).lib
+
+adestest.exe: adestest.obj $(LIBNAME).lib
+   $(LINK)    adestest.obj $(LIBNAME).lib
 
 astcheck.exe: astcheck.obj eart2000.obj mpcorb.obj $(LIBNAME).lib
    $(LINK)    astcheck.obj eart2000.obj mpcorb.obj $(LIBNAME).lib
@@ -79,8 +89,17 @@ astephem.exe: astephem.obj eart2000.obj mpcorb.obj $(LIBNAME).lib
 calendar.exe: calendar.obj $(LIBNAME).lib
    $(LINK)    calendar.obj $(LIBNAME).lib
 
+colors.exe: colors.cpp
+   cl -DSIMPLE_TEST_PROGRAM $(BASE_FLAGS) colors.cpp
+
+colors2.exe: colors2.cpp
+   cl -DTEST_FUNC $(BASE_FLAGS) colors2.cpp
+
 cosptest.exe: cosptest.obj $(LIBNAME).lib
    $(LINK)    cosptest.obj $(LIBNAME).lib
+
+csv2ades.exe: csv2ades.obj $(LIBNAME).lib
+   $(LINK)    csv2ades.obj $(LIBNAME).lib
 
 dist.exe:  dist.obj
    $(LINK) dist.obj
@@ -121,6 +140,9 @@ moidtest.exe: moidtest.obj $(LIBNAME).lib
 oblitest.exe: oblitest.obj obliqui2.obj spline.obj $(LIBNAME).lib
    $(LINK)    oblitest.obj obliqui2.obj spline.obj $(LIBNAME).lib
 
+parallax.exe: parallax.obj $(LIBNAME).lib
+   $(LINK)    parallax.obj $(LIBNAME).lib
+
 persian.exe: persian.obj solseqn.obj $(LIBNAME).lib
    $(LINK)   persian.obj solseqn.obj $(LIBNAME).lib
 
@@ -129,6 +151,9 @@ phases.exe: phases.obj $(LIBNAME).lib
 
 prectest.exe: prectest.obj $(LIBNAME).lib
    $(LINK)    prectest.obj $(LIBNAME).lib
+
+prectes2.exe: prectes2.obj $(LIBNAME).lib
+   $(LINK)    prectes2.obj $(LIBNAME).lib
 
 ps_1996.exe: ps_1996.obj $(LIBNAME).lib
    $(LINK)   ps_1996.obj $(LIBNAME).lib
@@ -151,8 +176,14 @@ tables.exe: tables.obj riseset3.obj $(LIBNAME).lib
 testprec.exe: testprec.obj $(LIBNAME).lib
    $(LINK)    testprec.obj $(LIBNAME).lib
 
+test_des.exe: test_des.obj $(LIBNAME).lib
+   $(LINK)    test_des.obj $(LIBNAME).lib
+
 test_ref.exe: test_ref.obj refract.obj refract4.obj
    $(LINK)    test_ref.obj refract.obj refract4.obj
+
+themis.exe:   themis.obj $(LIBNAME).lib
+   $(LINK)    themis.obj $(LIBNAME).lib
 
 uranus1.exe: uranus1.obj gust86.obj
    $(LINK)   uranus1.obj gust86.obj
