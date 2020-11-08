@@ -17,7 +17,9 @@ over to replace the old file.       */
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
-#include <unistd.h>
+#ifndef _WIN32
+   #include <unistd.h>
+#endif
 #include <stdbool.h>
 #include <time.h>
 
