@@ -596,18 +596,18 @@ static int extract_roman_numeral( const char *str)
 
 static int pack_permanent_natsat( char *packed, const char *fullname)
 {
-   size_t i, len;
-   extern const char *planet_names_in_english[];      /* unpack.cpp */
-   int roman;
+   size_t i;
 
    for( i = 0; i < 8; i++)
       {
-      len = strlen( planet_names_in_english[i]);
+      extern const char *planet_names_in_english[];      /* unpack.cpp */
+      const size_t len = strlen( planet_names_in_english[i]);
 
       if( !strncmp( fullname, planet_names_in_english[i], len)
                && fullname[len] == ' ')
          {
-         roman = extract_roman_numeral( fullname + len + 1);
+         const int roman = extract_roman_numeral( fullname + len + 1);
+
          if( roman > 0 && roman < 1000)
             {
             sprintf( packed, "%c%03dS       ", *fullname, roman);
