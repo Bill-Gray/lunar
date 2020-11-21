@@ -30,10 +30,12 @@ LINK=link /nologo
 !ifdef BITS_32
 BASE_FLAGS=-nologo -W3 -O2 -MT -D_CRT_SECURE_NO_WARNINGS
 LIBNAME=lunar
+JPLLIBNAME=jpleph32
 RM=del
 !else
 BASE_FLAGS=-nologo -W3 -O2 -MT -D_CRT_SECURE_NO_WARNINGS
 LIBNAME=lunar64
+JPLLIBNAME=jpleph64
 RM=del
 !endif
 
@@ -114,7 +116,7 @@ htc20b.exe: htc20b.cpp
    cl -DTEST_MAIN $(BASE_FLAGS) htc20b.cpp
 
 integrat.exe: integrat.obj $(LIBNAME).lib
-   $(LINK)    integrat.obj $(LIBNAME).lib jpleph.lib
+   $(LINK)    integrat.obj $(LIBNAME).lib $(JPLLIBNAME).lib
 
 jevent.exe: jevent.obj $(LIBNAME).lib
    $(LINK)  jevent.obj $(LIBNAME).lib
