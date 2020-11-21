@@ -365,6 +365,10 @@ const char *kml_header_text =
     "      <name> MPC sites </name>\n"
     "      <description> MPC observatory sites </description>\n";
 
+/* TODO : add in 'night earth' maps such as
+
+https://www.nightearth.com/?@44.01,-69.9,11z&data=$bWVsMmQx    */
+
 int main( const int argc, const char **argv)
 {
    FILE *ifile;
@@ -373,7 +377,7 @@ int main( const int argc, const char **argv)
    mpc_code_t code;
    bool google_map_links = false, dump_comments = false;
    bool make_kml = false;
-   int i;
+   int i, line_no = 0;
    size_t google_offset = 0;
 
    const char *header =
@@ -392,6 +396,7 @@ int main( const int argc, const char **argv)
                {
                const time_t t0 = time( NULL);
                FILE *hdr_ifile = fopen( "mpc_hdr.htm", "rb");
+               bool showing_lines = true;
 
                assert( hdr_ifile);
                google_map_links = true;
@@ -399,7 +404,13 @@ int main( const int argc, const char **argv)
                while( fgets( buff, sizeof( buff), hdr_ifile))
                   if( strstr( buff, "%s"))
                      printf( buff, ctime( &t0));
-                  else if( *buff != '#')
+                  else if( *buff == '#')
+                     {
+                     if( strstr( ifilename, "rovers") &&
+                                 !memcmp( buff, "# 'rovers' ", 11))
+                        showing_lines = (buff[12] == 'n');
+                     }
+                  else if( showing_lines)
                      printf( "%s", buff);
                fclose( hdr_ifile);
                }
@@ -470,7 +481,7 @@ int main( const int argc, const char **argv)
          if( code.lon > 180.)
             code.lon -= 360.;
          if( google_map_links)        /* include HTML anchors */
-            printf( "<a name=\"L%04d\"></a>", i++);
+            printf( "<a name=\"L%04d\"></a>", line_no++);
          show_link_for_this_line = (code.planet == 3 && google_map_links
                         && (code.lat || code.lon));
          if( show_link_for_this_line)
