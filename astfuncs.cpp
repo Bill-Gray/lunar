@@ -38,7 +38,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 #define MIN_THRESH 1.e-14
 #define CUBE_ROOT( X)  (exp( log( X) / 3.))
 
-static double kepler( const double ecc, double mean_anom);
+double kepler( const double ecc, double mean_anom);
 void setup_orbit_vectors( ELEMENTS DLLPTR *e);  /* astfuncs.cpp */
 void comet_posn_part_ii( const ELEMENTS DLLPTR *elem, const double t,
                                     double DLLPTR *loc, double DLLPTR *vel);
@@ -187,7 +187,7 @@ go into excruciating detail as to how it's done below. */
 
 #define MAX_ITERATIONS 7
 
-static double kepler( const double ecc, double mean_anom)
+double kepler( const double ecc, double mean_anom)
 {
    double curr, err, thresh, offset = 0.;
    double delta_curr = 1.;
