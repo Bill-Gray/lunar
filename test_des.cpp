@@ -2,6 +2,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <assert.h>
+#include <math.h>
 #include "mpc_func.h"
 
 /* Unit test code for packing and unpacking MPC designations. Runs
