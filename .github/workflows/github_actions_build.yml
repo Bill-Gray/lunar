@@ -9,7 +9,7 @@ jobs:
     steps:
     - uses: actions/checkout@master
     - name: make
-      run: make
+      run: make ERRORS=Y
     - name: Archive lib
       uses: actions/upload-artifact@v2
       with:
@@ -22,7 +22,7 @@ jobs:
     steps:
     - uses: actions/checkout@master
     - name: make
-      run: make CLANG=Y
+      run: make CLANG=Y ERRORS=Y
 
   buildWindows:
     runs-on: windows-latest
