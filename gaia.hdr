@@ -1,0 +1,54 @@
+<?xml version='1.0' encoding='utf-8'?>
+<ades version='2017'>
+ <obsBlock>
+  <obsContext>
+   <observatory>
+    <mpcCode>258</mpcCode>
+    <name>Gaia</name>
+   </observatory>
+   <submitter>
+    <name>C. Ordenovic</name>
+    <institution>OCA</institution>
+   </submitter>
+   <observers>
+    <name>Gaia team</name>
+   </observers>
+   <measurers>
+    <name>Gaia data reduction software of the Gaia DPAC team</name>
+   </measurers>
+   <telescope>
+    <name>Gaia</name>
+    <design>Off-axis three-Mirror Anastigmat</design>
+    <aperture>0.5</aperture>
+    <detector>4Kx2K CCD in TDI mode</detector>
+    <fRatio>70</fRatio>
+    <pixelScale>0.102</pixelScale>
+   </telescope>
+   <software>
+    <astrometry>Gaia data reduction software of the Gaia DPAC team</astrometry>
+    <photometry>Gaia data reduction software of the Gaia DPAC team</photometry>
+   </software>
+   <coinvestigators>
+    <name>P. Tanga</name>
+    <name>J. Bertier</name>
+    <name>A. Dell'Oro</name>
+    <name>A. Cellino</name>
+    <name>D. Hestroffer</name>
+    <name>T. Pauwels</name>
+    <name>J.-M. Petit</name>
+    <name>K. Muinonen</name>
+    <name>W. Thuillot</name>
+    <name>F. Mignard</name>
+   </coinvestigators>
+   <collaborators>
+    <name>A. Jonckheere</name>
+    <name>E. Van Hemelrycke</name>
+    <name>P. David</name>
+    <name>L. Gallucio</name>
+   </collaborators>
+  </obsContext>
+  <obsData>
+*
+  </obsData>
+ </obsBlock>
+</ades>
