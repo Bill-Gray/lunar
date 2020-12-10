@@ -214,7 +214,7 @@ get_test$(EXE): get_test.o $(LIBLUNAR)
 	$(CC) $(CFLAGS) -o get_test$(EXE) get_test.o $(LIBLUNAR) $(LIBSADDED)
 
 gtest$(EXE): gtest.c
-	$(CC) $(FLAGS) -o gtest$(EXE) gtest.c
+	$(CC) $(FLAGS) -o gtest$(EXE) gtest.c $(LIBSADDED)
 
 htc20b$(EXE): htc20b.cpp $(LIBLUNAR)
 	$(CC) $(CFLAGS) -o htc20b$(EXE) -DTEST_MAIN htc20b.cpp $(LIBLUNAR) $(LIBSADDED)
@@ -295,7 +295,7 @@ tables$(EXE):                    tables.o riseset3.o $(LIBLUNAR)
 	$(CC) $(CFLAGS) -o tables$(EXE) tables.o riseset3.o $(LIBLUNAR) $(LIBSADDED)
 
 test_des$(EXE):                    test_des.o $(LIBLUNAR)
-	$(CC) $(CFLAGS) -o test_des$(EXE) test_des.o $(LIBLUNAR)
+	$(CC) $(CFLAGS) -o test_des$(EXE) test_des.o $(LIBLUNAR) $(LIBSADDED)
 
 test_ref$(EXE):                    test_ref.o refract.o refract4.o
 	$(CC) $(CFLAGS) -o test_ref$(EXE) test_ref.o refract.o refract4.o $(LIBSADDED)
