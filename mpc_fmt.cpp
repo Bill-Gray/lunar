@@ -702,10 +702,9 @@ int create_mpc_packed_desig( char *packed_desig, const char *obj_name)
       len--;
    while( len && obj_name[len - 1] == ' ')
       len--;         /* ignore trailing spaces */
-   if( number > 0 && obj_name[i] && !obj_name[i + 1]
+   if( number > 0 && number < 10000 && obj_name[i] && !obj_name[i + 1]
                              && strchr( "PDI", obj_name[i]))
       {        /* such as '297P',  '1I',  etc. */
-      assert( number < 10000);
       snprintf( packed_desig, 5, "%04d", number);
       packed_desig[4] = obj_name[i];
       return( 0);
