@@ -252,7 +252,7 @@ int process_file( const char *filename)
       if( buff[14] == 'S' && (jd = get_sat_obs_jd( buff)) != 0.)
          {
          if( verbose)
-            printf( "Sat obs: %.5lf\n%s", jd, buff);
+            printf( "Sat obs: %.5f\n%s", jd, buff);
          n_offsets++;
          offsets = (offset_t *)realloc( offsets,
                               n_offsets * sizeof( offset_t));
@@ -263,7 +263,7 @@ int process_file( const char *filename)
    for( i = 0; i < n_offsets; i++)
       {
       if( verbose)
-         printf( "%d: JD %.5lf; code '%s'\n", i, offsets[i].jd, offsets[i].mpc_code);
+         printf( "%d: JD %.5f; code '%s'\n", i, offsets[i].jd, offsets[i].mpc_code);
       if( !offsets[i].xyz[0] && offsets[i].mpc_code[0])
          set_offsets( offsets + i, n_offsets - i);
       }
