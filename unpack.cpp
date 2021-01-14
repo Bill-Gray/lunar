@@ -48,7 +48,7 @@ static int unpack_provisional_packed_desig( char *obuff, const char *ibuff)
 
    if( *ibuff >= 'G' && *ibuff <= 'K' && isdigit( ibuff[1])
             && isdigit( ibuff[2]) && isupper( ibuff[3])
-            && isdigit( ibuff[5]) && isalnum( ibuff[6]))
+            && isdigit( ibuff[5]) && (isalpha( ibuff[6]) || ibuff[6] == '0'))
       {
       int output_no = mutant_hex_char_to_int( ibuff[4]);
 
