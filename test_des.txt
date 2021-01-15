@@ -16,6 +16,7 @@ n1415         1 (491415)
 ~0000         1 (620000)
 ~000a         1 (620036)
 ~00A0         1 (620620)
+~AZaz         1 (3140113)
 ~zzzz         1 (15396335)
 U024S         5 Uranus XXIV
 N924S         5 Neptune CMXXIV
@@ -25,3 +26,4 @@ U410S         5 Uranus CDX
 1963-731KHG   6 1963-731KHG
      WT1190F -1 WT1190F
      ZTF0Ep4 -1 ZTF0Ep4
+     C12J001 -1 C12J001
