@@ -20,6 +20,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 #include <stdlib.h>
 #include <stdio.h>
 #include <ctype.h>
+#include "watdefs.h"
+#include "date.h"
 #include "mpc_func.h"
 
 #if defined(_MSC_VER) && _MSC_VER < 1900
@@ -28,6 +30,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 int snprintf( char *string, const size_t max_len, const char *format, ...);
 #endif
 
+#define NOT_A_VALID_TIME -3.141e+17
 #define MAX_DEPTH 20
 #define PIECE_SIZE   25
 
@@ -38,6 +41,8 @@ typedef struct
    char line2[83];
    char rms_ra[PIECE_SIZE], rms_dec[PIECE_SIZE], corr[PIECE_SIZE];
    char rms_mag[PIECE_SIZE], rms_time[PIECE_SIZE], center[PIECE_SIZE];
+   char full_ra[PIECE_SIZE], full_dec[PIECE_SIZE];
+   long double full_t2k;
    int id_set, getting_lines;
    int prev_line_passed_through;
    int prev_rval, n_psv_fields;
@@ -297,8 +302,10 @@ static int find_tag( const char *buff, size_t len)
    return( rval);
 }
 
-static inline void move_fits_time( char *optr, const char *iptr)
+static inline size_t move_fits_time( char *optr, const char *iptr)
 {
+   char *optr0 = optr;
+
    if( iptr[4] == '-' && iptr[7] == '-' && iptr[10] == 'T'
                && iptr[13] == ':')
       {
@@ -313,9 +320,10 @@ static inline void move_fits_time( char *optr, const char *iptr)
          iptr++;
          }
       }
+   return( optr - optr0);
 }
 
-static inline void place_value( char *optr, const char *iptr, const size_t ilen,
+static inline int place_value( char *optr, const char *iptr, const size_t ilen,
              size_t leading_places)
 {
    size_t i, point_loc = ilen;
@@ -324,12 +332,22 @@ static inline void place_value( char *optr, const char *iptr, const size_t ilen,
       if( iptr[i] == '.')
          point_loc = i;
    assert( leading_places >= point_loc);
+   if( ilen - point_loc > 8)     /* overly long;  read value and round it */
+      {
+      char tbuff[13];
+
+      snprintf( tbuff, sizeof( tbuff), (leading_places == 2 ? "%11.8f " : "%12.8f"),
+                        atof( iptr));
+      memcpy( optr, tbuff, 12);
+      return (1);
+      }
    while( leading_places > point_loc)
       {
       *optr++ = '0';
       leading_places--;
       }
    memcpy( optr, iptr, (ilen < 9 + leading_places) ? ilen : 9 + leading_places);
+   return( 0);
 }
 
 static const char *skip_whitespace( const char *tptr)
@@ -360,10 +378,26 @@ static int get_a_line( char *obuff, ades2mpc_t *cptr)
          {
          strcat( obuff, " t:");
          strcat( obuff, cptr->rms_time);
-         cptr->rms_mag[0] = '\0';
+         cptr->rms_time[0] = '\0';
          }
       cptr->rms_ra[0] = '\0';
       strcat( obuff, "\n");
+      }
+   else if( cptr->full_ra[0] || cptr->full_dec[0] || cptr->full_t2k != NOT_A_VALID_TIME)
+      {
+      sprintf( obuff, "COM RA/dec %s %s",
+               (cptr->full_ra[0] ? cptr->full_ra : "-"),
+               (cptr->full_dec[0] ? cptr->full_dec : "-"));
+      if( cptr->full_t2k != NOT_A_VALID_TIME)
+         sprintf( obuff + strlen( obuff), " %.15f", (double)cptr->full_t2k);
+      strcat( obuff, "\n");
+      cptr->full_ra[0] = cptr->full_dec[0] = '\0';
+      cptr->full_t2k = NOT_A_VALID_TIME;
+      }
+   else if( cptr->full_dec[0])
+      {
+      sprintf( obuff, "COM RA/dec - %s\n", cptr->full_dec);
+      cptr->full_dec[0] = '\0';
       }
    else if( cptr->center[0])
       {
@@ -448,7 +482,14 @@ static int process_ades_tag( char *obuff, ades2mpc_t *cptr, const int itag,
          memcpy( cptr->line + 77, tptr, 3);
          break;
       case ADES_obsTime:
-         move_fits_time( cptr->line + 15, tptr);
+         if( move_fits_time( cptr->line + 15, tptr) > 17)
+            {
+            char *zptr = strchr( name, 'Z');
+
+            if( zptr)
+               *zptr = '\0';
+            cptr->full_t2k = get_time_from_stringl( 0., name, 0, NULL);
+            }
          break;
       case ADES_band:
          cptr->line[70] = *tptr;
@@ -532,7 +573,11 @@ static int process_ades_tag( char *obuff, ades2mpc_t *cptr, const int itag,
             tptr++;
             len--;
             }
-         place_value( cptr->line + 32, tptr, len, 3);
+         if( place_value( cptr->line + 32, tptr, len, 3))
+            {
+            memcpy( cptr->full_ra, tptr, len);     /* 'overlong' RA */
+            cptr->full_ra[len] = '\0';
+            }
          break;
       case ADES_dec:
          if( *tptr == '-' || *tptr == '+')
@@ -542,7 +587,12 @@ static int process_ades_tag( char *obuff, ades2mpc_t *cptr, const int itag,
             }
          else
             cptr->line[44] = '+';
-         place_value( cptr->line + 45, tptr, len, 2);
+         if( place_value( cptr->line + 45, tptr, len, 2))
+            {              /* 'overlong' dec */
+            cptr->full_dec[0] = cptr->line[44];
+            memcpy( cptr->full_dec + 1, tptr, len);
+            cptr->full_dec[len + 1] = '\0';
+            }
          break;
       case ADES_astCat:
          assert( len < sizeof( name));
@@ -638,6 +688,7 @@ static void setup_observation( ades2mpc_t *cptr)
    strcpy( cptr->line2 + 80, "\n");
    cptr->line2[0] = '\0';
    cptr->id_set = 0;
+   cptr->full_t2k = NOT_A_VALID_TIME;
 }
 
 /* The following checks to see if the input is astrometry with "Dave
