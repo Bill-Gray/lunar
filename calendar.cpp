@@ -676,7 +676,7 @@ int main( const int argc, const char **argv)
    if( month > year)       /* allow for possible reversed entry */
       {
       month = year;
-      year = atoi( argv[1]);
+      year = atoi( argv[2]);
       }
    assert( month >= 0 && month <= 12);
    for( i = 2; i < argc; i++)
