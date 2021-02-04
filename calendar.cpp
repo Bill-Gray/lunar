@@ -71,6 +71,8 @@ static int wraparound_style = 0;
 void easter_date( const long year, int *month, int *day);
 #endif
 
+FILE *ofile = stdout;
+
 static void show_month_text( const int month, const int year)
 {
    char buff[80];
@@ -86,7 +88,7 @@ static void show_month_text( const int month, const int year)
          sprintf( buff + strlen( buff), " (MJD %ld)", jd - 2400000L);
       }
 
-   printf( "%d %d moveto (%s) show\n",
+   fprintf( ofile, "%d %d moveto (%s) show\n",
             X0 + 7 * xsize / 2 - (int)strlen( buff) * 20 / 3,
             TOP_OF_DAYOFWK + 5, buff);
 }
@@ -114,14 +116,14 @@ static int get_phase_data( const double t, double *t_phases)
 
       k = floor( (t - 2451550.09765) / 29.530588853 - .5);
       if( !fread( &phase0, 1, sizeof( int32_t), phase_file))
-         printf( "Error reading phase file\n");
+         fprintf( stderr, "Error reading phase file\n");
       offset = (4L * ((long)k - phase0) + 1L) * (long)sizeof( int32_t);
       if( !fseek( phase_file, offset, SEEK_SET))
          {
          if( !fread( dt, 12, sizeof( int32_t), phase_file))
             {
-            printf( "Read error on phase file\n");
-            printf( "phase0 = %ld; offset %ld\n", (long)phase0, offset);
+            fprintf( stderr, "Read error on phase file\n");
+            fprintf( stderr, "phase0 = %ld; offset %ld\n", (long)phase0, offset);
             exit( -1);
             }
          rval = 0;
@@ -166,7 +168,7 @@ static void show_small_month( int month, int year, const int x0, int y0)
    if( get_phase_data( jd1 - 10, t_phases))
       for( i = 0; i < 12; i++)
          t_phases[i] = 0.;
-   printf( "%d %d moveto (%s) show\n",
+   fprintf( ofile, "%d %d moveto (%s) show\n",
             x0 + (28 - (int)strlen( buff)) * TEXT_XOFFSET / 2, y0, buff);
    for( i = 0; i < 6; i++)
       {
@@ -193,16 +195,16 @@ static void show_small_month( int month, int year, const int x0, int y0)
          ;
       buff[j] = buff[20] ='\0';
       if( j)
-         printf( "%d %d moveto (%s) show\n", x0, y0, buff);
+         fprintf( ofile, "%d %d moveto (%s) show\n", x0, y0, buff);
       }
    if( show_jd_values)
       {
       jd1--;
-      printf( "%d %d moveto ", x0, y0 - 12);
+      fprintf( ofile, "%d %d moveto ", x0, y0 - 12);
       if( show_jd_values == SHOW_JD)
-         printf( "((JD %ld.5)) show\n", jd1);
+         fprintf( ofile, "((JD %ld.5)) show\n", jd1);
       else
-         printf( "((MJD %ld)) show\n", jd1 - 2400000L);
+         fprintf( ofile, "((MJD %ld)) show\n", jd1 - 2400000L);
       }
 }
 
@@ -483,50 +485,50 @@ static int calendar( const int month, const int year)
 
    if( month == 1 || !dollhouse)
       {
-      printf( "%%!PS-Adobe-2.0\n");
-      printf( "%%%%Pages: %d\n", (dollhouse || single_page ? 1 : 7));
-      printf( "%%%%PageOrder: Ascend\n");
-      printf( "%%%%DocumentMedia: Default 612 %d 0 () ()\n", width);
-      printf( "%%%%Creator: calendar.cpp\n");
-      printf( "%%%%Copyright: none\n");
-      printf( "%%%%Title: Calendar for %s %d\n", months[month - 1], year);
-      printf( "%%%%Version: none\n");
-      printf( "%%%%DocumentData: Clean7Bit\n");
-      printf( "%%%%EndComments\n");
-      printf( "%%%%BeginDefaults\n");
-      printf( "%%%%PageResources: font Times-Roman\n");
-      printf( "%%%%PageResources: font Times-Italic\n");
-      printf( "%%%%PageResources: font Courier-Bold\n");
-      printf( "%%%%EndDefaults\n");
-      printf( "\n/width %d def\n", width);
-      printf( "/height %d def\n\n", height);
-      printf( "/blood {\n");
-      printf( "/aa 3 def /bb 2.5 def\n");
-      printf( "aa 0 rmoveto bb 0 rlineto 0 aa rlineto aa 0 rlineto 0 bb rlineto\n");
-      printf( "0 aa sub 0 rlineto 0 aa rlineto 0 bb sub 0 rlineto\n");
-      printf( "0 0 aa sub rlineto 0 aa sub 0 rlineto\n");
-      printf( "0 0 bb sub rlineto aa 0 rlineto 0 0 aa sub rlineto aa 3 mul 0 rmoveto\n");
-      printf( "} def\n\n");
+      fprintf( ofile, "%%!PS-Adobe-2.0\n");
+      fprintf( ofile, "%%%%Pages: %d\n", (dollhouse || single_page ? 1 : 7));
+      fprintf( ofile, "%%%%PageOrder: Ascend\n");
+      fprintf( ofile, "%%%%DocumentMedia: Default 612 %d 0 () ()\n", width);
+      fprintf( ofile, "%%%%Creator: calendar.cpp\n");
+      fprintf( ofile, "%%%%Copyright: none\n");
+      fprintf( ofile, "%%%%Title: Calendar for %s %d\n", months[month - 1], year);
+      fprintf( ofile, "%%%%Version: none\n");
+      fprintf( ofile, "%%%%DocumentData: Clean7Bit\n");
+      fprintf( ofile, "%%%%EndComments\n");
+      fprintf( ofile, "%%%%BeginDefaults\n");
+      fprintf( ofile, "%%%%PageResources: font Times-Roman\n");
+      fprintf( ofile, "%%%%PageResources: font Times-Italic\n");
+      fprintf( ofile, "%%%%PageResources: font Courier-Bold\n");
+      fprintf( ofile, "%%%%EndDefaults\n");
+      fprintf( ofile, "\n/width %d def\n", width);
+      fprintf( ofile, "/height %d def\n\n", height);
+      fprintf( ofile, "/blood {\n");
+      fprintf( ofile, "/aa 3 def /bb 2.5 def\n");
+      fprintf( ofile, "aa 0 rmoveto bb 0 rlineto 0 aa rlineto aa 0 rlineto 0 bb rlineto\n");
+      fprintf( ofile, "0 aa sub 0 rlineto 0 aa rlineto 0 bb sub 0 rlineto\n");
+      fprintf( ofile, "0 0 aa sub rlineto 0 aa sub 0 rlineto\n");
+      fprintf( ofile, "0 0 bb sub rlineto aa 0 rlineto 0 0 aa sub rlineto aa 3 mul 0 rmoveto\n");
+      fprintf( ofile, "} def\n\n");
       }
    if( dollhouse)
-      printf( "/calendar_%d {\n", month);
+      fprintf( ofile, "/calendar_%d {\n", month);
    else
       {
-      printf( "/calendar {\n");
-      printf( "0 %d translate -90 rotate\n", width);
+      fprintf( ofile, "/calendar {\n");
+      fprintf( ofile, "0 %d translate -90 rotate\n", width);
       }
 
    for( i = 0; i <= 5; i++)             /* horizontal lines separating weeks */
-      printf( "%d %d moveto %d %d lineto\n", X0, Y0 + i * YSIZE,
+      fprintf( ofile, "%d %d moveto %d %d lineto\n", X0, Y0 + i * YSIZE,
                                            XEND, Y0 + i * YSIZE);
-   printf( "%d %d moveto %d %d lineto\n", X0, TOP_OF_DAYOFWK,
+   fprintf( ofile, "%d %d moveto %d %d lineto\n", X0, TOP_OF_DAYOFWK,
                                         XEND, TOP_OF_DAYOFWK);
 
    for( i = 0; i <= 7; i++)       /* vertical lines */
-      printf( "%d %d moveto %d %d lineto\n", X0 + i * xsize, Y0,
+      fprintf( ofile, "%d %d moveto %d %d lineto\n", X0 + i * xsize, Y0,
                                              X0 + i * xsize, YEND);
-   printf( "/defaultfontsize  { 12 scalefont } def\n");
-   printf( "/Times-Roman findfont defaultfontsize setfont\n");
+   fprintf( ofile, "/defaultfontsize  { 12 scalefont } def\n");
+   fprintf( ofile, "/Times-Roman findfont defaultfontsize setfont\n");
    for( i = 0; i < 35; i++)
       lines_used[i] = phases_shown[i] = 0;
 
@@ -554,9 +556,9 @@ static int calendar( const int month, const int year)
          {
          const int xboxsize = TEXT_XOFFSET + 8 * (int)strlen( buff);
 
-         printf( "%d %d moveto (%s) show\n",
+         fprintf( ofile, "%d %d moveto (%s) show\n",
                      x0 + TEXT_XOFFSET, y0 - TEXT_YOFFSET, buff);
-         printf( "%d %d moveto %d %d rlineto %d %d rlineto\n",
+         fprintf( ofile, "%d %d moveto %d %d rlineto %d %d rlineto\n",
                x0, y0 - (TEXT_YOFFSET + 2),
                xboxsize, 0, 0, TEXT_YOFFSET + 2);
          }
@@ -586,30 +588,30 @@ static int calendar( const int month, const int year)
                {
                curr_font = font_to_use;
                if( curr_font == FONT_ITALIC)
-                  printf( "/Times-Italic findfont 9 scalefont setfont\n");
+                  fprintf( ofile, "/Times-Italic findfont 9 scalefont setfont\n");
                if( curr_font == FONT_PLAIN)
-                  printf( "/Times-Roman findfont 9 scalefont setfont\n");
+                  fprintf( ofile, "/Times-Roman findfont 9 scalefont setfont\n");
                if( curr_font == FONT_BOLD)
-                  printf( "/Times-Bold findfont 9 scalefont setfont\n");
+                  fprintf( ofile, "/Times-Bold findfont 9 scalefont setfont\n");
                }
             if( curr_font != FONT_PLAIN)
                text_to_show++;    /* first char is a font indicator */
 
-            printf( "%d %d moveto ", xloc, yloc);
+            fprintf( ofile, "%d %d moveto ", xloc, yloc);
             if( double_cell && *text_to_show)
-               printf( "(\050%d\051 ) show ", i);
+               fprintf( ofile, "(\050%d\051 ) show ", i);
             if( *text_to_show == '+' && text_to_show[1] == ' ')
                {
-               printf( "blood ");
+               fprintf( ofile, "blood ");
                text_to_show += 2;
                }
             if( *text_to_show == '\\' && text_to_show[1] == 'p')
                {
-               printf( "/Symbol findfont 9 scalefont setfont (p) show\n");
-               printf( "/Times-Roman findfont 9 scalefont setfont\n");
+               fprintf( ofile, "/Symbol findfont 9 scalefont setfont (p) show\n");
+               fprintf( ofile, "/Times-Roman findfont 9 scalefont setfont\n");
                text_to_show += 2;
                }
-            printf( "(%s) show\n", text_to_show);
+            fprintf( ofile, "(%s) show\n", text_to_show);
             if( is_lunar_phase)
                phases_shown[cell_idx]++;
             else
@@ -618,7 +620,7 @@ static int calendar( const int month, const int year)
       if( !lines_used[cell_idx])         /* mark it as being a "used" cell */
          lines_used[cell_idx] = 1;
       if( curr_font != FONT_UNSET)
-         printf( "/Times-Roman findfont defaultfontsize setfont\n");
+         fprintf( ofile, "/Times-Roman findfont defaultfontsize setfont\n");
       }
 
    for( i = 0; i < 7; i++)
@@ -626,18 +628,18 @@ static int calendar( const int month, const int year)
       const char *day_of_week_text[7] = { "Sunday", "Monday", "Tuesday",
                            "Wednesday", "Thursday", "Friday", "Saturday" };
 
-      printf( "%d %d moveto (%s) show\n",
+      fprintf( ofile, "%d %d moveto (%s) show\n",
                               X0 + i * xsize + xsize / 2 -
                               (int)strlen( day_of_week_text[i]) * 4,
                               Y0 + 5 * YSIZE + 5,
                               day_of_week_text[i]);
       }
 
-   printf( "/Times-Roman findfont 24 scalefont setfont\n");
+   fprintf( ofile, "/Times-Roman findfont 24 scalefont setfont\n");
 
    show_month_text( month, year);
 
-   printf( "/Courier-Bold findfont %d scalefont setfont\n",
+   fprintf( ofile, "/Courier-Bold findfont %d scalefont setfont\n",
             (width == LEGAL_SIZE ? 10 : 8));
 
                /* show two preceding & two (or more) following months: */
@@ -650,10 +652,10 @@ static int calendar( const int month, const int year)
          if( j == 2)    /* avoid duplicating the 'main' month */
             j = 3;
          }
-   printf( "stroke %s } def\n", (dollhouse ? "" : "showpage"));
+   fprintf( ofile, "stroke %s } def\n", (dollhouse ? "" : "showpage"));
    if( !dollhouse)
       for( i = 0; (single_page ? i < 3 : trailer_data[i] != NULL); i++)
-         printf( "%s\n", trailer_data[i]);
+         fprintf( ofile, "%s\n", trailer_data[i]);
    return( 0);
 }
 
@@ -700,6 +702,10 @@ int main( const int argc, const char **argv)
             case 'm':
                show_jd_values = SHOW_MJD;
                break;
+            case 'o':
+               ofile = fopen( argv[i] + 2, "wb");
+               assert( ofile);
+               break;
             case 'w':
                wraparound_style = 1;
                break;
@@ -714,7 +720,7 @@ int main( const int argc, const char **argv)
       for( i = 1; i <= 12; i++)
          calendar( i, year);
       for( i = 0; dollhouse_trailer_data[i]; i++)
-         printf( "%s\n", dollhouse_trailer_data[i]);
+         fprintf( ofile, "%s\n", dollhouse_trailer_data[i]);
       }
    return( 0);
 }
