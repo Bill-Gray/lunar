@@ -14,6 +14,7 @@ int main( void)
    FILE *ifile = fopen( "test_des.txt", "rb");
    char buff[200];
    size_t i;
+   int n_errors_found = 0;
 
    assert( ifile);
    while( fgets( buff, sizeof( buff), ifile))
@@ -26,10 +27,18 @@ int main( void)
             ;
          buff[i] = '\0';
          if( strcmp( buff + 16, tbuff) || rval != atoi( buff + 13))
+            {
+            n_errors_found++;
             printf( "UNPACKING MISMATCH\n'%s'\n'%s'\n", buff + 16, tbuff);
+            }
          create_mpc_packed_desig( tbuff, buff + 16);
          if( memcmp( tbuff, buff, 12))
+            {
+            n_errors_found++;
             printf( "PACKING MISMATCH\n'%.12s'\n'%.12s'\n", tbuff, buff);
+            }
          }
+   if( !n_errors_found)
+      printf( "No errors found\n");
    return( 0);
 }
