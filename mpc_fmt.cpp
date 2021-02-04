@@ -769,7 +769,8 @@ int create_mpc_packed_desig( char *packed_desig, const char *obj_name)
             rval = 0;
          }
       }
-   else if( i == len && number < max_number && number > 0 && !comet_desig)
+   else if( in_parentheses && i == len && number < max_number && number > 0
+                                       && !comet_desig)
       {           /* permanently numbered asteroid */
       rval = 0;
       if( number < 620000)
