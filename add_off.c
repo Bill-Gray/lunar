@@ -215,6 +215,8 @@ static int set_offsets( offset_t *offsets, const int n_offsets)
                      n_positions_set++;
                      }
             }
+         else if( verbose > 1 || !memcmp( buff, "No ephemeris", 12))
+            printf( "%s", buff);
       fclose( ifile);
       }
    else
@@ -309,6 +311,9 @@ int main( const int argc, const char **argv)
             {
             case 'v':
                verbose = 1;
+               if( atoi( argv[i] + 2))
+                  verbose = atoi( argv[i] + 2);
+               printf( "Verbose = %d\n", verbose);
                break;
             default:
                printf( "Option '%s' unrecognized\n", argv[i]);
