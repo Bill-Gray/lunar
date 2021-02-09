@@ -113,10 +113,8 @@ static int set_mpc_style_offsets( char *buff, const double *xyz)
          format = "%11.3f";
       else if( maxval > 99999.0)   /* TESS,  e.g.  */
          format = "%11.4f";
-      else if( maxval > 9999.0)
-         format = "%11.5f";
       else
-         format = "%11.6f";
+         format = "%11.5f";
       for( i = 0; i < 3; i++)
          sprintf( buff + 35 + i * 12, format, fabs( xyz[i]));
       }
