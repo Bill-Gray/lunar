@@ -46,6 +46,10 @@ which assumes an acceleration of 32.5 seconds/century^2.
 
 ftp://maia.usno.navy.mil/ser7/deltat.data
 ftp://maia.usno.navy.mil/ser7/deltat.preds
+
+   which is no longer available;  2020 and later uses
+
+ftp://ftp.iers.org/products/eop/rapid/standard/finals.all
 */
 
 static const short delta_t_table[] =
@@ -91,7 +95,8 @@ static const short delta_t_table[] =
   6728,    /* 2014  1 1:   67.2810                              */
   6810,    /* 2016  1 1:   68.1024                              */
   6897,    /* 2018  1 1:   68.9677                              */
-  6940 };  /* 2020  1 1:   69.4009 (estimate at 2019 Sep 13)    */
+  6936,    /* 2020  1 1:   UT1 - UTC = -0.1772554               */
+  6930 };  /* 2022  1 1:   UT1 - UTC = -0.1175024 (prediction 2021 feb 10)  */
 
 /* 8 Aug 2000:  Some people have expressed an interest in being able to
    insert their own formulae for Delta-T while running Guide.  I've
@@ -299,7 +304,8 @@ leap second at the end of every month.  My only excuse is that I expect
 to be dead by 2270.
 
    You may not like this so-called "solution".  I don't,  either.  I'm
-open to ideas,  but doubt there is a better "solution".
+open to ideas,  but doubt there is a better "solution".  If you don't
+like it,  set the global variable 'use_predictive_leap_seconds' to zero.
 
    Also,  note that before 1961 Jan 1 = MJD 37400, there was no "real" UTC,
 and we assume UTC=UT.  From then until 1972 Jan 1 = MJD 41317, the idea
@@ -373,6 +379,8 @@ March to December without having to consider leap days. */
 #define utc0  (JAN_1( 1972))
       /*  'utc0' = MJD of date when the UTC leap seconds began */
 
+int use_predictive_leap_seconds = 1;
+
 double DLL_FUNC td_minus_utc( const double jd_utc)
 {
    const double tdt_minus_tai = 32.184;
@@ -427,7 +435,7 @@ double DLL_FUNC td_minus_utc( const double jd_utc)
                  JAN_1( 2017) - utc0 };
       const int n_leap_seconds = sizeof( leap_intervals) / sizeof( leap_intervals[0]);
 
-      if( imjd_utc >= JUL_1( 2020))
+      if( use_predictive_leap_seconds && imjd_utc >= DEC_1( 2021))
          {
          int day = imjd_utc + 2400000 - 1721058;
          int year = (int)( (int64_t)day * (int64_t)400 / (int64_t)146097);

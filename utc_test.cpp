@@ -41,10 +41,23 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 
 int main( const int argc, const char **argv)
 {
-   int year = (argc > 1 ? atoi( argv[1]) : 1970);
-   const int end_year = (argc > 2 ? atoi( argv[2]) : 2040);
+   int year = 1970, end_year = 2040, i;
    unsigned count = 0;
 
+   for( i = 1; i < argc; i++)
+      if( argv[i][0] == '-')
+         switch( argv[i][1])
+            {
+            case 'p':
+               use_predictive_leap_seconds = 0;
+               printf( "Predicted leap seconds disabled\n");
+               break;
+            default:
+               printf( "Option '%s' ignored\n", argv[i]);
+               break;
+            }
+      else
+         sscanf( argv[i], "%d,%d", &year, &end_year);
    printf( "Leap seconds for years %d to %d\n", year, end_year);
    printf( "(See the 'official' list at http://maia.usno.navy.mil/ser7/tai-utc.dat)\n");
    printf( "Future leap seconds are predicted using the method described\n");
