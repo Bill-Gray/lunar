@@ -24,14 +24,14 @@ typedef struct
 
 static char *show_angle( char *buff, double angle)
 {
-   const long microarcsec = (long)( fabs( angle) * 3600e+3);
+   const long microarcsec = (long)( fabs( angle) * 3600e+5);
 
    *buff = (angle < 0 ? '-' : '+');
-   sprintf( buff + 1, "%02ld %02ld %02ld.%03ld",
-               (microarcsec / 3600000L),         /* degrees */
-               (microarcsec / 60000L) % 60L,     /* arcminutes */
-               (microarcsec / 1000L) % 60L,     /* arcseconds */
-                microarcsec % 1000L);           /* milliarcseconds */
+   sprintf( buff + 1, "%02ld %02ld %02ld.%05ld",
+               (microarcsec / 360000000L),         /* degrees */
+               (microarcsec / 6000000L) % 60L,     /* arcminutes */
+               (microarcsec / 100000L) % 60L,     /* arcseconds */
+                microarcsec % 100000L);           /* milliarcseconds */
    return( buff);
 }
 
@@ -40,10 +40,10 @@ static void show_location( const loc_t *loc)
    char buff[80];
 
    if( loc->lon)
-      printf( "Longitude %11.7f = %s\n", loc->lon, show_angle( buff, loc->lon));
-   printf( "Latitude  %11.7f = %s\n", loc->lat, show_angle( buff, loc->lat));
-   printf( "Altitude %.3f meters\n", loc->alt);
-   printf( "Parallax constants %.7f %+.7f\n", loc->rho_cos_phi, loc->rho_sin_phi);
+      printf( "Longitude %11.9f = %s\n", loc->lon, show_angle( buff, loc->lon));
+   printf( "Latitude  %11.9f = %s\n", loc->lat, show_angle( buff, loc->lat));
+   printf( "Altitude %.5f meters\n", loc->alt);
+   printf( "Parallax constants %.11f %+.11f\n", loc->rho_cos_phi, loc->rho_sin_phi);
    printf( "In meters: %.5f %+.5f\n", loc->rho_cos_phi * EARTH_MAJOR_AXIS_IN_METERS,
                                       loc->rho_sin_phi * EARTH_MAJOR_AXIS_IN_METERS);
    if( loc->lon)
