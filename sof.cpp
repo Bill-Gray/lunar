@@ -80,45 +80,48 @@ int extract_sof_data( ELEMENTS *elem, const char *buff, const char *header)
    while( *header >= ' ')
       {
       size_t i = 0;
+      char tbuff[80];
 
       while( header[i] >= ' ' && header[i] != '|')
          i++;
-      if( i < 2)
+      if( i < 2 || i >= sizeof( tbuff))
          return( -1);
+      memcpy( tbuff, buff, i);
+      tbuff[i] = '\0';
       if( header[1] == ' ')
          {
          switch( header[0])
             {
             case 'q':
-               elem->q = atof( buff);
+               elem->q = atof( tbuff);
                fields_found |= SOF_Q_FOUND;
                break;
             case 'e':
-               elem->ecc = atof( buff);
+               elem->ecc = atof( tbuff);
                fields_found |= SOF_ECC_FOUND;
                break;
             case 'i':
-               elem->incl = atof( buff) * PI / 180.;
+               elem->incl = atof( tbuff) * PI / 180.;
                fields_found |= SOF_INCL_FOUND;
                break;
             case 'O':
-               elem->asc_node = atof( buff) * PI / 180.;
+               elem->asc_node = atof( tbuff) * PI / 180.;
                fields_found |= SOF_ASC_NODE_FOUND;
                break;
             case 'o':
-               elem->arg_per = atof( buff) * PI / 180.;
+               elem->arg_per = atof( tbuff) * PI / 180.;
                fields_found |= SOF_ARG_PERIH_FOUND;
                break;
             case 'H':
-               elem->abs_mag = atof( buff);
+               elem->abs_mag = atof( tbuff);
                fields_found |= SOF_ABS_MAG_FOUND;
                break;
             case 'G':
-               elem->slope_param = atof( buff);
+               elem->slope_param = atof( tbuff);
                fields_found |= SOF_SLOPE_PARAM_FOUND;
                break;
             case 'C':
-               elem->central_obj = atoi( buff);
+               elem->central_obj = atoi( tbuff);
                break;
             }
          }
@@ -128,7 +131,7 @@ int extract_sof_data( ELEMENTS *elem, const char *buff, const char *header)
             {
             case 'T':
                {
-               const double jd = extract_jd( buff);
+               const double jd = extract_jd( tbuff);
 
                if( header[1] == 'p')
                   {
@@ -144,11 +147,11 @@ int extract_sof_data( ELEMENTS *elem, const char *buff, const char *header)
                }
                break;
             case 'O':
-               elem->asc_node = atof( buff) * PI / 180.;
+               elem->asc_node = atof( tbuff) * PI / 180.;
                fields_found |= SOF_ASC_NODE_FOUND;
                break;
             case 'o':
-               elem->arg_per = atof( buff) * PI / 180.;
+               elem->arg_per = atof( tbuff) * PI / 180.;
                fields_found |= SOF_ARG_PERIH_FOUND;
                break;
             }
