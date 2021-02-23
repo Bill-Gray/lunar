@@ -613,7 +613,7 @@ static int process_ades_tag( char *obuff, ades2mpc_t *cptr, const int itag,
          assert( len < sizeof( cptr->corr));
          strcpy( cptr->corr, name);
          break;
-      case ADES_uncTime:
+      case ADES_rmsTime:
          assert( len < sizeof( cptr->rms_time));
          strcpy( cptr->rms_time, name);
          break;
