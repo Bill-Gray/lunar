@@ -302,6 +302,23 @@ static int find_tag( const char *buff, size_t len)
    return( rval);
 }
 
+/* Packs references such as 'MPEC 2021-D85' into the five-byte form
+'ED085'.  */
+
+static inline void pack_mpc_reference( char *packed, const char *ref)
+{
+   const size_t len = strlen( ref);
+
+   if( len >= 12 && len <= 14 && !memcmp( ref, "MPEC ", 5) && ref[9] == '-')
+      {
+      *packed++ = 'E';
+      *packed++ = ref[10];
+      ref += 11;
+      packed[0] = packed[1] = '0';
+      memcpy( packed + 14 - len, ref, len - 11);
+      }
+}
+
 static inline size_t move_fits_time( char *optr, const char *iptr)
 {
    char *optr0 = optr;
@@ -504,6 +521,14 @@ static int process_ades_tag( char *obuff, ades2mpc_t *cptr, const int itag,
                if( !memcmp( modes + i + 1, tptr, 3))
                   cptr->line[14] = modes[i];
             }
+         break;
+      case ADES_disc:
+         if( *tptr == '*')
+            cptr->line[12] = '*';
+         break;
+      case ADES_ref:
+         if( len < sizeof( name))
+            pack_mpc_reference( cptr->line + 72, name);
          break;
       case ADES_prog:
          {
