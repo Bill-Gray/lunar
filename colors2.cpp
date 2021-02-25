@@ -38,7 +38,14 @@ table...  I have copied out Bessell's table below as a flat ASCII list."
    In what follows,  values for (B-V)T away from the lookup table
 points is computed using (again) a cubic spline.  The functions vary
 with sufficient slowness that this ought to be accurate down to the
-.001 mag level.            */
+.001 mag level.
+
+    References :
+
+https://groups.io/g/mpml/message/771
+
+Bessell 2000, PASP 112, 961 (July),  RELATION BETWEEN BT-VT AND
+HIPPARCOS/TYCHO DATA FOR B-G MAIN-SEQUENCE STARS AND K-M GIANTS   */
 
 #define LOOKUP_SIZE 46
 
