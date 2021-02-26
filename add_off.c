@@ -1,7 +1,14 @@
 /* Code to add satellite offset data to 80-column MPC formatted
 astrometry,  using coordinates downloaded from JPL Horizons.  Can be
 compiled both as a standalone utility and as the code behind an
-on-line one;  see https://www.projectpluto.com/add_off.htm . */
+on-line one;  see https://www.projectpluto.com/add_off.htm .
+
+   Note that SOHO data,  at least,  is also available at
+
+https://sohowww.nascom.nasa.gov/data/ancillary/orbit/
+
+   Haven't checked that source out carefully,  since Horizons
+has worked well thus far,  but the above URL could come in handy. */
 
 #include <errno.h>
 #include <stdio.h>
