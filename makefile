@@ -112,13 +112,13 @@ install:
 	cp watdefs.h  $(INSTALL_DIR)/include
 	$(MKDIR) $(LIB_DIR)
 	cp $(LIBLUNAR) $(LIB_DIR)
-	$(MKDIR) $(HOME)/bin
+	$(MKDIR) $(INSTALL_DIR)/bin
 
 install_astcheck:
-	cp astcheck$(EXE) $(HOME)/bin
+	cp astcheck$(EXE) $(INSTALL_DIR)/bin
 
 install_integrat:
-	cp integrat $(HOME)/bin
+	cp integrat $(INSTALL_DIR)/bin
 
 uninstall:
 	rm -f $(INSTALL_DIR)/include/afuncs.h
@@ -132,6 +132,8 @@ uninstall:
 	rm -f $(INSTALL_DIR)/include/vislimit.h
 	rm -f $(INSTALL_DIR)/include/watdefs.h
 	rm -f $(INSTALL_DIR)/lib/$(LIBLUNAR)
+	rm -f $(INSTALL_DIR)/bin/astcheck$(EXE)
+	rm -f $(INSTALL_DIR)/bin/integrat$(EXE)
 
 .cpp.o:
 	$(CC) $(CFLAGS) -c $<
