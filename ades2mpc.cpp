@@ -652,8 +652,18 @@ static int process_ades_tag( char *obuff, ades2mpc_t *cptr, const int itag,
       case ADES_permID:
          {
          char tbuff[20];
+         int i = 0;
 
          assert( len < sizeof( name));
+         while( isdigit( name[i]))
+            i++;
+         if( !name[i])        /* simple numbered object,  desig is nothing but */
+            {                 /* digits : put parentheses around it */
+            memmove( name + 1, name, i);
+            name[0] = '(';
+            name[i + 1] = ')';
+            name[i + 2] = '\0';
+            }
          create_mpc_packed_desig( tbuff, name);
          memcpy( cptr->line, tbuff, 12);
          cptr->id_set = itag;
