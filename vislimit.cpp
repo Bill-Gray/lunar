@@ -90,6 +90,10 @@ V = 3.8312 - 2.5 * log10( Bm / 1.11e-6)
 
 See the 'test program' below for example usage. */
 
+#ifdef TEST_STATEMENTS
+#include <stdio.h>
+#endif
+
 #include <math.h>
 #include "vislimit.h"
 
@@ -299,8 +303,7 @@ int DLL_FUNC compute_sky_brightness( BRIGHTNESS_DATA *b)
          b->brightness[i] = bn + brightness_moon +
                      min( brightness_daylight, twilight_brightness);
 #ifdef TEST_STATEMENTS
-         if( i == 2)
-            printf( "Brightnesses: base %lg  moon %lg   twil %lg   sun %lg\n", bn,
+         printf( "Brightnesses (%d): base %lg  moon %lg   twil %lg   sun %lg\n", i, bn,
                   brightness_moon, twilight_brightness, brightness_daylight);
 #endif
          }
@@ -350,6 +353,12 @@ int main( const int argc, const char **argv)
                break;
             case 'l':
                b.zenith_ang_moon = (90. - atof( argv[i] + 2)) * PI / 180.;
+               break;
+            case 'h':
+               b.relative_humidity = atof( argv[i] + 2);
+               break;
+            case 't':
+               b.temperature_in_c = atof( argv[i] + 2);
                break;
             default:
                printf( "Option '%s' not recognized\n", argv[i]);
