@@ -545,13 +545,15 @@ static int process_ades_tag( char *obuff, ades2mpc_t *cptr, const int itag,
             cptr->line2[32] = '1';
          else if( !strcmp( name, "ICRF_AU"))
             cptr->line2[32] = '2';
+         else if( !strcmp( name, "WGS84") || !strcmp( name, "IAU"))
+            cptr->line2[32] = '1';
          else
             {
             strcpy( obuff, "Bad <sys> tag\n");
-            assert( 1);
+            assert( 0);
             }
-         cptr->line2[14] = 's';
-         cptr->line[14] = 'S';
+         cptr->line2[14] = (name[1] == 'T' ? 's' : 'v');
+         cptr->line[14]  = toupper( cptr->line2[14]);
          break;
       case ADES_ctr:
          assert( len < sizeof( cptr->center));
@@ -560,37 +562,63 @@ static int process_ades_tag( char *obuff, ades2mpc_t *cptr, const int itag,
       case ADES_pos1:
       case ADES_pos2:
       case ADES_pos3:
-         {
-         int dec_loc = 40 + (itag - ADES_pos1) * 12;
-         int nlen = (int)len;
-         char *tptr2;
+         assert( cptr->line[14] == 'S' || cptr->line[14] == 'V');
+         if( cptr->line[14] == 'S')    /* satellite offset */
+            {
+            int dec_loc = 40 + (itag - ADES_pos1) * 12;
+            int nlen = (int)len;
+            char *tptr2;
 
-                  /* cvt scientific notation,  if any : */
-         if( strchr( name, 'e') || strchr( name, 'E'))
+                     /* cvt scientific notation,  if any : */
+            if( strchr( name, 'e') || strchr( name, 'E'))
+               {
+               snprintf( name, sizeof( name), "%.13f", atof( name));
+               nlen = 12;
+               }
+            if( *name != '+' && *name != '-')   /* no sign provided; */
+               {                             /* insert one */
+               nlen++;
+               memmove( name + 1, name, nlen);
+               *name = '+';
+               }
+            cptr->line2[dec_loc - 6] = *name;
+            tptr2 = strchr( name, '.');
+            assert( tptr2);
+            dec_loc -= (int)(tptr2 - name);
+            if( cptr->line2[32] == '2')
+               dec_loc -= 4;
+            else if( cptr->line2[32] != '1')
+               {
+               strcpy( obuff, "Bad posn data\n");
+               rval = 1;
+               }
+            memcpy( &cptr->line2[dec_loc + 1], name + 1,
+                                           (nlen > 12 ? 11 : nlen - 1));
+            }
+         else               /* roving observer */
             {
-            snprintf( name, sizeof( name), "%.13f", atof( name));
-            nlen = 12;
+            char *tptr2 = strchr( name, '.');
+            int loc;
+
+            if( itag == ADES_pos1)     /* East longitude */
+               loc = 37 - (tptr2 - name);
+            else if( itag == ADES_pos2)
+               {           /* lat _must_ be signed,  w/sign in column 46 */
+               if( *name == '-' || *name == '+')
+                  {
+                  cptr->line2[45] = *name;
+                  memmove( name, name + 1, len);
+                  tptr2--;
+                  len--;
+                  }
+               else
+                  cptr->line2[45] = '+';
+               loc = 48 - (tptr2 - name);
+               }
+            else           /* altitude */
+               loc = 61 - len;
+            memcpy( cptr->line2 + loc, name, len);
             }
-         if( *name != '+' && *name != '-')   /* no sign provided; */
-            {                             /* insert one */
-            nlen++;
-            memmove( name + 1, name, nlen);
-            *name = '+';
-            }
-         cptr->line2[dec_loc - 6] = *name;
-         tptr2 = strchr( name, '.');
-         assert( tptr2);
-         dec_loc -= (int)(tptr2 - name);
-         if( cptr->line2[32] == '2')
-            dec_loc -= 4;
-         else if( cptr->line2[32] != '1')
-            {
-            strcpy( obuff, "Bad posn data\n");
-            rval = 1;
-            }
-         memcpy( &cptr->line2[dec_loc + 1], name + 1,
-                                        (nlen > 12 ? 11 : nlen - 1));
-         }
          break;
       case ADES_ra:
          if( *tptr == '+')
