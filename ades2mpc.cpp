@@ -424,6 +424,12 @@ static int get_a_line( char *obuff, ades2mpc_t *cptr)
    else if( cptr->line[0])
       {
       strcpy( obuff, cptr->line);
+      if( cptr->line2[0])     /* yes,  we've a valid line 2 */
+         {
+         memcpy( cptr->line2, cptr->line, 12);
+         memcpy( cptr->line2 + 15, cptr->line + 15, 17);
+         memcpy( cptr->line2 + 77, cptr->line + 77, 3);
+         }
       cptr->line[0] = '\0';
       }
    else if( cptr->line2[0])
@@ -1029,15 +1035,7 @@ int xlate_ades2mpc( void *context, char *obuff, const char *buff)
       tptr = skip_whitespace( tptr);
       }
    if( rval)
-      {
-      if( cptr->line2[0])     /* yes,  we've a valid line 2 */
-         {
-         memcpy( cptr->line2, cptr->line, 12);
-         memcpy( cptr->line2 + 15, cptr->line + 15, 17);
-         memcpy( cptr->line2 + 77, cptr->line + 77, 3);
-         }
       get_a_line( obuff, cptr);
-      }
    if( orig_obuff)
       strcpy( orig_obuff, temp_obuff);
    return( rval);
