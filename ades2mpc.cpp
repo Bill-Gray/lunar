@@ -604,7 +604,7 @@ static int process_ades_tag( char *obuff, ades2mpc_t *cptr, const int itag,
          else               /* roving observer */
             {
             char *tptr2 = strchr( name, '.');
-            int loc;
+            size_t loc;
 
             if( itag == ADES_pos1)     /* East longitude */
                loc = 37 - (tptr2 - name);
