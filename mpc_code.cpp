@@ -336,6 +336,138 @@ int extract_region_data_for_lat_lon( FILE *ifile, char *buff,
    return( *buff ? 0 : -2);
 }
 
+/* Return value is GOT_LAT if we got a latitude, GOT_LON if a longitude,
+GOT_ALT if it was an altitude,  and GOT_NOTHING otherwise.     */
+
+#define GOT_LON            0
+#define GOT_LAT            1
+#define GOT_ALT            2
+#define GOT_NOTHING       -1
+
+static int extract_lat_lon( const char *buff, size_t *bytes_read, double *value)
+{
+   const char *tptr = buff;
+   int rval = GOT_NOTHING, nbytes;
+   bool is_negative = false;
+
+   *value = 0.;
+   while( *tptr == ' ')
+      tptr++;
+   if( *tptr == 'n' || *tptr == 'N' || *tptr == 's' || *tptr == 'S')
+      {
+      is_negative = (*tptr == 's' || *tptr == 'S');
+      rval = GOT_LAT;
+      }
+   else if( *tptr == 'e' || *tptr == 'E' || *tptr == 'w' || *tptr == 'W')
+      {
+      is_negative = (*tptr == 'w' || *tptr == 'W');
+      rval = GOT_LON;
+      }
+   else if( sscanf( tptr, "%lf%n", value, &nbytes) == 1)
+      {
+      tptr += nbytes;
+      if( *tptr == 'm')
+         {
+         tptr++;
+         rval = GOT_ALT;
+         }
+      else if( *tptr == 'f' && tptr[1] == 't')
+         {
+         const double us_survey_feet_to_meters = 1200. / 3937.;
+
+         tptr += 2;               /* alt given in feet (shudder) */
+         rval = GOT_ALT;
+         *value *= us_survey_feet_to_meters;
+         }
+      }
+   if( rval == GOT_LAT || rval == GOT_LON)
+      {
+      tptr++;        /* scan past compass sign */
+      if( sscanf( tptr, "%lf%n", value, &nbytes) != 1)
+         rval = GOT_NOTHING;
+      else
+         {
+         double minutes, seconds;
+
+         tptr += nbytes;
+         if( sscanf( tptr, "%lf%n", &minutes, &nbytes) == 1)
+            {
+            *value += minutes / 60.;
+            tptr += nbytes;
+            if( sscanf( tptr, "%lf%n", &seconds, &nbytes) == 1)
+               {
+               *value += seconds / 3600.;
+               tptr += nbytes;
+               }
+            }
+         }
+      }
+   if( *tptr == ',')
+      tptr++;
+   *bytes_read = tptr - buff;
+   if( is_negative)
+      *value = -*value;
+   return( rval);
+}
+
+/* Given text of the forms...
+
+n44.01, W69.9
+N44 01 13.2 W69 54 1.7
+E223.456,s56 20 23.3, 1700m
+w 69.91, n 44.012, 1700ft
+
+   etc.,  i.e.,  a lat/lon that would be readable by a human,
+plus an optional altitude,  this function will puzzle it out.
+
+   Feet are assumed to be US survey feet.  I think at this point,
+only my fellow Americans are daft enough to use 'feet',  so
+that's most likely to be what is meant if somebody enters
+an altitude in feet.       */
+
+int get_lat_lon_info( mpc_code_t *cinfo, const char *buff)
+{
+   double value;
+   size_t n_bytes;
+   int piece_type = extract_lat_lon( buff, &n_bytes, &value);
+   int rval = -1;
+   const char *tptr = buff;
+
+   if( piece_type == GOT_LAT || piece_type == GOT_LON)
+      {
+      if( piece_type == GOT_LAT)
+         cinfo->lat = value * PI / 180.;
+      else
+         cinfo->lon = value * PI / 180.;
+      tptr += n_bytes;
+      if( extract_lat_lon( tptr, &n_bytes, &value) ==
+                                         GOT_LAT + GOT_LON - piece_type)
+         {
+         if( piece_type == GOT_LAT)
+            cinfo->lon = value * PI / 180.;
+         else
+            cinfo->lat = value * PI / 180.;
+         tptr += n_bytes;
+         if( extract_lat_lon( tptr, &n_bytes, &value) == GOT_ALT)
+            cinfo->alt = value;
+         else              /* use a default 100m altitude if none specified */
+            cinfo->alt = 100.;
+         lat_alt_to_parallax( cinfo->lat, cinfo->alt,
+                        &cinfo->rho_cos_phi, &cinfo->rho_sin_phi,
+                        EARTH_MAJOR_AXIS, EARTH_MINOR_AXIS);
+         if( cinfo->lon < 0.)
+            cinfo->lon += PI + PI;
+         cinfo->planet = 3;
+         cinfo->name = buff;
+         cinfo->format = MPC_CODE_LAT_LON_ALT;
+         cinfo->prec1 = cinfo->prec2 = 0;
+         strcpy( cinfo->code, "Rov");
+         rval = 0.;
+         }
+      }
+   return( rval);
+}
+
 #ifdef TEST_CODE
 
 static int text_search_and_replace( char *str, const char *oldstr,
