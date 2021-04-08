@@ -26,8 +26,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 #include "mpc_func.h"
 #include "lunar.h"
 
-#define SUN_RADIUS          696000e+3
-#define MERCURY_RADIUS      2439700.
+#define SUN_RADIUS          695700e+3
+#define MERCURY_MAJOR_AXIS  2440530.
+#define MERCURY_MINOR_AXIS  2438260.
 #define VENUS_RADIUS        6051800.
 #define EARTH_MAJOR_AXIS    6378137.
 #define EARTH_MINOR_AXIS    6356752.
@@ -42,7 +43,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 #define URANUS_MINOR_AXIS    24973e+3
 #define NEPTUNE_MAJOR_AXIS   24764e+3
 #define NEPTUNE_MINOR_AXIS   24341e+3
-#define PLUTO_RADIUS          1195e+3
+#define PLUTO_RADIUS          1188300.
 #define IO_MEAN_RADIUS        1821.49e+3
 #define EUROPA_MEAN_RADIUS    1560.8e+3
 #define GANYMEDE_MEAN_RADIUS  2631.2e+3
@@ -50,12 +51,12 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 
       /* Earth dimensions are WGS84 constants */
       /* Other sizes are from http://adsabs.harvard.edu/abs/2011CeMDA.109..101A */
-      /* or http://astropedia.astrogeology.usgs.gov/alfresco/d/d/workspace/SpacesStore/28fd9e81-1964-44d6-a58b-fbbf61e64e15/WGCCRE2009reprint.pdf */
+      /* or https://astropedia.astrogeology.usgs.gov/download/Docs/WGCCRE/WGCCRE2015reprint.pdf  */
 
 #define N_EQUATORIAL_RADII 15
 
 static const double equatorial_radii[N_EQUATORIAL_RADII] = {
-      SUN_RADIUS, MERCURY_RADIUS, VENUS_RADIUS, EARTH_MAJOR_AXIS,
+      SUN_RADIUS, MERCURY_MAJOR_AXIS, VENUS_RADIUS, EARTH_MAJOR_AXIS,
       MARS_MAJOR_AXIS, JUPITER_MAJOR_AXIS, SATURN_MAJOR_AXIS,
       URANUS_MAJOR_AXIS, NEPTUNE_MAJOR_AXIS, PLUTO_RADIUS,
       MOON_RADIUS, IO_MEAN_RADIUS, EUROPA_MEAN_RADIUS,
@@ -81,7 +82,7 @@ three meters less than the IAU1976 value).      */
 #define N_POLAR_RADII      9
 
 const double polar_radii[N_POLAR_RADII] = {
-      SUN_RADIUS, MERCURY_RADIUS, VENUS_RADIUS, EARTH_MINOR_AXIS,
+      SUN_RADIUS, MERCURY_MINOR_AXIS, VENUS_RADIUS, EARTH_MINOR_AXIS,
       MARS_MINOR_AXIS, JUPITER_MINOR_AXIS, SATURN_MINOR_AXIS,
       URANUS_MINOR_AXIS, NEPTUNE_MINOR_AXIS };
 
@@ -145,7 +146,10 @@ leading and trailing coefficients and a zero quadratic coefficient.
 
 References are to the _Explanatory Supplement_ and then the above URL.
 For example,  the equation for 'e' is given at 4.22-12 in the ES and
-as equation (6) at the above URL.    */
+as equation (6) at the above URL.
+
+The same point-to-ellipse problem can come up in computing MOIDs, which
+is why the function is not of type static : it's used in moid.cpp. */
 
 double point_to_ellipse( const double a, const double b,
                          const double x, const double y, double *dist)
