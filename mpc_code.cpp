@@ -462,7 +462,7 @@ int get_lat_lon_info( mpc_code_t *cinfo, const char *buff)
          cinfo->format = MPC_CODE_LAT_LON_ALT;
          cinfo->prec1 = cinfo->prec2 = 0;
          strcpy( cinfo->code, "Rov");
-         rval = 0.;
+         rval = 0;
          }
       }
    return( rval);
