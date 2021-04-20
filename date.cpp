@@ -20,6 +20,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 #include <string.h>
 #include <stdlib.h>
 #include <stdint.h>
+#include <limits.h>
 #include <assert.h>
 #include "watdefs.h"
 #include "date.h"
@@ -713,21 +714,22 @@ Which is why the subsequent day_to_dmy( ) function sometimes finds it
 has to move ahead or back up by one year.
 
    The French Revolutionary and both Persian calendars have (over the
-long range) years of 365 + 683/2820 days.  The inverse of this is
-well-represented by the (sort of) Egyptian fraction
+long range) years of 365 + 683/2820 days;  i.e.,  2820 years have
+2820 * 365 + 683 days.  The other calendars have similar long-range
+exact recurrences in which n1 years will have n2 days.  The exact
+recurrences for the Persian,  Jalali,  Hebrew,  and French calendars
+would overflow 32-bit arithmetic,  so "almost" recurrences are used
+if longs aren't 64 bits.  The error would become noticeable after
+about a billion years,  but on 32-bit systems,  we're limited to
++/- 2^31 days = about 5.8 million years anyway.     */
 
-1 / 365 - (1 - 1 / 3580417) / 550430
-
-   (in which I've gone a bit astray from the traditional sort of Egyptian
-fraction. With this,  none of the constants involved overflows 32 bits,
-but the fraction remains suitable for 64-bit machines.)  The mean length
-of the Hebrew calendar year can be similarly represented,  allowing for a
-good determination of an approximate year even for values of 'jd' near
-the limit of a 64-bit integer.   */
+#if LONG_MAX == INT64_MAX
+   #define LONGS_ARE_64_BITS
+#endif
 
 static long approx_year( long jd, const int calendar)
 {
-   long year, n1 = 0, n2 = 0, calendar_epoch;
+   long year, n1 = 0, n2 = 0, calendar_epoch, day_in_cycle;
 
    switch( calendar)
       {
@@ -737,24 +739,45 @@ static long approx_year( long jd, const int calendar)
          n2 = 400 * 365 + 97;    /* 'normal' years plus 97 leap days */
          break;
       case CALENDAR_JULIAN:
-         calendar_epoch = JUL_GREG_CALENDAR_EPOCH;
+         calendar_epoch = JUL_GREG_CALENDAR_EPOCH - 2;
          n1 = 4;                 /* The Julian calendar just repeats */
          n2 = 365 * 4 + 1;       /* every four years */
          break;
       case CALENDAR_HEBREW:
-         calendar_epoch = HEBREW_CALENDAR_EPOCH - 365;
+         calendar_epoch = HEBREW_CALENDAR_EPOCH - 235;
+#ifdef LONGS_ARE_64_BITS
+         n1 = 98496;          /* exact values which overflow on 32 bits */
+         n2 = 35975351;       /*                                        */
+#else
+         n1 = 944;
+         n2 = 344793;
+#endif
          break;
       case CALENDAR_ISLAMIC:
-         calendar_epoch = ISLAMIC_CALENDAR_EPOCH;
+         calendar_epoch = ISLAMIC_CALENDAR_EPOCH - 1;
          n1 = 30;             /* 30 Islamic years = 10631 days,  exactly */
          n2 = 10631;
          break;
       case CALENDAR_REVOLUTIONARY:
-         calendar_epoch = REVOLUTIONARY_CALENDAR_EPOCH;
+         calendar_epoch = REVOLUTIONARY_CALENDAR_EPOCH - 1;
+#ifdef LONGS_ARE_64_BITS
+         n1 = 2820;           /* exact values which overflow on 32 bits */
+         n2 = 2820 * 365 + 683;
+#else
+         n1 = 2147;
+         n2 = 784175;
+#endif
          break;
       case CALENDAR_PERSIAN:
       case CALENDAR_MODERN_PERSIAN:
-         calendar_epoch = JALALI_ZERO;
+         calendar_epoch = JALALI_ZERO + 1;
+#ifdef LONGS_ARE_64_BITS
+         n1 = 2820;           /* exact values which overflow on 32 bits */
+         n2 = 2820 * 365 + 683;
+#else
+         n1 = 2147;
+         n2 = 784175;
+#endif
          break;
       case CALENDAR_CHINESE:
          calendar_epoch = CHINESE_CALENDAR_EPOCH + 90;
@@ -766,20 +789,9 @@ static long approx_year( long jd, const int calendar)
          return( -1);
       }
    jd -= calendar_epoch;
-   if( calendar == CALENDAR_REVOLUTIONARY || calendar == CALENDAR_PERSIAN
-                  || calendar == CALENDAR_MODERN_PERSIAN)
-      year = jd / 365L - (jd - jd / 3580417L) / 550430L;
-   else if( calendar == CALENDAR_HEBREW)
-      year = jd / 365L - (jd + jd / 184943706L) / 540126L;
-   else
-      {
-      const long day_in_cycle = mod( jd, n2);
-
-      assert( n1);
-      assert( n2);
-      year = n1 * (( jd - day_in_cycle) / n2);
-      year += day_in_cycle * n1 / n2;
-      }
+   day_in_cycle = mod( jd, n2);
+   year = n1 * (( jd - day_in_cycle) / n2);
+   year += day_in_cycle * n1 / n2;
    return( year);
 }
 
