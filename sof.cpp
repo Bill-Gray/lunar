@@ -28,6 +28,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 #include "date.h"
 
 int extract_sof_data( ELEMENTS *elem, const char *buff, const char *header);
+int extract_sof_data_ex( ELEMENTS *elem, const char *buff, const char *header,
+                        double *extra_info);
 
 #define GAUSS_K .01720209895
 #define SOLAR_GM (GAUSS_K * GAUSS_K)
@@ -42,6 +44,10 @@ int extract_sof_data( ELEMENTS *elem, const char *buff, const char *header);
 #define SOF_ARG_PERIH_FOUND         0x0080
 #define SOF_ABS_MAG_FOUND           0x0100
 #define SOF_SLOPE_PARAM_FOUND       0x0200
+#define SOF_TWRITTEN_FOUND          0x0400
+#define SOF_TFIRST_FOUND            0x0800
+#define SOF_TLAST_FOUND             0x1000
+#define SOF_MAX_RESID_FOUND         0x2000
 
    /* If you don't have these fields,  you don't have a defined orbit. */
 #define MIN_FIELDS_NEEDED (SOF_Q_FOUND | SOF_ECC_FOUND | SOF_TPERIH_FOUND \
@@ -68,7 +74,8 @@ static double extract_jd( const char *buff)
 
 #define PI 3.1415926535897932384626433832795028841971693993751058209749445923
 
-int extract_sof_data( ELEMENTS *elem, const char *buff, const char *header)
+int extract_sof_data_ex( ELEMENTS *elem, const char *buff, const char *header,
+                        double *extra_info)
 {
    int fields_found = 0, rval;
 
@@ -77,6 +84,9 @@ int extract_sof_data( ELEMENTS *elem, const char *buff, const char *header)
    memset( elem, 0, sizeof( ELEMENTS));
    elem->slope_param = 0.15;
    elem->gm = SOLAR_GM;
+   if( extra_info)
+      for( size_t i = 0; i < 4; i++)
+         extra_info[i] = 0.;
    while( *header >= ' ')
       {
       size_t i = 0;
@@ -143,7 +153,22 @@ int extract_sof_data( ELEMENTS *elem, const char *buff, const char *header)
                   elem->epoch = jd;
                   fields_found |= SOF_TEPOCH_FOUND;
                   }
-               fields_found |= SOF_Q_FOUND;
+               else if( extra_info)
+                  switch( header[1])
+                     {
+                     case 'w':
+                        extra_info[2] = jd;
+                        fields_found |= SOF_TWRITTEN_FOUND;
+                        break;
+                     case 'f':
+                        extra_info[0] = jd;
+                        fields_found |= SOF_TFIRST_FOUND;
+                        break;
+                     case 'l':
+                        extra_info[1] = jd;
+                        fields_found |= SOF_TLAST_FOUND;
+                        break;
+                     }
                }
                break;
             case 'O':
@@ -156,6 +181,11 @@ int extract_sof_data( ELEMENTS *elem, const char *buff, const char *header)
                break;
             }
 
+         }
+      else     /* more than two chars in header text */
+         {
+         if( !memcmp( header, "rms ", 4))
+            extra_info[3] = atof( tbuff);
          }
       if( header[i] == '|')
          i++;
@@ -173,6 +203,11 @@ int extract_sof_data( ELEMENTS *elem, const char *buff, const char *header)
       rval = -1;
       }
    return( rval);
+}
+
+int extract_sof_data( ELEMENTS *elem, const char *buff, const char *header)
+{
+   return( extract_sof_data_ex( elem, buff, header, NULL));
 }
 
 #ifdef TEST_CODE
