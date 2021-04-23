@@ -723,9 +723,7 @@ if longs aren't 64 bits.  The error would become noticeable after
 about a billion years,  but on 32-bit systems,  we're limited to
 +/- 2^31 days = about 5.8 million years anyway.     */
 
-#if LONG_MAX == INT64_MAX
-   #define LONGS_ARE_64_BITS
-#endif
+/* #define LONGS_ARE_64_BITS */
 
 static long approx_year( long jd, const int calendar)
 {
