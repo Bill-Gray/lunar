@@ -184,7 +184,7 @@ int extract_sof_data_ex( ELEMENTS *elem, const char *buff, const char *header,
          }
       else     /* more than two chars in header text */
          {
-         if( !memcmp( header, "rms ", 4))
+         if( !memcmp( header, "rms ", 4) && extra_info)
             extra_info[3] = atof( tbuff);
          }
       if( header[i] == '|')
