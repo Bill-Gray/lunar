@@ -314,8 +314,6 @@ int extract_region_data_for_lat_lon( FILE *ifile, char *buff,
          {
          double d_lon1 = atof( tbuff)      - lon_in_degrees;
          double d_lon2 = atof( tbuff + 20) - lon_in_degrees;
-         const double d_lat1 = atof( tbuff + 10) - lat_in_degrees;
-         const double d_lat2 = atof( tbuff + 30) - lat_in_degrees;
 
          while( d_lon1 > 180.)
             d_lon1 -= 360.;
@@ -325,12 +323,18 @@ int extract_region_data_for_lat_lon( FILE *ifile, char *buff,
             d_lon2 -= 360.;
          while( d_lon2 - d_lon1 < -180.)
             d_lon2 += 360.;
-         if( d_lon1 * d_lon2 < 0. && d_lat1 * d_lat2 < 0.)
+         if( d_lon1 * d_lon2 < 0.)
             {
-            strcpy( buff, tbuff + 40);
-            while( buff[i] >= ' ')
-               i++;
-            buff[i] = '\0';   /* remove trailing CR/LF */
+            const double d_lat1 = atof( tbuff + 10) - lat_in_degrees;
+            const double d_lat2 = atof( tbuff + 30) - lat_in_degrees;
+
+            if( d_lat1 * d_lat2 < 0.)
+               {
+               strcpy( buff, tbuff + 40);
+               while( buff[i] >= ' ')
+                  i++;
+               buff[i] = '\0';   /* remove trailing CR/LF */
+               }
             }
          }
    return( *buff ? 0 : -2);
