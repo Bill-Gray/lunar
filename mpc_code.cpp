@@ -199,6 +199,58 @@ double point_to_ellipse( const double a, const double b,
    return( lat);
 }
 
+/* atof( ) and strtod( ) have to handle a lot of odd cases,  such as
+exponentials.  The requirements for rounding are very strict.  As a
+result,  it is quite slow.  If you are sure your input string has no
+odd cases (and does not need real error checking), this is faster and
+"good enough". It only handles strings with whitespace,  digits,  and
+optional decimal point and more digits.  See 'f_strtod.cpp' in the
+Bill-Gray/jpl_eph repository for further discussion,  and a more
+robust solution.        */
+
+double quick_strtod( const char *ibuff, const char **endptr)
+{
+   bool is_negative = false;
+   int integer_part = 0;
+   double rval;
+
+   while( *ibuff == ' ')
+      ibuff++;
+   if( *ibuff == '-')
+      {
+      is_negative = true;
+      ibuff++;
+      }
+   else if( *ibuff == '+')
+      ibuff++;
+   while( *ibuff >= '0' && *ibuff <= '9')
+      integer_part = integer_part * 10 + (*ibuff++ - '0');
+   if( *ibuff != '.')
+      rval = (double)integer_part;
+   else
+      {
+      int frac_part = 0, divisor = 1;
+
+      ibuff++;
+      while( *ibuff >= '0' && *ibuff <= '9')
+         {
+         frac_part = frac_part * 10 + (*ibuff++ - '0');
+         divisor *= 10;
+         }
+      rval = (double)integer_part + (double)frac_part / (double)divisor;
+      }
+   if( endptr)
+      *endptr = ibuff;
+   if( is_negative)
+      rval = -rval;
+   return( rval);
+}
+
+double quick_atof( const char *ibuff)
+{
+   return( quick_strtod( ibuff, NULL));
+}
+
 /* You can store locations in 'rovers.txt' in base-60 form,  with the
 degrees/minutes/seconds smashed together;  e.g.,  19 13' 33.1" would be
 stored as 191333.1.  The following code would take 191331.1 as input
@@ -262,9 +314,9 @@ int get_mpc_code_info( mpc_code_t *cinfo, const char *buff)
       else if( buff[7] == '.' && strchr( "+- ", buff[21])
                && buff[14] == '.' && buff[23] == '.' && buff[3] == ' ')
          {                 /* 'standard' MPC format */
-         cinfo->lon = atof( buff + 4);
-         cinfo->rho_cos_phi = atof( buff + 13);
-         cinfo->rho_sin_phi = atof( buff + 21);
+         cinfo->lon = quick_atof( buff + 4);
+         cinfo->rho_cos_phi = quick_atof( buff + 13);
+         cinfo->rho_sin_phi = quick_atof( buff + 21);
          cinfo->name = buff + 30;
          cinfo->format = MPC_CODE_PARALLAXES;
          cinfo->lon *= PI / 180.;
@@ -312,8 +364,8 @@ int extract_region_data_for_lat_lon( FILE *ifile, char *buff,
    while( !*buff && fgets( tbuff, sizeof( tbuff), ifile))
       if( *tbuff != '#')
          {
-         double d_lon1 = atof( tbuff)      - lon_in_degrees;
-         double d_lon2 = atof( tbuff + 20) - lon_in_degrees;
+         double d_lon1 = quick_atof( tbuff)      - lon_in_degrees;
+         double d_lon2 = quick_atof( tbuff + 20) - lon_in_degrees;
 
          while( d_lon1 > 180.)
             d_lon1 -= 360.;
@@ -325,8 +377,8 @@ int extract_region_data_for_lat_lon( FILE *ifile, char *buff,
             d_lon2 += 360.;
          if( d_lon1 * d_lon2 < 0.)
             {
-            const double d_lat1 = atof( tbuff + 10) - lat_in_degrees;
-            const double d_lat2 = atof( tbuff + 30) - lat_in_degrees;
+            const double d_lat1 = quick_atof( tbuff + 10) - lat_in_degrees;
+            const double d_lat2 = quick_atof( tbuff + 30) - lat_in_degrees;
 
             if( d_lat1 * d_lat2 < 0.)
                {
