@@ -639,13 +639,16 @@ int main( const int argc, const char **argv)
          if( code.planet == 3)
             {
             FILE *ifile;
+            const char *geo_rect_filename = "geo_rect.txt";
 
             strcpy( obuff, argv[0]);
             i = strlen( obuff);
             while( i && obuff[i - 1] != '/' && obuff[i - 1] != '\\')
                i--;
-            strcpy( obuff + i, "geo_rect.txt");
+            strcpy( obuff + i, geo_rect_filename);
             ifile = fopen( obuff, "rb");
+            if( !ifile)          /* try local directory */
+               ifile = fopen( geo_rect_filename, "rb");
             if( ifile)
                {
                extract_region_data_for_lat_lon( ifile, region,
