@@ -251,6 +251,20 @@ double quick_atof( const char *ibuff)
    return( quick_strtod( ibuff, NULL));
 }
 
+/* Useful if floating-point text may be immediately followed by more
+floating-point text,  and you want scanning to stop after 'len'
+digits.  This happens in ObsCodes.htm.    */
+
+static double limited_atof( const char *ibuff, const size_t len)
+{
+   char tbuff[80];
+
+   assert( len < sizeof( tbuff) - 1);
+   memcpy( tbuff, ibuff, len);
+   tbuff[len] = '\0';
+   return( quick_strtod( tbuff, NULL));
+}
+
 /* You can store locations in 'rovers.txt' in base-60 form,  with the
 degrees/minutes/seconds smashed together;  e.g.,  19 13' 33.1" would be
 stored as 191333.1.  The following code would take 191331.1 as input
@@ -314,9 +328,9 @@ int get_mpc_code_info( mpc_code_t *cinfo, const char *buff)
       else if( buff[7] == '.' && strchr( "+- ", buff[21])
                && buff[14] == '.' && buff[23] == '.' && buff[3] == ' ')
          {                 /* 'standard' MPC format */
-         cinfo->lon = quick_atof( buff + 4);
-         cinfo->rho_cos_phi = quick_atof( buff + 13);
-         cinfo->rho_sin_phi = quick_atof( buff + 21);
+         cinfo->lon = limited_atof( buff + 4, 9);
+         cinfo->rho_cos_phi = limited_atof( buff + 13, 8);
+         cinfo->rho_sin_phi = limited_atof( buff + 21, 9);
          cinfo->name = buff + 30;
          cinfo->format = MPC_CODE_PARALLAXES;
          cinfo->lon *= PI / 180.;
