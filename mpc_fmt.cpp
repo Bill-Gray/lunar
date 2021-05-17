@@ -472,7 +472,7 @@ static const char *net_codes[] = {
            "wCMC-14",
            "xHIP-2",
            "yHIP-1",
-           "zGSC",        /* no version specified */
+           "zGSC-?",        /* no version specified */
            "AAC",
            "BSAO 1984",
            "CSAO",
@@ -493,9 +493,12 @@ static const char *net_codes[] = {
            "RSST-RC4",
            "SURAT-1",
            "TURAT-2",
-           "UGAIA-DR1",
-           "VGAIA-DR2",
-           "WUCAC-5",
+           "UGaia-DR1",
+           "VGaia-DR2",
+           "WGaia-DR3",
+           "XGaia-EDR3",
+           "YUCAC-5",
+           "ZATLAS-2",
            NULL };
 
 const char *byte_code_to_net_name( const char byte_code)
