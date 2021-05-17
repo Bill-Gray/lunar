@@ -173,7 +173,7 @@ int main( const int argc, const char **argv)
    format_time( ltst_at_airy, buff);
    printf( "LTST at Airy: %s\n", buff);
    printf( "Recovered JD: %.8f\n", mtst_at_airy_to_tt( ltst_at_airy));
-   if( argc > 2)
+   if( argc > 2)                  /* West longitudes are positive */
       {
       const double lon = atof( argv[2]);
       const double ltst = ltst_at_airy - lon / 360.;
