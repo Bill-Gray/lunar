@@ -17,10 +17,14 @@
 # 'integrat' is not built as part of 'make'.  If you want that,  run
 # 'make integrat' and then,  optionally,  'make install_integrat'.
 
-CC=g++
+# As CC is an implicit variable, a simple CC?=g++ doesn't work.
+# We have to use this trick from https://stackoverflow.com/a/42958970
+ifeq ($(origin CC),default)
+	CC=g++
+endif
 LIBSADDED=
 EXE=
-CFLAGS=-Wextra -Wall -O3 -pedantic
+CFLAGS+=-Wextra -Wall -O3 -pedantic
 
 ifdef DEBUG
 	CFLAGS += -g
@@ -35,10 +39,11 @@ endif
 # (with root privileges) you can install them to /usr/local/include
 # and /usr/local/lib for all to enjoy.
 
+PREFIX?=~
 ifdef GLOBAL
 	INSTALL_DIR=/usr/local
 else
-	INSTALL_DIR=~
+	INSTALL_DIR=$(PREFIX)
 endif
 
 ifdef CLANG
