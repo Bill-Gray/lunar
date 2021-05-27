@@ -3,6 +3,22 @@
 #include <stdio.h>
 #include "mpc_func.h"
 
+/* Given the name of a file containing XML or PSV ADES data as a command
+line argument,  'adestest' will read it and output 80-column MPC-like
+astrometry.  This can be used to make XML ADES slightly more readable
+(and PSV ADES data slightly _less_ readable),  but its main purpose
+was to let me test my code for parsing ADES data.  It also does serve
+as an example of how to use the 'ades2mpc.cpp' ADES-parsing functions.
+
+Note that the 80-column output contains various extensions to the MPC
+format.  RA/decs are stored in decimal degrees,  both to match what
+we get from ADES and to allow greater precision.  Uncertainties (which
+the 80-column format knows nothing about) are stored in COM (comment)
+lines.  Dates/times are stored in a compacted form to allow millisecond
+precision (the usual MPC format allows only 10^-6 day = 86.4 ms
+precision).  The resulting "80-column data" will work with all of my
+tools,  but probably not with anyone else's. */
+
 int main( const int argc, const char **argv)
 {
    FILE *ifile = fopen( argv[1], "rb");

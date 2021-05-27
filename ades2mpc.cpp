@@ -13,7 +13,14 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-02110-1301, USA. */
+02110-1301, USA.
+
+   The following functions support reading of PSV and XML ADES
+data.  These can be mixed with one another,  and with "traditional"
+80-column astrometry.  It is the underlying code for all astrometry
+parsing in my software.
+
+   See 'adestest.cpp' for a simple example of its use.   */
 
 #include <string.h>
 #include <assert.h>
