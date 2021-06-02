@@ -667,8 +667,15 @@ int main( const int argc, const char **argv)
       {
       fprintf( stdout, "'calendar' needs a year and month on the command line.\n"
                        "It will produce a PostScript (R) calendar.  Given only\n"
-                       "the year,  it will produce a twelve-month calendar.\n");
-       return( -1);
+                       "the year,  it will produce a twelve-month calendar.\n\n"
+                       "Options are :\n\n"
+                       "   -s  single page,  don't create large versions\n"
+                       "   -j  show JD values\n"
+                       "   -m  show MJD values\n"
+                       "   -l  create for US legal-size paper\n"
+                       "   -w  wraparound style;  no 'divided' dates\n"
+                       "   -o(filename)  specify output file;  default is stdout\n");
+      return( -1);
       }
    year = atoi( argv[1]);
    if( argc > 2)
