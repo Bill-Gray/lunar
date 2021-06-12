@@ -27,6 +27,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 #include "comets.h"
 #include "date.h"
 
+double extract_yyyymmdd_to_jd( const char *buff);        /* sof.cpp */
 int extract_sof_data( ELEMENTS *elem, const char *buff, const char *header);
 int extract_sof_data_ex( ELEMENTS *elem, const char *buff, const char *header,
                         double *extra_info);
@@ -55,7 +56,7 @@ int extract_sof_data_ex( ELEMENTS *elem, const char *buff, const char *header,
 
 /* All dates are currently stored as YYYYMMDD[.dddd],  Gregorian. */
 
-static double extract_jd( const char *buff)
+double extract_yyyymmdd_to_jd( const char *buff)
 {
    long t;
    int bytes_read;
@@ -141,7 +142,7 @@ int extract_sof_data_ex( ELEMENTS *elem, const char *buff, const char *header,
             {
             case 'T':
                {
-               const double jd = extract_jd( tbuff);
+               const double jd = extract_yyyymmdd_to_jd( tbuff);
 
                if( header[1] == 'p')
                   {
