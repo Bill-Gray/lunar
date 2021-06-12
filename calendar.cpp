@@ -659,39 +659,42 @@ static int calendar( const int month, const int year)
    return( 0);
 }
 
+static int error_exit( const int error_code)
+{
+   fprintf( stdout, "'calendar' needs a year and month on the command line.\n"
+                    "It will produce a PostScript (R) calendar.  Given only\n"
+                    "the year,  it will produce a twelve-month calendar.\n\n"
+                    "Options are :\n\n"
+                    "   -d  'dollhouse' style (small,  full year on one page)\n"
+                    "   -s  single page,  don't create large versions\n"
+                    "   -j  show JD values\n"
+                    "   -m  show MJD values\n"
+                    "   -l  create for US legal-size paper\n"
+                    "   -w  wraparound style;  no 'divided' dates\n"
+                    "   -o(filename)  specify output file;  default is stdout\n");
+   exit( error_code);
+}
+
 int main( const int argc, const char **argv)
 {
    int i, month = 0, year;
 
    if( argc == 1)
-      {
-      fprintf( stdout, "'calendar' needs a year and month on the command line.\n"
-                       "It will produce a PostScript (R) calendar.  Given only\n"
-                       "the year,  it will produce a twelve-month calendar.\n\n"
-                       "Options are :\n\n"
-                       "   -s  single page,  don't create large versions\n"
-                       "   -j  show JD values\n"
-                       "   -m  show MJD values\n"
-                       "   -l  create for US legal-size paper\n"
-                       "   -w  wraparound style;  no 'divided' dates\n"
-                       "   -o(filename)  specify output file;  default is stdout\n");
-      return( -1);
-      }
+      error_exit( -2);
    year = atoi( argv[1]);
-   if( argc > 2)
-      month = atoi( argv[2]);
-   else
-      dollhouse = 1;
+   month = atoi( argv[2]);
    if( month > year)       /* allow for possible reversed entry */
       {
       month = year;
       year = atoi( argv[2]);
       }
-   assert( month >= 0 && month <= 12);
    for( i = 2; i < argc; i++)
       if( argv[i][0] == '-')
          switch( argv[i][1])
             {
+            case 'd':
+               dollhouse = 1;
+               break;
             case 'j':
                show_jd_values = SHOW_JD;
                break;
@@ -703,7 +706,6 @@ int main( const int argc, const char **argv)
                break;
             case 'l':            /* legal size */
                width = LEGAL_SIZE;
-               xsize = 135;
                fprintf( stderr, "Use Atril;  specify US legal-size\n");
                break;
             case 'm':
@@ -720,6 +722,12 @@ int main( const int argc, const char **argv)
                printf( "Unknown option '%s'\n", argv[i]);
                return( -1);
             }
+   if( !dollhouse && (month < 1 || month > 12))
+      {
+      fprintf( stderr, "Can't do year %d, month %d\n", year, month);
+      error_exit( -1);
+      }
+   xsize = (width - 60) / 7;
    if( !dollhouse)
       return( calendar( month, year));
    else
