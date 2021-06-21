@@ -20,6 +20,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 #include <math.h>
 #include <stdio.h>
 #include <stdint.h>
+#include <limits.h>
 #include <assert.h>
 #include "watdefs.h"
 #include "afuncs.h"
@@ -305,7 +306,10 @@ to be dead by 2270.
 
    You may not like this so-called "solution".  I don't,  either.  I'm
 open to ideas,  but doubt there is a better "solution".  If you don't
-like it,  set the global variable 'use_predictive_leap_seconds' to zero.
+like it,  set the global variable 'mjd_end_of_predictive_leap_seconds'
+to (MJD) 59215 = 2021 Jan 1.  (Note that this can even be set to shut
+off leap seconds that have already elapsed,  though I can't come up
+with a situation where you'd want to do that.)
 
    Also,  note that before 1961 Jan 1 = MJD 37400, there was no "real" UTC,
 and we assume UTC=UT.  From then until 1972 Jan 1 = MJD 41317, the idea
@@ -379,7 +383,7 @@ March to December without having to consider leap days. */
 #define utc0  (JAN_1( 1972))
       /*  'utc0' = MJD of date when the UTC leap seconds began */
 
-int use_predictive_leap_seconds = 1;
+int mjd_end_of_predictive_leap_seconds = INT_MAX;
 
 double DLL_FUNC td_minus_utc( const double jd_utc)
 {
@@ -421,7 +425,7 @@ double DLL_FUNC td_minus_utc( const double jd_utc)
       }
    else              /* integral leap seconds */
       {
-      const int imjd_utc = (int)mjd_utc;
+      int imjd_utc = (int)mjd_utc;
       static const unsigned short leap_intervals[] = {
                  JAN_1( 1972) - utc0, JUL_1( 1972) - utc0, JAN_1( 1973) - utc0,
                  JAN_1( 1974) - utc0, JAN_1( 1975) - utc0, JAN_1( 1976) - utc0,
@@ -435,7 +439,9 @@ double DLL_FUNC td_minus_utc( const double jd_utc)
                  JAN_1( 2017) - utc0 };
       const int n_leap_seconds = sizeof( leap_intervals) / sizeof( leap_intervals[0]);
 
-      if( use_predictive_leap_seconds && imjd_utc >= DEC_1( 2021))
+      if( imjd_utc > mjd_end_of_predictive_leap_seconds)
+         imjd_utc = mjd_end_of_predictive_leap_seconds;
+      if( imjd_utc >= DEC_1( 2021))
          {
          int day = imjd_utc + 2400000 - 1721058;
          int year = (int)( (int64_t)day * (int64_t)400 / (int64_t)146097);

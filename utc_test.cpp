@@ -49,8 +49,9 @@ int main( const int argc, const char **argv)
          switch( argv[i][1])
             {
             case 'p':
-               use_predictive_leap_seconds = 0;
-               printf( "Predicted leap seconds disabled\n");
+               mjd_end_of_predictive_leap_seconds = atoi( argv[i] + 2);
+               printf( "No predicted leap seconds after MJD %d\n",
+                           mjd_end_of_predictive_leap_seconds);
                break;
             default:
                printf( "Option '%s' ignored\n", argv[i]);

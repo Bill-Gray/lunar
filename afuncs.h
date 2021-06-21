@@ -160,7 +160,7 @@ typedef struct
 #define EOP_FILE_WRONG_FORMAT  -2
 #define EOP_ALLOC_FAILED       -3
 
-extern int use_predictive_leap_seconds;       /* see delta_t.cpp */
+extern int mjd_end_of_predictive_leap_seconds;       /* see delta_t.cpp */
 
 int DLL_FUNC load_earth_orientation_params( const char *filename,
                                              int *file_date);
