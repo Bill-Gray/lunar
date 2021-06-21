@@ -6,20 +6,24 @@
 
 /* "Mutant hex" is frequently used by MPC.  It uses the usual hex digits
    0123456789ABCDEF for numbers 0 to 15,  followed by G...Z for 16...35
-   and a...z for 36...61.  */
+   and a...z for 36...61,  to encode numbers in base 62.  */
 
 int mutant_hex_char_to_int( const char c)
 {
-   int rval;
+   int rval = -1;
 
-   if( c >= '0' && c <= '9')
+   if( c >= 'a')
+      {
+      if( c <= 'z')
+         rval = (int)c - 'a' + 36;
+      }
+   else if( c >= 'A')
+      {
+      if( c <= 'Z')
+         rval = (int)c - 'A' + 10;
+      }
+   else if( c >= '0' && c <= '9')
       rval = (int)c - '0';
-   else if( c >= 'A' && c <= 'Z')
-      rval = (int)c - 'A' + 10;
-   else if( c >= 'a' && c <= 'z')
-      rval = (int)c - 'a' + 36;
-   else
-      rval = -1;
    return( rval);
 }
 
