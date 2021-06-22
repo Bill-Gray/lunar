@@ -42,6 +42,35 @@ char int_to_mutant_hex_char( const int ival)
    return( rval ? (char)( rval + ival) : '\0');
 }
 
+int get_mutant_hex_value( const char *buff, size_t n_digits)
+{
+   int rval = 0;
+
+   while( n_digits--)
+      {
+      const int digit = mutant_hex_char_to_int( *buff++);
+
+      if( digit == -1)
+         return( -1);
+      rval = rval * 62 + digit;
+      }
+   return( rval);
+}
+
+/* If this returns a non-zero result,  'value' was too large to fit into
+the allocated space (i.e.,  value >= 62 ^ n_digits).                  */
+
+int encode_value_in_mutant_hex( char *buff, size_t n_digits, int value)
+{
+   buff += n_digits - 1;
+   while( n_digits--)
+      {
+      *buff-- = int_to_mutant_hex_char( value % 62);
+      value /= 62;
+      }
+   return( value);
+}
+
 /* This will unpack a packed designation such as 'K04J42X' into
 '2004 JX42'. Returns 0 if it's a packed desig,  non-zero otherwise. Call
 with obuff == NULL just to find out if ibuff is actually a packed desig. */
@@ -189,17 +218,9 @@ int unpack_mpc_desig( char *obuff, const char *packed)
             2019-O55 for explanation of this 'extended numbering scheme'. */
    if( packed[0] == '~' && (space_mask & 0x3e0) == 0x3e0)
       {
-      int num = 0;
+      int num = get_mutant_hex_value( packed + 1, 4);
 
-      for( i = 1; i < 5; i++)
-         {
-         digit = mutant_hex_char_to_int( packed[i]);
-         if( digit == -1)
-            break;
-         else
-            num = num * 62 + digit;
-         }
-      if( i == 5)    /* yes,  it's a valid 'extended' numbered object */
+      if( num >= 0)    /* yes,  it's a valid 'extended' numbered object */
          {
          if( obuff)
             sprintf( obuff, "(%d)", num + 620000);

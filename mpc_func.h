@@ -65,6 +65,8 @@ int fgets_with_ades_xlation( char *buff, const size_t len,
                                       void *ades_context, FILE *ifile);
 int mutant_hex_char_to_int( const char c);
 char int_to_mutant_hex_char( const int ival);
+int get_mutant_hex_value( const char *buff, size_t n_digits);
+int encode_value_in_mutant_hex( char *buff, size_t n_digits, int value);
 int unpack_mpc_desig( char *obuff, const char *packed);
 
 #define OBJ_DESIG_ASTEROID_PROVISIONAL   0
