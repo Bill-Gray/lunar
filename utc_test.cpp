@@ -60,7 +60,7 @@ int main( const int argc, const char **argv)
       else
          sscanf( argv[i], "%d,%d", &year, &end_year);
    printf( "Leap seconds for years %d to %d\n", year, end_year);
-   printf( "(See the 'official' list at http://maia.usno.navy.mil/ser7/tai-utc.dat)\n");
+   printf( "(See the 'official' list at https://hpiers.obspm.fr/iers/bul/bulc/UTC-TAI.history)\n");
    printf( "Future leap seconds are predicted using the method described\n");
    printf( "in 'delta_t.cpp',  and come without warranty of any kind.\n");
    for( ; year <= end_year; year++)
