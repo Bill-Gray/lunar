@@ -783,9 +783,7 @@ int create_mpc_packed_desig( char *packed_desig, const char *obj_name)
       else
          {
          packed_desig[0] = '~';
-         number -= 620000;
-         for( i = 4; i > 0; i--, number /= 62)
-            packed_desig[i] = int_to_mutant_hex_char( number % 62);
+         encode_value_in_mutant_hex( packed_desig + 1, 4, number - 620000);
          }
       }
    else if( number < 10000 && number > 0 && comet_desig)
