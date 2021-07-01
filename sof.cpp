@@ -136,58 +136,51 @@ int extract_sof_data_ex( ELEMENTS *elem, const char *buff, const char *header,
                break;
             }
          }
-      else if( header[2] == ' ')
+      else switch( header[0])
          {
-         switch( header[0])
+         case 'T':
             {
-            case 'T':
+            const double jd = extract_yyyymmdd_to_jd( tbuff);
+
+            if( header[1] == 'p')
                {
-               const double jd = extract_yyyymmdd_to_jd( tbuff);
-
-               if( header[1] == 'p')
-                  {
-                  elem->perih_time = jd;
-                  fields_found |= SOF_TPERIH_FOUND;
-                  }
-               else if( header[1] == 'e')
-                  {
-                  elem->epoch = jd;
-                  fields_found |= SOF_TEPOCH_FOUND;
-                  }
-               else if( extra_info)
-                  switch( header[1])
-                     {
-                     case 'w':
-                        extra_info[2] = jd;
-                        fields_found |= SOF_TWRITTEN_FOUND;
-                        break;
-                     case 'f':
-                        extra_info[0] = jd;
-                        fields_found |= SOF_TFIRST_FOUND;
-                        break;
-                     case 'l':
-                        extra_info[1] = jd;
-                        fields_found |= SOF_TLAST_FOUND;
-                        break;
-                     }
+               elem->perih_time = jd;
+               fields_found |= SOF_TPERIH_FOUND;
                }
-               break;
-            case 'O':
-               elem->asc_node = atof( tbuff) * PI / 180.;
-               fields_found |= SOF_ASC_NODE_FOUND;
-               break;
-            case 'o':
-               elem->arg_per = atof( tbuff) * PI / 180.;
-               fields_found |= SOF_ARG_PERIH_FOUND;
-               break;
+            else if( header[1] == 'e')
+               {
+               elem->epoch = jd;
+               fields_found |= SOF_TEPOCH_FOUND;
+               }
+            else if( extra_info)
+               switch( header[1])
+                  {
+                  case 'w':
+                     extra_info[2] = jd;
+                     fields_found |= SOF_TWRITTEN_FOUND;
+                     break;
+                  case 'f':
+                     extra_info[0] = jd;
+                     fields_found |= SOF_TFIRST_FOUND;
+                     break;
+                  case 'l':
+                     extra_info[1] = jd;
+                     fields_found |= SOF_TLAST_FOUND;
+                     break;
+                  }
             }
-
+            break;
+         case 'O':
+            elem->asc_node = atof( tbuff) * PI / 180.;
+            fields_found |= SOF_ASC_NODE_FOUND;
+            break;
+         case 'o':
+            elem->arg_per = atof( tbuff) * PI / 180.;
+            fields_found |= SOF_ARG_PERIH_FOUND;
+            break;
          }
-      else     /* more than two chars in header text */
-         {
-         if( !memcmp( header, "rms ", 4) && extra_info)
-            extra_info[3] = atof( tbuff);
-         }
+      if( !memcmp( header, "rms ", 4) && extra_info)
+         extra_info[3] = atof( tbuff);
       if( header[i] == '|')
          i++;
       header += i;
