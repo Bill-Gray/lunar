@@ -554,18 +554,26 @@ static int process_ades_tag( char *obuff, ades2mpc_t *cptr, const int itag,
          break;
       case ADES_sys:
          cptr->line2[0] = ' ';
+         cptr->line2[14] = 's';    /* assume spacecraft-based */
          if( !strcmp( name, "ICRF_KM"))
             cptr->line2[32] = '1';
          else if( !strcmp( name, "ICRF_AU"))
             cptr->line2[32] = '2';
-         else if( !strcmp( name, "WGS84") || !strcmp( name, "IAU"))
+         else if( !strcmp( name, "WGS84"))
+            {
             cptr->line2[32] = '1';
+            cptr->line2[14] = 'v';     /* nope,  it's a roving observer */
+            }
+         else if( !strcmp( name, "ITRF") || !strcmp( name, "IAU"))
+            {
+            strcpy( obuff, "Can't handle <sys> ITRF or IAU yet\n");
+            assert( 0);
+            }
          else
             {
             strcpy( obuff, "Bad <sys> tag\n");
             assert( 0);
             }
-         cptr->line2[14] = (name[1] == 'T' ? 's' : 'v');
          cptr->line[14]  = toupper( cptr->line2[14]);
          break;
       case ADES_ctr:
