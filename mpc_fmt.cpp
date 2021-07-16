@@ -723,6 +723,7 @@ int create_mpc_packed_desig( char *packed_desig, const char *obj_name)
    if( number > 999 && number < 9000 && isupper( obj_name[i]))
       {
       int sub_designator;
+      bool mangled_designation = false;
 
       for( j = 0; j < 4; j++)
          {
@@ -752,6 +753,8 @@ int create_mpc_packed_desig( char *packed_desig, const char *obj_name)
          packed_desig[11] = obj_name[i];
          i++;
          }
+      else if( !comet_desig)  /* asteroid desigs _must_ have a second */
+         mangled_designation = true;              /* uppercase letter */
       else
          packed_desig[11] = '0';
 
@@ -771,7 +774,7 @@ int create_mpc_packed_desig( char *packed_desig, const char *obj_name)
                packed_desig[11] = obj_name[i++] + 'a' - 'A';
                }
             }
-         if( i == len)     /* successfully unpacked desig */
+         if( i == len && !mangled_designation)  /* successfully unpacked desig */
             rval = 0;
          }
       }
