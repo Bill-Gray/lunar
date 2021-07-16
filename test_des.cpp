@@ -15,6 +15,7 @@ int main( void)
    char buff[200];
    size_t i;
    int n_errors_found = 0;
+   int testing = 3, n_unpacked = 0, n_packed = 0;
 
    assert( ifile);
    while( fgets( buff, sizeof( buff), ifile))
@@ -26,18 +27,32 @@ int main( void)
          for( i = 0; buff[i] >= ' '; i++)
             ;
          buff[i] = '\0';
-         if( strcmp( buff + 16, tbuff) || rval != atoi( buff + 13))
+         if( testing & 2)
             {
-            n_errors_found++;
-            printf( "UNPACKING MISMATCH\n'%s'\n'%s'\n", buff + 16, tbuff);
+            if( strcmp( buff + 16, tbuff) || rval != atoi( buff + 13))
+               {
+               n_errors_found++;
+               printf( "UNPACKING MISMATCH\n'%s'\n'%s'\n", buff + 16, tbuff);
+               }
+            else
+               n_unpacked++;
             }
-         create_mpc_packed_desig( tbuff, buff + 16);
-         if( memcmp( tbuff, buff, 12))
+         if( testing & 2)
             {
-            n_errors_found++;
-            printf( "PACKING MISMATCH\n'%.12s'\n'%.12s'\n", tbuff, buff);
+            create_mpc_packed_desig( tbuff, buff + 16);
+            if( memcmp( tbuff, buff, 12))
+               {
+               n_errors_found++;
+               printf( "PACKING MISMATCH\n'%.12s'\n'%.12s'\n", tbuff, buff);
+               }
+            else
+               n_packed++;
             }
          }
+      else if( !memcmp( buff, "# Test ", 7))
+         testing = buff[7] - '0';
+   printf( "%d packed correctly; %d unpacked correctly\n",
+                  n_packed, n_unpacked);
    if( !n_errors_found)
       printf( "No errors found\n");
    return( 0);
