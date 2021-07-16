@@ -595,7 +595,8 @@ static int extract_roman_numeral( const char *str)
    return( rval);
 }
 
-/* Packs desigs such as 'Uranus XXIV' or 'Earth I' or 'Saturn DCCXLVIII'.  */
+/* Packs desigs such as 'Uranus XXIV' or 'Earth I' or 'Saturn DCCXLVIII',
+or 'Uranus 24' or 'Earth 1' or 'Saturn 748'.  */
 
 static int pack_permanent_natsat( char *packed, const char *fullname)
 {
@@ -609,11 +610,13 @@ static int pack_permanent_natsat( char *packed, const char *fullname)
       if( !strncmp( fullname, planet_names_in_english[i], len)
                && fullname[len] == ' ')
          {
-         const int roman = extract_roman_numeral( fullname + len + 1);
+         int sat_number = atoi( fullname + len + 1);
 
-         if( roman > 0 && roman < 1000)
+         if( !sat_number)
+            sat_number = extract_roman_numeral( fullname + len + 1);
+         if( sat_number > 0 && sat_number < 1000)
             {
-            sprintf( packed, "%c%03dS       ", *fullname, roman);
+            sprintf( packed, "%c%03dS       ", *fullname, sat_number);
             return( (int)i);
             }
          }
