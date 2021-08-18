@@ -1071,7 +1071,7 @@ int main( int argc, const char **argv)
          {
          starting_jd = tval;
          full_ctime( time_buff, starting_jd, FULL_CTIME_DATE_ONLY | 0x30);
-         sprintf( buff, "'%s' has elements for %s = JD %.1f\n",
+         sprintf( buff, "'%s' has elements for %s = JD %.1f (and possibly other epochs)\n",
                                 argv[1], time_buff, starting_jd);
          printf( "%s", buff);
          fprintf( ofile, "%s", buff);
@@ -1191,7 +1191,11 @@ int main( int argc, const char **argv)
 
          if( asteroid_perturber_number > 0)
             {
-            printf( "Perturber %d calculated\n", asteroid_perturber_number);
+            const char *pert_text[3] = { "(1) Ceres", "(2) Pallas", "(4) Vesta" };
+
+            assert( asteroid_perturber_number >= 10);
+            assert( asteroid_perturber_number < 13);
+            printf( "Perturber %s calculated\n", pert_text[asteroid_perturber_number - 10]);
             perturber_mask |= (1L << asteroid_perturber_number);
             }
          n_integrated++;
