@@ -207,10 +207,13 @@ double extract_date_from_mpc_report( const char *buff, unsigned *format)
          if( tbuff[7] == ':')
             {
             rval += (double)get_two_digits( tbuff + 8) / hours_per_day
-               + (double)get_two_digits( tbuff + 10) / minutes_per_day
-               + (double)get_two_digits( tbuff + 12) / seconds_per_day;
-            tbuff[13] = '.';
-            rval += atof( tbuff + 13) / seconds_per_day;
+               + (double)get_two_digits( tbuff + 10) / minutes_per_day;
+            if( tbuff[12] != ' ')
+               {
+               rval += (double)get_two_digits( tbuff + 12) / seconds_per_day;
+               tbuff[13] = '.';
+               rval += atof( tbuff + 13) / seconds_per_day;
+               }
             format_found = 20;      /* formats 20-23;  see above */
             start_of_decimals = 14;
             }
