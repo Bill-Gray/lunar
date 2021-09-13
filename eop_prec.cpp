@@ -192,7 +192,7 @@ one is computed from the 'default' algorithm in delta_t.cpp. */
 
 int DLL_FUNC get_earth_orientation_params( const double jd,
                               earth_orientation_params *params,
-                              int desired_params_mask)
+                              const int desired_params_mask)
 {
    int i, rval = 0;
    double results[5];
@@ -203,8 +203,8 @@ int DLL_FUNC get_earth_orientation_params( const double jd,
       {
       const double dt = jd - eop_jd0;
 
-      for( i = 0; i < 5; i++, desired_params_mask >>= 1)
-         if( desired_params_mask & 1)
+      for( i = 0; i < 5; i++)
+         if( (desired_params_mask >> i) & 1)
             {
             int t_rval;
             double result;
@@ -213,9 +213,9 @@ int DLL_FUNC get_earth_orientation_params( const double jd,
                      eop_data + eop_size * i,
                      (i < 3 ? eop_usable : eop_usable_nutation),
                      dt, &t_rval);
-            if( t_rval)
+            if( t_rval)     /* extrapolated from one end of table */
                rval |= (1 << i);
-            else
+            else           /* no extrapolation done; within table */
                results[i] = result;
             }
       }
@@ -226,6 +226,20 @@ int DLL_FUNC get_earth_orientation_params( const double jd,
    params->tdt_minus_ut1 = results[2];
    params->dPsi = results[3];
    params->dEps = results[4];
+
+            /* The following asserts should only trigger if EOPs go
+            a bit outside historical ranges... which,  of course,
+            could happen.  If so,  they'll need to be updated. */
+
+   assert( params->dX > -0.28 * arcsec_to_radians);
+   assert( params->dX <  0.36 * arcsec_to_radians);
+   assert( params->dY > -0.03 * arcsec_to_radians);
+   assert( params->dY <  0.61 * arcsec_to_radians);
+   assert( params->dPsi > -130. * marcsec_to_radians);
+   assert( params->dPsi <   55. * marcsec_to_radians);
+   assert( params->dEps <   10. * marcsec_to_radians);
+   assert( params->dEps >  -18. * marcsec_to_radians);
+
    if( (desired_params_mask & 4) && !params->tdt_minus_ut1)
       params->tdt_minus_ut1 = default_td_minus_ut( jd);
    return( rval);
