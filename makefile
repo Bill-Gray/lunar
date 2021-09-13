@@ -52,6 +52,19 @@ endif
 
 RM=rm -f
 
+ifeq ($(OS),Windows_NT)
+    detected_OS := Windows
+else
+    detected_OS := $(shell sh -c 'uname 2>/dev/null || echo Unknown')
+endif
+
+ifeq ($(detected_OS),Linux)
+    CP = cp -u
+else
+    CP = cp
+endif
+
+
 # I'm using 'mkdir -p' to avoid error messages if the directory exists.
 # It may fail on very old systems,  and will probably fail on non-POSIX
 # systems.  If so,  change to '-mkdir' and ignore errors.
@@ -104,26 +117,26 @@ all: add_off$(EXE) adestest$(EXE) astcheck$(EXE) astephem$(EXE) \
 
 install:
 	$(MKDIR) $(INSTALL_DIR)/include
-	cp afuncs.h   $(INSTALL_DIR)/include
-	cp brentmin.h $(INSTALL_DIR)/include
-	cp cgi_func.h $(INSTALL_DIR)/include
-	cp comets.h   $(INSTALL_DIR)/include
-	cp date.h     $(INSTALL_DIR)/include
-	cp get_bin.h  $(INSTALL_DIR)/include
-	cp lunar.h    $(INSTALL_DIR)/include
-	cp mpc_func.h $(INSTALL_DIR)/include
-	cp showelem.h $(INSTALL_DIR)/include
-	cp vislimit.h $(INSTALL_DIR)/include
-	cp watdefs.h  $(INSTALL_DIR)/include
+	$(CP) afuncs.h   $(INSTALL_DIR)/include
+	$(CP) brentmin.h $(INSTALL_DIR)/include
+	$(CP) cgi_func.h $(INSTALL_DIR)/include
+	$(CP) comets.h   $(INSTALL_DIR)/include
+	$(CP) date.h     $(INSTALL_DIR)/include
+	$(CP) get_bin.h  $(INSTALL_DIR)/include
+	$(CP) lunar.h    $(INSTALL_DIR)/include
+	$(CP) mpc_func.h $(INSTALL_DIR)/include
+	$(CP) showelem.h $(INSTALL_DIR)/include
+	$(CP) vislimit.h $(INSTALL_DIR)/include
+	$(CP) watdefs.h  $(INSTALL_DIR)/include
 	$(MKDIR) $(LIB_DIR)
-	cp $(LIBLUNAR) $(LIB_DIR)
+	$(CP) $(LIBLUNAR) $(LIB_DIR)
 	$(MKDIR) $(INSTALL_DIR)/bin
 
 install_astcheck:
-	cp astcheck$(EXE) $(INSTALL_DIR)/bin
+	$(CP) astcheck$(EXE) $(INSTALL_DIR)/bin
 
 install_integrat:
-	cp integrat $(INSTALL_DIR)/bin
+	$(CP) integrat $(INSTALL_DIR)/bin
 
 uninstall:
 	rm -f $(INSTALL_DIR)/include/afuncs.h
