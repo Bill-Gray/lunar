@@ -99,6 +99,10 @@ a leap second.  The HH:MM:SS formats below _should_ let you do this,
 but (as yet) do not.  (The other formats flat out can't express that
 extra 86401st second in a day.)
 
+      53    K130213:0323.870      (CYYMMDD HH:MM.mmm... not supported)
+      52    K130213:0323.87       (CYYMMDD HH:MM.mm... not supported)
+      51    K130213:0323.8        (CYYMMDD HH:MM.m... not supported)
+      50    K130213:0323          (CYYMMDD HH:MM)
 
       49    M056336.641592653     (MJD, 10^-9 day)
       48    M056336.64159265      (MJD, 10^-8 day)
@@ -213,9 +217,11 @@ double extract_date_from_mpc_report( const char *buff, unsigned *format)
                rval += (double)get_two_digits( tbuff + 12) / seconds_per_day;
                tbuff[13] = '.';
                rval += atof( tbuff + 13) / seconds_per_day;
+               format_found = 20;      /* formats 20-23;  see above */
+               start_of_decimals = 14;
                }
-            format_found = 20;      /* formats 20-23;  see above */
-            start_of_decimals = 14;
+            else
+               format_found = 50;      /* HH:MM format;  see above */
             }
          else     /* decimal formats 32-40 */
             {
