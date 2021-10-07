@@ -79,7 +79,7 @@ static void extract_name( char *name, const char *iline)
 const char *sof_header =
        "Name        |Tp      .       |Te      |q          |"
        "i  .      |Om .      |om .      |e         |"
-       "rms |n_o  |Tlast   |H .  |G . ^\n";
+       "rms |n_o  |Tfirst  |Tlast   |H .  |G . ^\n";
 
 static void output_sof( const ELEMENTS *elem, char *obuff)
 {
@@ -207,15 +207,34 @@ int main( const int argc, const char **argv)
       if( strlen( buff) == 203 &&
                        (epoch = extract_mpcorb_dat( &elem, buff)) > 0L)
          {
-         char name[13];
+         char name[13], tfirst_buff[20];
+         double jd;
 
          extract_name( name, buff);
          snprintf( tbuff, 14, "%-13s", name);
          output_sof( &elem, tbuff + 13);
          sprintf( tbuff + strlen( tbuff), "%.4s %.5s ",
                       buff + 137, buff + 117);         /* rms, number obs */
-         sprintf( tbuff + strlen( tbuff), "%.8s %.5s %.5s\n",
-                  buff + 194, buff + 8, buff + 14);        /* Tlast, H, G */
+         jd = get_time_from_string( 0., buff + 194, FULL_CTIME_YMD, NULL);
+         if( !memcmp( buff + 132, "days", 4))
+            jd -= atof( buff + 128);
+         else
+            {
+            int year1, year2, n_scanned;
+
+            n_scanned = sscanf( buff + 127, "%d-%d", &year1, &year2);
+            assert( n_scanned == 2);
+            assert( year1 > 1700);
+            assert( year2 >= year1);
+            assert( year2 < 2100);
+            jd -= (double)( 365 * (year2 - year1 + 1));
+            }
+         full_ctime( tfirst_buff, jd, FULL_CTIME_YMD | FULL_CTIME_NO_SPACES
+                           | FULL_CTIME_MONTHS_AS_DIGITS | FULL_CTIME_DATE_ONLY
+                           | FULL_CTIME_LEADING_ZEROES);
+         sprintf( tbuff + strlen( tbuff), "%.8s %.8s %.5s %.5s\n",
+                  tfirst_buff,
+                  buff + 194, buff + 8, buff + 14);        /* Tfirst, Tlast, H, G */
          assert( strlen( tbuff) == reclen);
          n_out++;
          if( IS_POWER_OF_TWO( n_out))
@@ -260,7 +279,9 @@ int main( const int argc, const char **argv)
             snprintf( tbuff, 14, "%-12s ", name);
             output_sof( &elem, tbuff + 13);
             strcat( tbuff, "           ");    /* rms, number obs */
-            strcat( tbuff, "                    \n");     /* Tlast, H, G */
+            strcat( tbuff, "                             \n");     /* Tlast, H, G */
+            if( strlen( tbuff) != reclen)
+               printf( "%d %d\n", (int)strlen( tbuff), (int)reclen);
             assert( strlen( tbuff) == reclen);
             memcpy( obuff + n_out * reclen, tbuff, reclen);
             n_out++;
