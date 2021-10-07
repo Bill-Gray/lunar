@@ -862,14 +862,22 @@ int create_mpc_packed_desig( char *packed_desig, const char *obj_name)
 #ifdef TEST_MAIN
 /* Compile with :
 
-g++ -Wall -Wextra -pedantic -DTEST_MAIN -o mpc_fmt mpc_fmt.cpp date.cpp */
+g++ -Wall -Wextra -pedantic -DTEST_MAIN -o mpc_fmt mpc_fmt.cpp date.cpp unpack.cpp */
 
 int main( const int argc, const char **argv)
 {
-   char buff[100];
-   int rval = create_mpc_packed_desig( buff, argv[1]);
+   if( argc > 1)
+      {
+      char buff[100];
+      int rval;
 
-   printf( "%2d: '%s'\n", rval, buff);
+      if( argc == 2)
+         rval = create_mpc_packed_desig( buff, argv[1]);
+      else
+         rval = unpack_mpc_desig( buff, argv[1]);
+
+      printf( "%2d: '%s'\n", rval, buff);
+      }
    return( 0);
 }
 #endif
