@@ -717,6 +717,9 @@ int create_mpc_packed_desig( char *packed_desig, const char *obj_name)
       len--;
    while( len && obj_name[len - 1] == ' ')
       len--;         /* ignore trailing spaces */
+   if( i == len)        /* nothing but numbers */
+      if( number > 0 && number < 1000000 && i >= 5)
+         in_parentheses = true;
    if( number > 0 && number < 10000 && obj_name[i] && !obj_name[i + 1]
                              && strchr( "PDI", obj_name[i]))
       {        /* such as '297P',  '1I',  etc. */
