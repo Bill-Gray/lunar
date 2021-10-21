@@ -489,6 +489,7 @@ w 69.91, n 44.012, 1700ft
 
    etc.,  i.e.,  a lat/lon that would be readable by a human,
 plus an optional altitude,  this function will puzzle it out.
+Returns 0 on success,  -1 if it couldn't parse it.
 
    Feet are assumed to be US survey feet.  I think at this point,
 only my fellow Americans are daft enough to use 'feet',  so
@@ -564,6 +565,23 @@ static int text_search_and_replace( char *str, const char *oldstr,
    return( (int)rval);
 }
 
+static FILE *fopen_ext( const char *exec_path, const char *filename, const char *permits)
+{
+   char obuff[255];
+   size_t i;
+   FILE *rval;
+
+   strcpy( obuff, exec_path);
+   i = strlen( obuff);
+   while( i && obuff[i - 1] != '/' && obuff[i - 1] != '\\')
+      i--;
+   strcpy( obuff + i, filename);
+   rval = fopen( obuff, permits);
+// if( !rval)
+//    rval = fopen( obuff + i, permits);
+   return( rval);
+}
+
 const char *kml_header_text =
     "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
     "<kml xmlns=\"http://www.opengis.net/kml/2.2\">\n"
@@ -601,7 +619,7 @@ int main( const int argc, const char **argv)
             case 'g':
                {
                const time_t t0 = time( NULL);
-               FILE *hdr_ifile = fopen( "mpc_hdr.htm", "rb");
+               FILE *hdr_ifile = fopen_ext( argv[0], "mpc_hdr.htm", "rb");
                bool showing_lines = true;
 
                assert( hdr_ifile);
@@ -635,6 +653,8 @@ int main( const int argc, const char **argv)
    if( !ifile)
       ifile = fopen( "ObsCodes.html", "rb");
    if( !ifile)
+      ifile = fopen_ext( argv[0], "ObsCodes.html", "rb");
+   if( !ifile)
       {
       printf( "ObsCodes not opened\n");
       return( -1);
@@ -655,14 +675,7 @@ int main( const int argc, const char **argv)
             FILE *ifile;
             const char *geo_rect_filename = "geo_rect.txt";
 
-            strcpy( obuff, argv[0]);
-            i = strlen( obuff);
-            while( i && obuff[i - 1] != '/' && obuff[i - 1] != '\\')
-               i--;
-            strcpy( obuff + i, geo_rect_filename);
-            ifile = fopen( obuff, "rb");
-            if( !ifile)          /* try local directory */
-               ifile = fopen( geo_rect_filename, "rb");
+            ifile = fopen_ext( argv[0], geo_rect_filename, "rb");
             if( ifile)
                {
                extract_region_data_for_lat_lon( ifile, region,
