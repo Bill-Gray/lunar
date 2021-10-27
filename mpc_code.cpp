@@ -281,6 +281,16 @@ static double convert_base_60_to_decimal( const double ival)
    return( rval);
 }
 
+static void _set_parallax_constants( mpc_code_t *cinfo)
+{
+   const double major = planet_radius_in_meters( cinfo->planet);
+   const double minor = major * planet_axis_ratio( cinfo->planet);
+
+   lat_alt_to_parallax( cinfo->lat, cinfo->alt,
+                        &cinfo->rho_cos_phi, &cinfo->rho_sin_phi,
+                        major, minor);
+}
+
 int get_mpc_code_info( mpc_code_t *cinfo, const char *buff)
 {
    int i = 0, rval = -1;
@@ -314,15 +324,9 @@ int get_mpc_code_info( mpc_code_t *cinfo, const char *buff)
             cinfo->format = MPC_CODE_LAT_LON_ALT;
             if( tptr)                     /* non-earth location */
                rval = atoi( tptr + 1);
+            cinfo->planet = rval;
             if( cinfo->lat && cinfo->lon)   /* i.e.,  topocentric */
-               {
-               const double major = planet_radius_in_meters( rval);
-               const double minor = major * planet_axis_ratio( rval);
-
-               lat_alt_to_parallax( cinfo->lat, cinfo->alt,
-                        &cinfo->rho_cos_phi, &cinfo->rho_sin_phi,
-                        major, minor);
-               }
+               _set_parallax_constants( cinfo);
             }
          }
       else if( buff[7] == '.' && strchr( "+- ", buff[21])
@@ -539,6 +543,95 @@ int get_lat_lon_info( mpc_code_t *cinfo, const char *buff)
    return( rval);
 }
 
+/* https://www.minorplanetcenter.net/iau/info/Astrometry.html#HowObsCode
+suggests that you start out using "observatory code" (XXX),  whilst
+including a comment such as
+
+COM Long. 239 18 45 E, Lat. 33 54 11 N, Alt. 100m, Google Earth
+
+   Here,  that concept is extended to allow the degrees or minutes to
+expressed as decimals,  so the above example could be either of
+
+COM Long. 239.31250 E, Lat. 33.90306 N, Alt. 100m, Google Earth
+COM Long. 239 18.75 E, Lat. 33 54.1833 N, Alt. 100m, Google Earth
+
+   MPC insists on east latitudes only.  However,  this code
+accepts west longitudes;  you can specify the above location as
+
+COM Long. 120 41 15 E, Lat. 33 54 11 N, Alt. 100m, Google Earth
+COM Long. 120.68750 E, Lat. 33.90306 N, Alt. 100m, Google Earth
+COM Long. 129 41.25 E, Lat. 33 54.1833 N, Alt. 100m, Google Earth
+
+*/
+
+static double get_xxx_lat_or_lon( const char *ibuff, char *compass)
+{
+   double deg = 0., min = 0., sec = 0.;
+   int bytes_read;
+
+   *compass = '\0';
+   if( sscanf( ibuff, "%lf%n", &deg, &bytes_read) == 1)
+      {
+      ibuff += bytes_read;
+      if( sscanf( ibuff, "%lf%n", &min, &bytes_read) == 1)
+         {
+         ibuff += bytes_read;
+         if( sscanf( ibuff, "%lf%n", &sec, &bytes_read) == 1)
+            ibuff += bytes_read;
+         }
+      deg += min / 60. + sec / 3600.;
+      while( *ibuff == ' ')
+         ibuff++;
+      *compass = *ibuff;
+      }
+   return( deg);
+}
+
+#define MALFORMED_XXX_LINE    (-2)
+
+int get_xxx_location_info( mpc_code_t *cinfo, const char *buff)
+{
+   int rval = 0;
+
+   if( memcmp( buff, "COM Long.", 9))
+      rval = -1;
+   else
+      {
+      char compass;
+      const char *lat_ptr = strstr( buff, "Lat.");
+      const char *alt_ptr = strstr( buff, "Alt.");
+
+      cinfo->lon = get_xxx_lat_or_lon( buff + 9, &compass);
+      if( (compass == 'W' || compass == 'E') && lat_ptr && alt_ptr)
+         {
+         if( compass == 'W')
+            cinfo->lon = -cinfo->lon;
+         if( cinfo->lon < 0.)
+            cinfo->lon += 360.;
+         cinfo->lat = get_xxx_lat_or_lon( lat_ptr + 4, &compass);
+         if( compass == 'S')
+            cinfo->lat = -cinfo->lat;
+         else if( compass != 'N')
+            rval = MALFORMED_XXX_LINE;
+         if( !rval)
+            {
+            cinfo->lon *= PI / 180.;
+            cinfo->lat *= PI / 180.;
+            cinfo->alt = atof( alt_ptr + 4);
+            cinfo->format = MPC_CODE_LAT_LON_ALT;
+            cinfo->prec1 = cinfo->prec2 = 0;
+            cinfo->name = "Temporary MPC code";
+            cinfo->planet = 3;
+            strcpy( cinfo->code, "XXX");
+            _set_parallax_constants( cinfo);
+            }
+         }
+      else
+         rval = MALFORMED_XXX_LINE;
+      }
+   return( rval);
+}
+
 #ifdef TEST_CODE
 
 static int text_search_and_replace( char *str, const char *oldstr,
@@ -662,7 +755,7 @@ int main( const int argc, const char **argv)
    if( !make_kml)
       printf( "%s\n", header + google_offset);
    while( fgets( buff, sizeof( buff), ifile))
-      if( get_mpc_code_info( &code, buff) != -1)
+      if( get_mpc_code_info( &code, buff) != -1 || !get_xxx_location_info( &code, buff))
          {
          char region[100], obuff[200];
          bool show_link_for_this_line;
@@ -670,6 +763,9 @@ int main( const int argc, const char **argv)
          code.lat *= 180. / PI;
          code.lon *= 180. / PI;
          *region = '\0';
+         for( i = 0; buff[i] >= ' '; i++)
+            ;
+         buff[i] = '\0';
          if( code.planet == 3)
             {
             FILE *ifile;
@@ -736,11 +832,11 @@ int main( const int argc, const char **argv)
                snprintf( bing_link, sizeof( bing_link),
                      "<a href='https://www.bing.com/maps/?cp=%.7f~%.7f&amp;lvl=20&amp;style=a'>",
                               code.lat, code.lon);
-               printf( "%.27s</a> %s%s %s</a>", obuff + google_offset,
+               printf( "%.27s</a> %s%s %s</a>\n", obuff + google_offset,
                         bing_link, obuff + google_offset + 28, code.name);
                }
             else
-               printf( "%s %s", obuff + google_offset, code.name);
+               printf( "%s %s\n", obuff + google_offset, code.name);
             }
          }
       else if( dump_comments)    /* dump everything,  including */

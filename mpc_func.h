@@ -48,6 +48,7 @@ typedef struct
 #define MPC_CODE_SATELLITE          3
 
 int get_mpc_code_info( mpc_code_t *cinfo, const char *buff);
+int get_xxx_location_info( mpc_code_t *cinfo, const char *buff);
 int get_lat_lon_info( mpc_code_t *cinfo, const char *buff);
 double point_to_ellipse( const double a, const double b,
                          const double x, const double y, double *dist);
