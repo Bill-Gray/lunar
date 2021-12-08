@@ -364,16 +364,19 @@ int qsort_mpc_cmp( const void *elem1, const void *elem2)
    /* far enough apart to show real motion,  but not so far apart    */
    /* that sky curvature or acceleration are factors.                */
    /*    Return value is the JD of the observation used to determine */
-   /* the motion.                                                    */
+   /* the motion.  If there was only one observation,  we give the   */
+   /* time of that observation plus epsilon,  to evade division by   */
+   /* zero.                                                          */
 
 static double compute_motion( const char **lines, const int n_lines,
                            double *ra_motion, double *dec_motion)
 {
-   double ra, dec, jd, rval = 0.;
+   double ra, dec, jd, rval;
    int i;
 
    *ra_motion = *dec_motion = 0.;
    get_mpc_data( lines[0], &jd, &ra, &dec);
+   rval = jd + 1e-6;
    for( i = 1; i < n_lines && !memcmp( lines[0], lines[i], 12); i++)
       if( !memcmp( lines[0] + 77, lines[i] + 77, 3))
          {
