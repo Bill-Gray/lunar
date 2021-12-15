@@ -13,7 +13,10 @@ for on-line use;  see https://www.projectpluto.com/parallax.htm for
 an example of its usage.   */
 
 #define EARTH_MAJOR_AXIS_IN_METERS    6378137.
-#define EARTH_MINOR_AXIS_IN_METERS    6356752.
+     /* This code currently uses the GRS1980 value for the minor axis.
+        That's about 0.105 mm less than the WGS1984 value.  I do not
+        know of a case where the difference is actually measurable.  */
+#define EARTH_MINOR_AXIS_IN_METERS    6356752.314140347
 #define PI 3.1415926535897932384626433832795028841971693993751058209749445923
 
 typedef struct

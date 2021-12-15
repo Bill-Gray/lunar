@@ -31,7 +31,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 #define MERCURY_MINOR_AXIS  2438260.
 #define VENUS_RADIUS        6051800.
 #define EARTH_MAJOR_AXIS    6378137.
-#define EARTH_MINOR_AXIS    6356752.
+#define EARTH_MINOR_AXIS    6356752.314140347
 #define MARS_MAJOR_AXIS     3396190.
 #define MARS_MINOR_AXIS     3376200.
 #define MOON_RADIUS         1737400.

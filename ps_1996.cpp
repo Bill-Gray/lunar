@@ -174,7 +174,7 @@ static double make_ra_dec_string( double *vect, char *buff)
 }
 
 #define EARTH_MAJOR_AXIS    6378137.
-#define EARTH_MINOR_AXIS    6356752.
+#define EARTH_MINOR_AXIS    6356752.314140347
 
 static void compute_topocentric_offset( double *earth_vect, const double lat,
                const double lon, const double alt_in_meters, const double jd_ut)
