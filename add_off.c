@@ -77,6 +77,7 @@ static int get_horizons_idx( const char *mpc_code)
           {"C56", -141043 },   /* LISA Pathfinder    */
           {"C57",     -95 },   /* TESS               */
           {"PSP",     -96 },   /* Parker Solar Probe */
+          {"JWT",    -170 },   /* James Webb (Space) Telescope */
           {"SoO",    -144 }};  /* Solar Orbiter      */
    size_t i;
    const size_t n_xrefs = sizeof( xrefs) / sizeof( xrefs[0]);
