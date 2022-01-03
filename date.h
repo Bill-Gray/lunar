@@ -160,9 +160,11 @@ are plenty of candidates for the remaining seven: */
 
          /* The Chinese calendar routines use a buffer of precomputed data */
          /* indicating when various months occur,  which are considered    */
-         /* intercalary,  etc.  This function sets that buffer (see jd.cpp */
-         /* for an example of the use of both of the following functions): */
-void DLL_FUNC set_chinese_calendar_data( void *cdata);
+         /* intercalary,  etc.  This array can come from 'chinese.h' and be */
+         /* statically included in the library,  or can be omitted and only */
+         /* set when desired using the following function.  See jd.cpp      */
+         /* for an example of the use of both of the following functions. */
+void DLL_FUNC set_chinese_calendar_data( const void *cdata);
 int DLL_FUNC get_chinese_intercalary_month( void);
 
 #ifdef __cplusplus

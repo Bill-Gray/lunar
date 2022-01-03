@@ -66,7 +66,7 @@ extern const char *french_extra_day_names[6] = {
         "Jour de la revolution (Revolution Day)" };
 #endif
 
-
+#ifdef LOAD_CHINESE_CALENDAR_DATA_FROM_FILE
 /* The Chinese calendar involves added complications for two reasons.
 First,  instead of being computed algorithmically (as all the other
 calendars are),  it's computed using a pre-compiled data table.  So you
@@ -115,6 +115,7 @@ static int load_chinese_calendar_data( const char *filename)
       }
    return( rval);
 }
+#endif    /* #ifdef LOAD_CHINESE_CALENDAR_DATA_FROM_FILE */
 
 #if !defined( _MSC_VER) && !defined( __WATCOMC__)
 static void error_exit( void)  __attribute__ ((noreturn));
@@ -191,7 +192,10 @@ void DLL_FUNC greg_day_to_dmy( const long jd, int DLLPTR *day,
 
 int main( int argc, char **argv)
 {
-   int calendar = CALENDAR_JULIAN_GREGORIAN, err_code, i, is_ut;
+#ifdef LOAD_CHINESE_CALENDAR_DATA_FROM_FILE
+   int err_code;
+#endif
+   int calendar = CALENDAR_JULIAN_GREGORIAN, i, is_ut;
    const double tdt_minus_tai = 32.184;
    const double tai_minus_gps = 19.;
    const long double j2000 = 2451545.;
@@ -223,9 +227,11 @@ int main( int argc, char **argv)
 
    if( is_ut < 0)
       printf( "Error parsing string: %d\n", is_ut);
+#ifdef LOAD_CHINESE_CALENDAR_DATA_FROM_FILE
    err_code = load_chinese_calendar_data( "chinese.dat");
    if( err_code)
       printf( "WARNING:  Chinese calendar data not loaded: %d\n", err_code);
+#endif    /* #ifdef LOAD_CHINESE_CALENDAR_DATA_FROM_FILE */
 
    if( t2k + j2000 == 0.)    /* no date found in command line;  show an error message: */
       error_exit( );
@@ -285,6 +291,8 @@ int main( int argc, char **argv)
          (double)tdb_minus_tdt( t2k / 36525.) * 1000.,
          td_minus_utc( jd) - tdt_minus_tai,
          td_minus_utc( jd) - tdt_minus_tai - tai_minus_gps);
+#ifdef LOAD_CHINESE_CALENDAR_DATA_FROM_FILE
    load_chinese_calendar_data( NULL);
+#endif    /* #ifdef LOAD_CHINESE_CALENDAR_DATA_FROM_FILE */
    return( 0);
 }

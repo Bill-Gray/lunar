@@ -581,7 +581,17 @@ jd = 365 * year + year / 4 + CHINESE_CALENDAR_EPOCH + offset
 
 Thus,  the offset can be a value from 0 to (2^11 / 14) = 186. */
 
-static char *chinese_calendar_data = NULL;
+#ifdef LOAD_CHINESE_CALENDAR_DATA_FROM_FILE
+static const unsigned char *chinese_calendar_data = NULL;
+
+void DLL_FUNC set_chinese_calendar_data( const void *cdata)
+{
+   chinese_calendar_data = (const unsigned char *)cdata;
+}
+#else
+   #include "chinese.h"
+#endif    /* #ifdef LOAD_CHINESE_CALENDAR_DATA_FROM_FILE */
+
 static int chinese_intercalary_month = 0;
 
 #define CHINESE_CALENDAR_EPOCH 757862L
@@ -594,8 +604,8 @@ static int get_chinese_year_data( const long year, long *days,
    if( !chinese_calendar_data)
       return( -1);
 
-   int index = (int)year - *(int16_t *)( chinese_calendar_data + 2);
-   int n_years = *(const int16_t *)chinese_calendar_data;
+   int index = (int)year - *(const int16_t *)( chinese_calendar_data + 2);
+   const int n_years = *(const int16_t *)chinese_calendar_data;
          /* Above lines should involve byte-swapping */
 
    if( index < 0 || index >= n_years)
@@ -661,11 +671,6 @@ static int get_calendar_data( const long year, long *days, char *month_data,
          days[1] += month_data[i];
       }
    return( rval);
-}
-
-void DLL_FUNC set_chinese_calendar_data( void *cdata)
-{
-   chinese_calendar_data = (char *)cdata;
 }
 
 int DLL_FUNC get_chinese_intercalary_month( void)
