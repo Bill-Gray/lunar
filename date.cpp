@@ -601,8 +601,10 @@ static int get_chinese_year_data( const long year, long *days,
 {
    int32_t packed_val = 0;
 
+#ifdef LOAD_CHINESE_CALENDAR_DATA_FROM_FILE
    if( !chinese_calendar_data)
       return( -1);
+#endif
 
    int index = (int)year - *(const int16_t *)( chinese_calendar_data + 2);
    const int n_years = *(const int16_t *)chinese_calendar_data;
