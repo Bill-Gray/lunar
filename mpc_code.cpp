@@ -418,28 +418,52 @@ GOT_ALT if it was an altitude,  and GOT_NOTHING otherwise.     */
 #define GOT_ALT            2
 #define GOT_NOTHING       -1
 
+static double _get_angle( const char *buff, int *nbytes, int *n_fields)
+{
+   double rval = 0., fraction;
+   const char *tptr = buff;
+
+   *n_fields = 0;
+   if( sscanf( tptr, "%lf%n", &rval, nbytes) == 1)
+      {
+      tptr += *nbytes;
+      *n_fields = 1;
+      if( sscanf( tptr, "%lf%n", &fraction, nbytes) == 1)
+         {
+         tptr += *nbytes;
+         rval += fraction / 60.;
+         *n_fields = 2;
+         if( sscanf( tptr, "%lf%n", &fraction, nbytes) == 1)
+            {
+            tptr += *nbytes;
+            rval += fraction / 3600.;
+            *n_fields = 3;
+            }
+         }
+      }
+   if( tptr != buff)
+      while( *tptr == ' ')    /* skip trailing spaces */
+         tptr++;
+   *nbytes = (int)( tptr - buff);
+   return( rval);
+}
+
 static int extract_lat_lon( const char *buff, size_t *bytes_read, double *value)
 {
    const char *tptr = buff;
-   int rval = GOT_NOTHING, nbytes;
+   int rval = GOT_NOTHING, nbytes, n_fields;
    bool is_negative = false;
+   const char *compass = "nNeEsSwW";
+   char compass_byte = 0;
 
-   *value = 0.;
    while( *tptr == ' ')
       tptr++;
-   if( *tptr == 'n' || *tptr == 'N' || *tptr == 's' || *tptr == 'S')
+   if( strchr( compass, *tptr))
+      compass_byte = *tptr++;
+   *value = _get_angle( tptr, &nbytes, &n_fields);
+   tptr += nbytes;
+   if( !compass_byte && n_fields == 1)        /* possible height */
       {
-      is_negative = (*tptr == 's' || *tptr == 'S');
-      rval = GOT_LAT;
-      }
-   else if( *tptr == 'e' || *tptr == 'E' || *tptr == 'w' || *tptr == 'W')
-      {
-      is_negative = (*tptr == 'w' || *tptr == 'W');
-      rval = GOT_LON;
-      }
-   else if( sscanf( tptr, "%lf%n", value, &nbytes) == 1)
-      {
-      tptr += nbytes;
       if( *tptr == 'm')
          {
          tptr++;
@@ -454,31 +478,32 @@ static int extract_lat_lon( const char *buff, size_t *bytes_read, double *value)
          *value *= us_survey_feet_to_meters;
          }
       }
-   if( rval == GOT_LAT || rval == GOT_LON)
+/* printf( "From '%s',  got %d, value %f\n", buff, (int)( tptr - buff), *value); */
+   if( n_fields && rval == GOT_NOTHING)
       {
-      tptr++;        /* scan past compass sign */
-      if( sscanf( tptr, "%lf%n", value, &nbytes) != 1)
-         rval = GOT_NOTHING;
-      else
+      if( !compass_byte && strchr( compass, *tptr))
+         {                 /* compass sign after the angle */
+         compass_byte = *tptr++;
+/*       printf( "Got byte '%c'; value %f\n", compass_byte, *value); */
+         }
+      compass_byte = tolower( compass_byte);
+      if( compass_byte == 'n' || compass_byte == 's')
          {
-         double minutes, seconds;
-
-         tptr += nbytes;
-         if( sscanf( tptr, "%lf%n", &minutes, &nbytes) == 1)
-            {
-            *value += minutes / 60.;
-            tptr += nbytes;
-            if( sscanf( tptr, "%lf%n", &seconds, &nbytes) == 1)
-               {
-               *value += seconds / 3600.;
-               tptr += nbytes;
-               }
-            }
+         is_negative = (compass_byte == 's');
+         rval = GOT_LAT;
+         }
+      else if( compass_byte == 'e' || compass_byte == 'w')
+         {
+         is_negative = (compass_byte == 'w');
+         rval = GOT_LON;
          }
       }
    if( *tptr == ',')
       tptr++;
-   *bytes_read = tptr - buff;
+   if( rval == GOT_NOTHING)
+      *bytes_read = 0;
+   else
+      *bytes_read = tptr - buff;
    if( is_negative)
       *value = -*value;
    return( rval);
