@@ -606,6 +606,7 @@ int main( const int argc, const char **argv)
          char tbuff[300];
          int n_results = 0;
          int n_checked = 0;
+         bool singleton_observation;
 
          jd += delta_t;
          if( mpc_station_file && memcmp( ilines[n] + 77, curr_station, 3))
@@ -654,15 +655,16 @@ int main( const int argc, const char **argv)
          get_topo_loc( jd2, earth_loc2, longitude, rho_cos_phi, rho_sin_phi);
          memcpy( buff, ilines[n], 12);
          buff[12] = '\0';
-         if( ra_motion || dec_motion)
+         singleton_observation = ( !ra_motion && !dec_motion);
+         if( singleton_observation)
+            printf( "\n%s: only one observation\n", buff);
+         else
 #ifdef CGI_VERSION
             printf( "\n<b>%s: %.0f\"/hr in RA, %.0f\"/hr in dec (%.2f hours)</b>\n",
 #else
             printf( "\n%s: %.0f\"/hr in RA, %.0f\"/hr in dec (%.2f hours)\n",
 #endif
                         buff, ra_motion, dec_motion, (jd2 - jd) * 24.);
-         else
-            printf( "\n%s: only one observation\n", buff);
          n_lines_printed++;
          for( i = 0; i < n_asteroids; i++)
             {
@@ -717,8 +719,9 @@ int main( const int argc, const char **argv)
                                  /* cvt motions from radians/day to "/hour: */
                      computed_ra_motion *=  radians_to_arcsec / dt_in_hours;
                      computed_dec_motion *= radians_to_arcsec / dt_in_hours;
-                     if( fabs( computed_dec_motion - dec_motion) < motion_tolerance &&
+                     if( (fabs( computed_dec_motion - dec_motion) < motion_tolerance &&
                            fabs( computed_ra_motion - ra_motion) < motion_tolerance)
+                                    || singleton_observation)
                         {
                         double ra2, dec2, lov_len, dist_from_lov;
                         int j;
