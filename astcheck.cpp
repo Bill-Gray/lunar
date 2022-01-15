@@ -485,8 +485,7 @@ int main( const int argc, const char **argv)
    double rho_sin_phi = 0., rho_cos_phi = 0., longitude = 0.;
    double motion_tolerance = 10.;  /* require a match to within 10"/hr */
 
-   curr_station[0] = '\0';
-
+   memset( curr_station, 0, sizeof( curr_station));
    for( i = 2; i < argc; i++)
       if( argv[i][0] == '-')
          {
@@ -588,10 +587,12 @@ int main( const int argc, const char **argv)
          strcpy( ilines[n_ilines], buff);
          n_ilines++;
          }
+   fclose( ifile);
    qsort( ilines, n_ilines, sizeof( char **), qsort_mpc_cmp);
    for( n = 0; n < n_ilines; n++)
-      if( (!n || memcmp( ilines[n], ilines[n - 1], 12)) &&
-                       !get_mpc_data( ilines[n], &jd, &ra, &dec))
+      if( strlen( ilines[n]) >= 80
+                     && (!n || memcmp( ilines[n], ilines[n - 1], 12))
+                     && !get_mpc_data( ilines[n], &jd, &ra, &dec))
          {
          double earth_loc[6], earth_loc2[6];
          double ra_motion = 0., dec_motion = 0., earth_sun_dist;
@@ -781,6 +782,7 @@ int main( const int argc, const char **argv)
       free( day_data[0]);
    if( day_data[1])
       free( day_data[1]);
+   fclose( orbits_file);
    printf( "The apparent motion and arc length for each object are shown,  followed\n"
            "by a list of possible matches,  in order of increasing distance.  For\n"
            "each match,  the separation is shown,  both in RA and dec,  and then\n"
