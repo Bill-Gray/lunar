@@ -62,25 +62,16 @@ static double calc_obs_magnitude( ELEMENTS *elem, const double obj_sun,
    if( !elem->abs_mag)
       magnitude = 0.;
    else if( !elem->is_asteroid)
-      magnitude = elem->slope_param * log( obj_sun);
+      magnitude = elem->slope_param * log10( obj_sun);
    else
       {
       const double cos_phase_ang =
                   law_of_cosines( obj_sun, obj_earth, earth_sun);
-      const double half_phase_ang = acose( cos_phase_ang) / 2.;
-      const double log_tan_half_phase = log( tan( half_phase_ang));
-      const double phi1 = exp( -3.33 * exp( log_tan_half_phase * 0.63));
-      const double phi2 = exp( -1.87 * exp( log_tan_half_phase * 1.22));
 
-      if( cos_phase_ang > 1. || cos_phase_ang < -1.)
-         printf( "???? Triangle error: %f %f %f\n", obj_sun, obj_earth, earth_sun);
-      magnitude = 5. * log( obj_sun)
-                           -2.5 * log( (1. - elem->slope_param) * phi1
-                                            + elem->slope_param * phi2);
+      magnitude = 5. * log10( obj_sun) + phase_angle_correction_to_magnitude(
+                     acose( cos_phase_ang), elem->slope_param);
       }
-   magnitude += 5. * log( obj_earth);
-   magnitude /= LOG_10;      /* cvt from natural logs to common (base 10) */
-   magnitude += elem->abs_mag;
+   magnitude += 5. * log10( obj_earth) + elem->abs_mag;
    return( magnitude);
 }
 
