@@ -352,3 +352,14 @@ int DLL_FUNC comet_posn( ELEMENTS DLLPTR *elem, double t, double DLLPTR *loc)
 {
    return( comet_posn_and_vel( elem, t, loc, NULL));
 }
+
+double DLL_FUNC phase_angle_correction_to_magnitude( const double phase_angle,
+                                 const double slope_param)
+{
+      const double epsilon = 1e-10;
+      const double log_tan_half_phase = log( tan( phase_angle / 2.) + epsilon);
+      const double phi1 = exp( -3.33 * exp( log_tan_half_phase * 0.63));
+      const double phi2 = exp( -1.87 * exp( log_tan_half_phase * 1.22));
+
+      return( -2.5 * log10( (1. - slope_param) * phi1 + slope_param * phi2));
+}

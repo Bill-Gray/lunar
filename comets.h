@@ -50,6 +50,8 @@ int DLL_FUNC comet_posn( ELEMENTS DLLPTR *elem, double t, double DLLPTR *loc);  
 void DLL_FUNC derive_quantities( ELEMENTS DLLPTR *e, const double gm);
 int DLL_FUNC setup_elems_from_ast_file( ELEMENTS DLLPTR *class_elem,
               const uint32_t DLLPTR *elem, const double t_epoch);
+double DLL_FUNC phase_angle_correction_to_magnitude( const double phase_angle,
+                                 const double slope_param);
 int setup_planet_elem( ELEMENTS *elem, const int planet_idx,
                                              const double t_cen);
 
