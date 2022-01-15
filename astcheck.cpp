@@ -460,8 +460,6 @@ static const char *get_arg( const int argc, const char **argv, const int idx)
 int snprintf( char *string, const size_t max_len, const char *format, ...);
 #endif
 
-#define MAX_RESULTS 500
-
 #ifdef CGI_VERSION
 int astcheck_main( const int argc, const char **argv)
 #else
@@ -484,6 +482,8 @@ int main( const int argc, const char **argv)
    char curr_station[7];
    double rho_sin_phi = 0., rho_cos_phi = 0., longitude = 0.;
    double motion_tolerance = 10.;  /* require a match to within 10"/hr */
+   int results_array_size = 5;
+   char **results = (char **)calloc( results_array_size, sizeof( char *));
 
    memset( curr_station, 0, sizeof( curr_station));
    for( i = 2; i < argc; i++)
@@ -603,7 +603,6 @@ int main( const int argc, const char **argv)
          double jd2;
          const int16_t tolerance = (int16_t)
                           ( tolerance_in_arcsec * 65536 / (360. * 3600.));
-         char *results[MAX_RESULTS + 1];
          char tbuff[300];
          int n_results = 0;
          int n_checked = 0;
@@ -756,28 +755,37 @@ int main( const int argc, const char **argv)
                         for( j = 0; j < n_results
                                      && atof( results[j] + 39) < dist; j++)
                            ;
+                        if( n_results > results_array_size - 2)
+                           {
+                           results_array_size <<= 1;
+                           results = (char **)realloc( results,
+                                       results_array_size * sizeof( char *));
+                           }
                         memmove( results + j + 1, results + j,
                                            (n_results - j) * sizeof( char *));
                         results[j] = (char *)malloc( strlen( tbuff) + 1);
                         strcpy( results[j], tbuff);
-                        if( n_results < max_results)
-                           n_results++;
+                        n_results++;
                         }
                      }
                   }
             }
          for( i = 0; i < n_results; i++)
             {
-            printf( "%s\n", results[i]);
+            if( i < max_results)
+               {
+               printf( "%s\n", results[i]);
+               n_lines_printed++;
+               }
             free( results[i]);
             }
-         n_lines_printed += n_results;
          if( verbose)
             printf( "%d objects had to be checked\n", n_checked);
          }
    for( i= 0; i < n_ilines; i++)
       free( ilines[i]);
    free( ilines);
+   free( results);
    if( day_data[0])
       free( day_data[0]);
    if( day_data[1])
