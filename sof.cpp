@@ -179,7 +179,7 @@ int extract_sof_data_ex( ELEMENTS *elem, const char *buff, const char *header,
             fields_found |= SOF_ARG_PERIH_FOUND;
             break;
          }
-      if( !memcmp( header, "rms ", 4) && extra_info)
+      if( !memcmp( header, "rms", 3) && extra_info)
          extra_info[3] = atof( tbuff);
       if( header[i] == '|')
          i++;
