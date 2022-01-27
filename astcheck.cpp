@@ -417,6 +417,25 @@ static double get_topo_loc( const double jd, double *topo_loc, const double lon,
    return( vector3_length( topo_loc));
 }
 
+static const char *_dummy_filename = "astcheck.txt";
+
+static void make_fake_file( const char **argv)
+{
+   char buff[181];
+   const double jd = get_time_from_string( 0., argv[2], 0, NULL);
+   const double ra = atof( argv[3]);
+   const double dec = atof( argv[4]);
+   FILE *ofile = fopen( _dummy_filename, "wb");
+
+   strcpy( buff, "    dummy     C");
+   sprintf( buff + 15, "%16.8f %011.7f %+011.7f", jd, ra, dec);
+   strcat( buff, "                 Synth");
+   strcat( buff, argv[5]);          /* MPC code */
+   fprintf( ofile, "%s\n", buff);
+   fclose( ofile);
+   assert( strlen( buff) == 80);
+}
+
 static void err_message( void)
 {
    printf( "\nastcheck needs the name of a file containing MPC-formatted (80-column)\n");
@@ -475,9 +494,22 @@ int main( const int argc, const char **argv)
    double motion_tolerance = 10.;  /* require a match to within 10"/hr */
    int results_array_size = 5;
    char **results = (char **)calloc( results_array_size, sizeof( char *));
+   bool is_list_file = false;
 
+   if( argc < 2)
+      {
+      err_message( );
+      return( -1);
+      }
+   if( !strcmp( argv[1], "-c"))
+      {
+      assert( argc > 5);
+      make_fake_file( argv);
+      is_list_file = true;
+      max_results = 20000;
+      }
    memset( curr_station, 0, sizeof( curr_station));
-   for( i = 2; i < argc; i++)
+   for( i = (is_list_file ? 6 : 2); i < argc; i++)
       if( argv[i][0] == '-')
          {
          const char *arg = get_arg( argc, argv, i);
@@ -538,7 +570,7 @@ int main( const int argc, const char **argv)
       err_message( );
       return( -1);
       }
-   ifile = fopen( argv[1], "rb");
+   ifile = fopen( is_list_file ? _dummy_filename : argv[1], "rb");
    if( !ifile)
       printf( "%s not opened\n", argv[1]);
    orbits_file = get_sof_file( sof_filename);
@@ -579,6 +611,8 @@ int main( const int argc, const char **argv)
          n_ilines++;
          }
    fclose( ifile);
+// if( is_list_file)
+//    _unlink( _dummy_filename);
    qsort( ilines, n_ilines, sizeof( char **), qsort_mpc_cmp);
    for( n = 0; n < n_ilines; n++)
       if( strlen( ilines[n]) >= 80
@@ -633,7 +667,13 @@ int main( const int argc, const char **argv)
             {
             show_astcheck_info( );
             printf( "An explanation of these data is given at the bottom of the list.\n");
-            printf( "                             d_ra   d_dec    dist    mag  motion \n");
+            if( is_list_file)
+               {
+               printf( "                           RA  (J2000)  dec       mag ");
+               printf( "  dRA/dt    dDec/dt\n");
+               }
+            else
+               printf( "                             d_ra   d_dec    dist    mag  motion \n");
             }
          if( verbose)
             printf( "JD %f, RA %f, dec %f\n",
@@ -648,7 +688,10 @@ int main( const int argc, const char **argv)
          buff[12] = '\0';
          singleton_observation = ( !ra_motion && !dec_motion);
          if( singleton_observation)
-            printf( "\n%s: only one observation\n", buff);
+            {
+            if( !is_list_file)
+               printf( "\n%s: only one observation\n", buff);
+            }
          else
 #ifdef CGI_VERSION
             printf( "\n<b>%s: %.0f\"/hr in RA, %.0f\"/hr in dec (%.2f hours)</b>\n",
@@ -668,6 +711,7 @@ int main( const int argc, const char **argv)
                   {
                   ELEMENTS class_elem;
                   double ra1, dec1, mag;
+                  double d_ra, d_dec;
                   double earth_obj_dist, dist;
                   int sof_rval = -999;
 
@@ -690,10 +734,9 @@ int main( const int argc, const char **argv)
                            &ra1, &dec1);
                   mag = calc_obs_magnitude( &class_elem, obj_sun_dist,
                               earth_obj_dist, earth_sun_dist);
-                           /* Cvt ra1, dec1 to be relative to observation point: */
-                  ra1 = centralize_angle( ra1 - ra) * cos_dec;
-                  dec1 -= dec;
-                  dist = sqrt( ra1 * ra1 + dec1 * dec1);
+                  d_ra = centralize_angle( ra1 - ra) * cos_dec;
+                  d_dec = dec1 - dec;
+                  dist = sqrt( d_ra * d_ra + d_dec * d_dec);
                   dist *= radians_to_arcsec;
                   if( mag < mag_limit && dist < tolerance_in_arcsec)
                      {
@@ -704,9 +747,13 @@ int main( const int argc, const char **argv)
                      compute_asteroid_loc( earth_loc2, &class_elem, jd2,
                               &computed_ra_motion, &computed_dec_motion);
                      computed_ra_motion =
-                           centralize_angle( computed_ra_motion - ra) * cos_dec;
-                     computed_ra_motion -= ra1;
-                     computed_dec_motion -= dec + dec1;
+                           centralize_angle( computed_ra_motion - ra1) * cos_dec;
+                     computed_dec_motion -= dec1;
+                     if( !is_list_file)
+                        {
+                        computed_ra_motion -= d_ra;
+                        computed_dec_motion -= d_dec;
+                        }
                                  /* cvt motions from radians/day to "/hour: */
                      computed_ra_motion *=  radians_to_arcsec / dt_in_hours;
                      computed_dec_motion *= radians_to_arcsec / dt_in_hours;
@@ -723,18 +770,28 @@ int main( const int argc, const char **argv)
                               &ra2, &dec2);
                         ra2 = centralize_angle( ra2 - ra) * cos_dec;
                         dec2 -= dec;
-                        ra2 -= ra1;       /* (ra2, dec2) is now a vector pointing */
-                        dec2 -= dec1;     /* along the LOV                        */
+                        ra2 -= d_ra;       /* (ra2, dec2) is now a vector pointing */
+                        dec2 -= d_dec;     /* along the LOV                        */
                         lov_len = sqrt( ra2 * ra2 + dec2 * dec2);
-                        dist_from_lov = (ra1 * dec2 - ra2 * dec1) / lov_len;
+                        dist_from_lov = (d_ra * dec2 - ra2 * d_dec) / lov_len;
 
-                        snprintf( tbuff + 26, sizeof( tbuff) - 26,
+                        if( is_list_file)
+                           {
+                           if( ra1 < 0.)
+                              ra1 += PI + PI;
+                           snprintf( tbuff + 26, sizeof( tbuff) - 26,
+                                 "%010.6f %+010.6f  %5.2f  %8.4f %8.4f",
+                                          ra1 * 180. / PI, dec1 * 180. / PI, mag,
+                                          computed_ra_motion /60., computed_dec_motion / 60.);
+                           }
+                        else
+                           snprintf( tbuff + 26, sizeof( tbuff) - 26,
                               "%6.0f %6.0f  %6.0f  %4.1f %5.0f%5.0f",
-                              -ra1 * radians_to_arcsec,
-                              -dec1 * radians_to_arcsec, dist,
+                              -d_ra * radians_to_arcsec,
+                              -d_dec * radians_to_arcsec, dist,
                               mag, computed_ra_motion, computed_dec_motion);
                         if( !class_elem.abs_mag)
-                           memset( tbuff + 49, '-', 4);
+                           memset( tbuff + 49, '-', 5);
                         memset( tbuff + 12, ' ', 14);
 //                      snprintf( tbuff + strlen( tbuff), sizeof( tbuff) - strlen( tbuff),
 //                                            "  %.4f", earth_obj_dist);
@@ -743,9 +800,12 @@ int main( const int argc, const char **argv)
                                            sizeof( tbuff) - strlen( tbuff),
                                            "  %6.0f",
                                            dist_from_lov * radians_to_arcsec);
-                        for( j = 0; j < n_results
+                        if( is_list_file)
+                           j = n_results;
+                        else
+                           for( j = 0; j < n_results
                                      && atof( results[j] + 39) < dist; j++)
-                           ;
+                              ;
                         if( n_results > results_array_size - 2)
                            {
                            results_array_size <<= 1;
