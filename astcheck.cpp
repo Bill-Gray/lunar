@@ -424,7 +424,8 @@ static int get_mpcorb_dot_dat_line( const char *filename, const int line_no,
    FILE *ifile = get_file_from_path( filename, "rb");
    int rval = 0;
 
-   assert( ifile);
+   if( !ifile)
+      return( -1);
    if( !line_len)
       {
       while( fgets( buff, 210, ifile) && memcmp( buff, "00001 ", 6))
@@ -826,7 +827,8 @@ int main( const int argc, const char **argv)
                                            sizeof( tbuff) - strlen( tbuff),
                                            "  %6.0f",
                                            dist_from_lov * radians_to_arcsec);
-                        if( !get_mpcorb_dot_dat_line( "mpcorb.dat", i, mpcorb_info))
+                        if( !get_mpcorb_dot_dat_line( "mpcorb.dat", i, mpcorb_info)
+                                 || !get_mpcorb_dot_dat_line( "MPCORB.DAT", i, mpcorb_info))
                            {
                            mpcorb_info[136] = mpcorb_info[165] = '\0';
                            strcat( tbuff, mpcorb_info + 160);  /* four hex digits */
