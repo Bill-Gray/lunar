@@ -112,78 +112,6 @@ static FILE *err_fopen( const char *filename, const char *permits)
    return( rval);
 }
 
-#define DESIG_NUMBERED          0
-#define DESIG_PROVISIONAL       1
-#define DESIG_PLS_OR_TS         2
-#define DESIG_NUMBERED_COMET    3
-#define DESIG_PROVISIONAL_COMET 4
-#define DESIG_UNRECOGNIZED     -1
-
-static int desig_type( const char *buff)
-{
-   int rval = DESIG_UNRECOGNIZED;
-
-   if( buff[0] == ' ' && buff[1] == ' '
-               && buff[2] == ' ')
-      rval = DESIG_NUMBERED;
-   else if( buff[6] == '-' && (buff[5] == 'P' || buff[5] == 'T'))
-      rval = DESIG_PLS_OR_TS;
-   else if( buff[1] == '/')
-      rval = DESIG_PROVISIONAL_COMET;
-   else if( buff[3] == 'P' || buff[3] == 'D')
-      rval = DESIG_NUMBERED_COMET;
-   else if( buff[4] == ' ')
-      if( buff[0] == '1' || buff[0] == '2')
-         rval = DESIG_PROVISIONAL;
-   return( rval);
-}
-
-int qsort_compare( const void *a, const void *b)
-{
-   const char *astr = (const char *)a;
-   const char *bstr = (const char *)b;
-   const int type1 = desig_type( astr);
-   const int type2 = desig_type( bstr);
-   int rval = type1 - type2;
-
-   if( !rval)
-      switch( type1)
-         {
-         case DESIG_NUMBERED:
-         case DESIG_NUMBERED_COMET:
-            break;
-         case DESIG_PROVISIONAL:
-            rval = memcmp( astr, bstr, 6);
-            if( !rval)
-               {
-               const int na = (astr[7] == ' ' ? 0 : atoi( astr + 7));
-               const int nb = (bstr[7] == ' ' ? 0 : atoi( bstr + 7));
-
-               rval = na - nb;
-               }
-            if( !rval)
-               rval = astr[6] - bstr[6];
-            break;
-         case DESIG_PLS_OR_TS:
-            rval = memcmp( astr + 6, bstr + 6, 3);
-            break;
-         case DESIG_PROVISIONAL_COMET:
-            rval = atoi( astr + 2) - atoi( bstr + 2);
-            if( !rval)
-               rval = memcmp( astr + 2, bstr + 2, 6);
-            if( !rval)
-               if( astr[11] < 'A' && bstr[11] < 'A')
-                  rval = atoi( astr + 11) - atoi( bstr + 11);
-            break;
-         case DESIG_UNRECOGNIZED:
-            rval = memcmp( astr, bstr, 12);
-            break;
-         }
-   if( !rval)
-      rval = strcmp( astr, bstr);
-   return( rval);
-}
-
 #define MAX_OUT 200
 
 int main( const int argc, const char **argv)
@@ -288,7 +216,6 @@ int main( const int argc, const char **argv)
             }
       }
    fclose( ifile);
-   qsort( obuff, n_out, reclen, qsort_compare);
    n_written = fwrite( obuff, reclen, n_out, ofile);
    assert( n_written == n_out);
    free( obuff);
