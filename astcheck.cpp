@@ -112,7 +112,7 @@ static FILE *get_file_from_path( const char *filename, const char *permits)
       if( buff[strlen( buff) - 1] != '/')
          strcat( buff, "/");
       strcat( buff, filename);
-      fp = fopen( buff, "rb");
+      fp = fopen( buff, permits);
       }
    if( !fp)
       fp = fopen( filename, permits);
