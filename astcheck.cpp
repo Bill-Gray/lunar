@@ -417,6 +417,31 @@ static double get_topo_loc( const double jd, double *topo_loc, const double lon,
    return( vector3_length( topo_loc));
 }
 
+static int get_mpcorb_dot_dat_line( const char *filename, const int line_no,
+                                 char *buff)
+{
+   static long offset, line_len;
+   FILE *ifile = get_file_from_path( filename, "rb");
+   int rval = 0;
+
+   assert( ifile);
+   if( !line_len)
+      {
+      while( fgets( buff, 210, ifile) && memcmp( buff, "00001 ", 6))
+         ;
+      line_len = (long)strlen( buff);
+      offset = ftell( ifile) - line_len;
+      }
+   if( fseek( ifile, offset + (long)line_no * line_len, SEEK_SET))
+      rval = -1;
+   else if( !fgets( buff, 210, ifile))
+      rval = -2;
+   else if( strlen( buff) < 200 && !fgets( buff, 210, ifile))
+      rval = -3;
+   fclose( ifile);
+   return( rval);
+}
+
 static const char *_dummy_filename = "astcheck.txt";
 
 static void make_fake_file( const char **argv)
@@ -761,6 +786,7 @@ int main( const int argc, const char **argv)
                            fabs( computed_ra_motion - ra_motion) < motion_tolerance)
                                     || singleton_observation)
                         {
+                        char mpcorb_info[240];
                         double ra2, dec2, lov_len, dist_from_lov;
                         int j;
 
@@ -800,6 +826,12 @@ int main( const int argc, const char **argv)
                                            sizeof( tbuff) - strlen( tbuff),
                                            "  %6.0f",
                                            dist_from_lov * radians_to_arcsec);
+                        if( !get_mpcorb_dot_dat_line( "mpcorb.dat", i, mpcorb_info))
+                           {
+                           mpcorb_info[136] = mpcorb_info[165] = '\0';
+                           strcat( tbuff, mpcorb_info + 160);  /* four hex digits */
+                           strcat( tbuff, mpcorb_info + 117);  /* # obs/# opps/time span */
+                           }
                         if( is_list_file)
                            j = n_results;
                         else
