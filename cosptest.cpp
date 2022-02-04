@@ -38,6 +38,12 @@ int main( const int argc, const char **argv)
    if( argc == 2)          /* you can specify the COSPAR file name from */
       load_cospar_file( argv[1]);         /* the command line */
    setvbuf( stdout, NULL, _IONBF, 0);
+   for( i = 0; i < 14; i++)
+      {
+      const double rate = planet_rotation_rate( i, 0);
+
+      printf( "%d: %f deg/day; rotation period %f days\n", i, rate, 360. / rate);
+      }
    for( i = 0; i < 9; i++)
       prev_matrix[i] = 0.;
    for( i = -5; i < 2000; i++)

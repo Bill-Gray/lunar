@@ -115,7 +115,7 @@ static int get_cospar_data_from_text_file( int object_number,
          }
       cospar_text[line] = NULL;
       fclose( ifile);
-      if( !pole_ra)        /* just loading coefficients;  not actually */
+      if( !omega)        /* just loading coefficients;  not actually */
          return( 0);       /* computing orientations quite yet (see    */
       }                    /* load_cospar_file( ) below)               */
    *is_retrograde = false;
@@ -190,6 +190,11 @@ static int get_cospar_data_from_text_file( int object_number,
                         coeff *= d;
                      else if( coeff < 0. && oval == omega)
                         *is_retrograde = true;
+                     if( oval == omega && !pole_ra && !pole_dec)    /* just after the rotation rate */
+                        {
+                        *oval = coeff;
+                        return( 0);
+                        }
                      coeff *= d;
                      }
                   else if( *tptr == 'T')
@@ -272,6 +277,19 @@ int DLL_FUNC load_cospar_file( const char *filename)
                     0, 0., NULL, NULL, NULL, NULL);
    cospar_filename = temp_name;
    return( rval);
+}
+
+double DLL_FUNC planet_rotation_rate( const int planet_no, const int system_no)
+{
+   const double dummy_tdt = 2451545.;     /* not really used */
+   bool is_retrograde;
+   double omega;
+   const int rval = get_cospar_data_from_text_file( planet_no, system_no,
+              dummy_tdt, NULL, NULL, &omega, &is_retrograde);
+
+   if( rval)
+      omega = 0.;
+   return( omega);
 }
 
 /* The returned matrix contains three J2000 equatorial unit vectors :
