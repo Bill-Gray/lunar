@@ -521,6 +521,7 @@ int main( const int argc, const char **argv)
    int results_array_size = 5;
    char **results = (char **)calloc( results_array_size, sizeof( char *));
    bool is_list_file = false;
+   bool show_header = true;
 
    if( argc < 2)
       {
@@ -543,6 +544,9 @@ int main( const int argc, const char **argv)
          assert( arg);
          switch( argv[i][1])
             {
+            case 'h':
+               show_header = false;
+               break;
             case 'r':
                tolerance_in_arcsec = atof( arg);
                break;
@@ -689,7 +693,7 @@ int main( const int argc, const char **argv)
             day_data[1] = get_cached_day_data( (int)jd + 1);
             curr_loaded_day_data = (int)jd;
             }
-         if( !n)     /* on our very first object: */
+         if( !n && show_header)     /* on our very first object: */
             {
             show_astcheck_info( );
             printf( "An explanation of these data is given at the bottom of the list.\n");
@@ -876,7 +880,8 @@ int main( const int argc, const char **argv)
    if( day_data[1])
       free( day_data[1]);
    fclose( orbits_file);
-   printf( "The apparent motion and arc length for each object are shown,  followed\n"
+   if( show_header)
+      printf( "The apparent motion and arc length for each object are shown,  followed\n"
            "by a list of possible matches,  in order of increasing distance.  For\n"
            "each match,  the separation is shown,  both in RA and dec,  and then\n"
            "the 'total' separation,  all in arcseconds.  Next,  the magnitude and\n"
@@ -886,11 +891,12 @@ int main( const int argc, const char **argv)
       printf( "ObsCodes.html not found; parallax wasn't included!\n");
    else
       fclose( mpc_station_file);
-   printf( "\nRun time: %.1f seconds\n",
+   if( show_header)
+      printf( "\nRun time: %.1f seconds\n",
                   (double)clock( ) / (double)CLOCKS_PER_SEC);
                      /* If the output was quite long,  re-display */
                      /* the explanation of the output :           */
-   if( n_lines_printed > 40)
+   if( n_lines_printed > 40 && show_header)
       show_astcheck_info( );
    return( 0);
 }
