@@ -618,7 +618,7 @@ int get_xxx_location_info( mpc_code_t *cinfo, const char *buff)
 {
    int rval = 0;
 
-   if( memcmp( buff, "COM Long.", 9))
+   if( strlen( buff) < 9 || memcmp( buff, "COM Long.", 9))
       rval = -1;
    else
       {
