@@ -522,6 +522,7 @@ int main( const int argc, const char **argv)
    char **results = (char **)calloc( results_array_size, sizeof( char *));
    bool is_list_file = false;
    bool show_header = true;
+   const char *mpcorb_extracts = "162,4;118,19";
 
    if( argc < 2)
       {
@@ -544,6 +545,9 @@ int main( const int argc, const char **argv)
          assert( arg);
          switch( argv[i][1])
             {
+            case 'e':
+               mpcorb_extracts = arg;
+               break;
             case 'h':
                show_header = false;
                break;
@@ -834,9 +838,26 @@ int main( const int argc, const char **argv)
                         if( !get_mpcorb_dot_dat_line( "mpcorb.dat", i, mpcorb_info)
                                  || !get_mpcorb_dot_dat_line( "MPCORB.DAT", i, mpcorb_info))
                            {
-                           mpcorb_info[136] = mpcorb_info[165] = '\0';
-                           strcat( tbuff, mpcorb_info + 160);  /* four hex digits */
-                           strcat( tbuff, mpcorb_info + 117);  /* # obs/# opps/time span */
+                           const char *tptr = mpcorb_extracts;
+
+                           while( *tptr)
+                              {
+                              int start, count;
+                              char *endptr = tbuff + strlen( tbuff);
+
+                              if( sscanf( tptr, "%d,%d", &start, &count) != 2)
+                                 {
+                                 fprintf( stderr, "Error parsing mpcorb extracts at '%s'\n", tptr);
+                                 exit( -1);
+                                 }
+                              *endptr++ = ' ';
+                              memcpy( endptr, mpcorb_info + start - 1, count);
+                              endptr[count] = '\0';
+                              while( *tptr > ' ' && *tptr != ';')
+                                 tptr++;
+                              while( *tptr == ' ' || *tptr == ';')
+                                 tptr++;
+                              }
                            }
                         if( is_list_file)
                            j = n_results;
