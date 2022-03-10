@@ -23,6 +23,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
+#ifndef _WIN32
+   #include <unistd.h>
+#endif
 #include "watdefs.h"
 #include "date.h"
 #include "comets.h"
@@ -645,8 +648,12 @@ int main( const int argc, const char **argv)
          n_ilines++;
          }
    fclose( ifile);
-// if( is_list_file)
-//    _unlink( _dummy_filename);
+   if( is_list_file)
+#ifdef _WIN32                /* MS is different. */
+      _unlink( _dummy_filename);
+#else
+      unlink( _dummy_filename);
+#endif
    qsort( ilines, n_ilines, sizeof( char **), qsort_mpc_cmp);
    for( n = 0; n < n_ilines; n++)
       if( strlen( ilines[n]) >= 80
