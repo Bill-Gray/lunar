@@ -108,7 +108,7 @@ static FILE *get_file_from_path( const char *filename, const char *permits)
 {
    FILE *fp = NULL;
 
-   if(  data_path && *data_path)
+   if( data_path && *data_path)
       {
       char buff[450];
 
@@ -255,6 +255,11 @@ static double centralize_angle( double ang)
 /*   If we don't find the file,  or the header doesn't match,  then   */
 /* we call the above 'compute_day_data',  and write that data out to  */
 /* a .chk file so we don't have to recompute it all the next time.    */
+/* We actually write it out to a dummy file first,  then do a rename  */
+/* to avoid race conditions if multiple instances of astcheck are     */
+/* running.       */
+
+static char _dummy_filename[40];
 
 #define HEADER_SIZE 4
 
@@ -306,11 +311,23 @@ static AST_DATA *get_cached_day_data( const int ijd)
    header[1] = sof_checksum;
    header[2] = n_asteroids;
    header[3] = -1;         /* not currently used */
-   ofile = get_file_from_path( filename, "wb");
+   ofile = get_file_from_path( _dummy_filename, "wb");
    fwrite( header, HEADER_SIZE, sizeof( int), ofile);
    fwrite( rval, n_asteroids, sizeof( AST_DATA), ofile);
    fclose( ofile);
 
+   if( data_path && *data_path)
+      {
+      char buff[450];
+
+      strcpy( buff, data_path);
+      if( buff[strlen( buff) - 1] != '/')
+         strcat( buff, "/");
+      strcat( buff, filename);
+      rename( _dummy_filename, buff);
+      }
+   else
+      rename( _dummy_filename, filename);
    return( rval);
 }
 
@@ -446,8 +463,6 @@ static int get_mpcorb_dot_dat_line( const char *filename, const int line_no,
    fclose( ifile);
    return( rval);
 }
-
-static char _dummy_filename[40];
 
 static void make_fake_file( const char **argv)
 {
