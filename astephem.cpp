@@ -60,14 +60,10 @@ static double calc_obs_magnitude( ELEMENTS *elem, const double obj_sun,
       {
       const double cos_phase_ang =
                   law_of_cosines( obj_sun, obj_earth, earth_sun);
-      const double half_phase_ang = acose( cos_phase_ang) / 2.;
-      const double log_tan_half_phase = log( tan( half_phase_ang));
-      const double phi1 = exp( -3.33 * exp( log_tan_half_phase * 0.63));
-      const double phi2 = exp( -1.87 * exp( log_tan_half_phase * 1.22));
+      const double phase_ang = acose( cos_phase_ang);
 
-      magnitude = 5. * log( obj_sun)
-                           -2.5 * log( (1. - elem->slope_param) * phi1
-                                            + elem->slope_param * phi2);
+      magnitude = 5. * log( obj_sun) + phase_angle_correction_to_magnitude(
+                                   phase_ang, elem->slope_param);
       }
    magnitude += 5. * log( obj_earth);
    magnitude /= LOG_10;      /* cvt from natural logs to common (base 10) */
