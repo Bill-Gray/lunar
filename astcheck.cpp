@@ -24,6 +24,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 #include <string.h>
 #include <assert.h>
 #ifndef _WIN32
+   #include <sys/types.h>
    #include <unistd.h>
 #endif
 #include "watdefs.h"
@@ -446,7 +447,7 @@ static int get_mpcorb_dot_dat_line( const char *filename, const int line_no,
    return( rval);
 }
 
-static const char *_dummy_filename = "astcheck.txt";
+static char _dummy_filename[40];
 
 static void make_fake_file( const char **argv)
 {
@@ -532,6 +533,12 @@ int main( const int argc, const char **argv)
       err_message( );
       return( -1);
       }
+#ifdef _WIN32
+   strcpy( _dummy_filename, "astcheck.tmp");
+#else
+   snprintf( _dummy_filename, sizeof( _dummy_filename), "astcheck%d.tmp",
+                        (int)getpid( ));
+#endif
    if( !strcmp( argv[1], "-c"))
       {
       assert( argc > 5);
@@ -607,6 +614,7 @@ int main( const int argc, const char **argv)
       err_message( );
       return( -1);
       }
+
    ifile = fopen( is_list_file ? _dummy_filename : argv[1], "rb");
    if( !ifile)
       printf( "%s not opened\n", argv[1]);
