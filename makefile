@@ -17,10 +17,13 @@
 # 'integrat' is not built as part of 'make'.  If you want that,  run
 # 'make integrat' and then,  optionally,  'make install_integrat'.
 
-# As CC is an implicit variable, a simple CC?=g++ doesn't work.
+# As CC is an implicit variable, a simple CC?=gcc doesn't work.
 # We have to use this trick from https://stackoverflow.com/a/42958970
+ifeq ($(origin CPP),default)
+	CPP=g++
+endif
 ifeq ($(origin CC),default)
-	CC=g++
+	CC=gcc
 endif
 LIBSADDED=
 EXE=
@@ -47,6 +50,7 @@ else
 endif
 
 ifdef CLANG
+	CPP=clang++
 	CC=clang
 endif
 
@@ -80,14 +84,16 @@ endif
 LIB_DIR=$(INSTALL_DIR)/lib
 
 ifdef W64
-   CC=x86_64-w64-mingw32-g++
+   CPP=x86_64-w64-mingw32-g++
+   CC=x86_64-w64-mingw32-gcc
    EXE=.exe
    LIB_DIR=$(INSTALL_DIR)/win_lib
    LIBSADDED=-L $(LIB_DIR) -mwindows
 endif
 
 ifdef W32
-   CC=i686-w64-mingw32-g++
+   CPP=i686-w64-mingw32-g++
+   CC=i686-w64-mingw32-gcc
    EXE=.exe
    LIB_DIR=$(INSTALL_DIR)/win_lib32
    LIBSADDED=-L $(LIB_DIR) -mwindows
@@ -154,6 +160,9 @@ uninstall:
 	rm -f $(INSTALL_DIR)/bin/integrat$(EXE)
 
 .cpp.o:
+	$(CPP) $(CFLAGS) -c $<
+
+.c.o:
 	$(CC) $(CFLAGS) -c $<
 
 OBJS= alt_az.o ades2mpc.o astfuncs.o big_vsop.o  \
