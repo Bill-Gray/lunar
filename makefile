@@ -278,7 +278,7 @@ mms$(EXE):                    mms.o $(LIBLUNAR)
 moidtest$(EXE): moidtest.o $(LIBLUNAR)
 	$(CC) $(CFLAGS) -o moidtest$(EXE) moidtest.o $(LIBLUNAR) $(LIBSADDED)
 
-mpc2sof$(EXE): mpc2sof.cpp $(LIBLUNAR)
+mpc2sof$(EXE): mpc2sof.cpp mpcorb.o $(LIBLUNAR)
 	$(CC) $(CFLAGS) -o mpc2sof$(EXE) mpc2sof.cpp mpcorb.o $(LIBLUNAR) $(LIBSADDED)
 
 mpc_code$(EXE): mpc_code.cpp
