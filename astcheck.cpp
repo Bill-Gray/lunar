@@ -635,9 +635,6 @@ int main( const int argc, const char **argv)
       return( -1);
       }
 
-   ifile = fopen( is_list_file ? _dummy_filename : argv[1], "rb");
-   if( !ifile)
-      printf( "%s not opened\n", argv[1]);
    orbits_file = get_sof_file( sof_filename);
    if( !orbits_file)
       {
@@ -647,8 +644,11 @@ int main( const int argc, const char **argv)
               "how to create/maintain that file.\n");
       return( -2);
       }
+
+   ifile = fopen( is_list_file ? _dummy_filename : argv[1], "rb");
    if( !ifile)
       {
+      printf( "%s not opened\n", argv[1]);
       err_message( );
       return( -3);
       }
@@ -658,14 +658,8 @@ int main( const int argc, const char **argv)
       if( !get_mpc_data( buff, &jd, &ra, &dec))
          n_ilines++;
 
-   if( !n_ilines)
-      {
-      printf( "No astrometry found in '%s'\n", argv[1]);
-      err_message( );
-      return( -1);
-      }
                /* Allocate memory for astrometry lines, then read 'em: */
-   ilines = (char **)malloc( n_ilines * sizeof( char *));
+   ilines = (char **)malloc( (n_ilines + 1) * sizeof( char *));
    n_ilines = 0;
    fseek( ifile, 0L, SEEK_SET);
    while( fgets( buff, sizeof( buff), ifile))
@@ -682,6 +676,12 @@ int main( const int argc, const char **argv)
 #else
       unlink( _dummy_filename);
 #endif
+   if( !n_ilines)
+      {
+      printf( "No astrometry found in '%s'\n", argv[1]);
+      err_message( );
+      return( -1);
+      }
    qsort( ilines, n_ilines, sizeof( char **), qsort_mpc_cmp);
    for( n = 0; n < n_ilines; n++)
       if( strlen( ilines[n]) >= 80
