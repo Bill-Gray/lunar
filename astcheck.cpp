@@ -491,6 +491,11 @@ static void err_message( void)
    printf( "   -z(tol)    Set motion match tolerance to 'tol' arcsec/hr. Default is 10.\n");
    printf( "   -m(mag)    Set limiting mag to 'mag'.  Default is 22.\n");
    printf( "   -l         Show distance from line of variations. Experimental.\n");
+   printf( "Alternatively,  one can get a list of asteroids/comets within a desired\n");
+   printf( "area with\n\n");
+   printf( "astcheck -c (date) (RA in degrees) (dec in degrees) (MPC code) (options)\n\n");
+   printf( "For example, 'astcheck -c 2022apr3.1415 292.653 -7.653 E12 -r7200' would get\n");
+   printf( "a list of asteroids within two degrees of that RA/dec as seen from (E12).\n");
 }
 
 static void show_astcheck_info( void)
