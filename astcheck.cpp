@@ -270,6 +270,7 @@ static AST_DATA *get_cached_day_data( const int ijd)
    int32_t header[HEADER_SIZE];
    const int32_t magic_version_number = 1314159266;
    AST_DATA *rval;
+   int rename_error;
 
                   /* Create a filename in 'YYYYMMDD.chk' form: */
    full_ctime( filename, (double)ijd, FULL_CTIME_YMD | FULL_CTIME_NO_SPACES
@@ -312,6 +313,12 @@ static AST_DATA *get_cached_day_data( const int ijd)
    header[2] = n_asteroids;
    header[3] = -1;         /* not currently used */
    ofile = get_file_from_path( _dummy_filename, "wb");
+   if( !ofile)
+      {
+      fprintf( stderr, "Couldn't open '%s'\n", _dummy_filename);
+      perror( "File open failure");
+      exit( -1);
+      }
    fwrite( header, HEADER_SIZE, sizeof( int), ofile);
    fwrite( rval, n_asteroids, sizeof( AST_DATA), ofile);
    fclose( ofile);
@@ -324,10 +331,23 @@ static AST_DATA *get_cached_day_data( const int ijd)
       if( buff[strlen( buff) - 1] != '/')
          strcat( buff, "/");
       strcat( buff, filename);
-      rename( _dummy_filename, buff);
+      rename_error = rename( _dummy_filename, buff);
+      if( rename_error)
+         fprintf( stderr, "Fail renaming '%s' to '%s'\n",
+                     _dummy_filename, buff);
       }
    else
-      rename( _dummy_filename, filename);
+      {
+      rename_error = rename( _dummy_filename, filename);
+      if( rename_error)
+         fprintf( stderr, "Fail renaming '%s' to '%s'\n",
+                     _dummy_filename, filename);
+      }
+   if( rename_error)
+      {
+      unlink( _dummy_filename);
+      perror( "Rename failure");
+      }
    return( rval);
 }
 
