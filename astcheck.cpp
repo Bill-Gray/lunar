@@ -255,9 +255,6 @@ static double centralize_angle( double ang)
 /*   If we don't find the file,  or the header doesn't match,  then   */
 /* we call the above 'compute_day_data',  and write that data out to  */
 /* a .chk file so we don't have to recompute it all the next time.    */
-/* We actually write it out to a dummy file first,  then do a rename  */
-/* to avoid race conditions if multiple instances of astcheck are     */
-/* running.       */
 
 static char _dummy_filename[40];
 
@@ -270,7 +267,6 @@ static AST_DATA *get_cached_day_data( const int ijd)
    int32_t header[HEADER_SIZE];
    const int32_t magic_version_number = 1314159266;
    AST_DATA *rval;
-   int rename_error;
 
                   /* Create a filename in 'YYYYMMDD.chk' form: */
    full_ctime( filename, (double)ijd, FULL_CTIME_YMD | FULL_CTIME_NO_SPACES
@@ -312,7 +308,7 @@ static AST_DATA *get_cached_day_data( const int ijd)
    header[1] = sof_checksum;
    header[2] = n_asteroids;
    header[3] = -1;         /* not currently used */
-   ofile = get_file_from_path( _dummy_filename, "wb");
+   ofile = get_file_from_path( filename, "wb");
    if( !ofile)
       {
       fprintf( stderr, "Couldn't open '%s'\n", _dummy_filename);
@@ -323,31 +319,6 @@ static AST_DATA *get_cached_day_data( const int ijd)
    fwrite( rval, n_asteroids, sizeof( AST_DATA), ofile);
    fclose( ofile);
 
-   if( data_path && *data_path)
-      {
-      char buff[450];
-
-      strcpy( buff, data_path);
-      if( buff[strlen( buff) - 1] != '/')
-         strcat( buff, "/");
-      strcat( buff, filename);
-      rename_error = rename( _dummy_filename, buff);
-      if( rename_error)
-         fprintf( stderr, "Fail renaming '%s' to '%s'\n",
-                     _dummy_filename, buff);
-      }
-   else
-      {
-      rename_error = rename( _dummy_filename, filename);
-      if( rename_error)
-         fprintf( stderr, "Fail renaming '%s' to '%s'\n",
-                     _dummy_filename, filename);
-      }
-   if( rename_error)
-      {
-      unlink( _dummy_filename);
-      perror( "Rename failure");
-      }
    return( rval);
 }
 
