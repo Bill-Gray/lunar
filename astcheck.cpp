@@ -24,7 +24,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 #include <string.h>
 #include <assert.h>
 #ifdef _WIN32
-   #include <synchapi.h>
+   #define WIN32_LEAN_AND_MEAN
+   #include <windows.h>
 #else
    #include <sys/types.h>
    #include <unistd.h>
