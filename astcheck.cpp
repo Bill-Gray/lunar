@@ -23,7 +23,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
-#ifndef _WIN32
+#ifdef _WIN32
+   #include <synchapi.h>
+#else
    #include <sys/types.h>
    #include <unistd.h>
 #endif
@@ -246,17 +248,46 @@ static double centralize_angle( double ang)
    return( ang);
 }
 
-/* In loading up the 'day data' (basically a low-precision RA/dec for */
-/* the geocentric position of each asteroid as of a certain day),  we */
-/* attempt to open a file for that day of the form YYYYMMDD.chk.  If  */
-/* the file is opened,  and the header indicates the correct version, */
-/* number of asteroids,  and checksum, we just load up the data       */
-/* from the file and return.                                          */
-/*   If we don't find the file,  or the header doesn't match,  then   */
-/* we call the above 'compute_day_data',  and write that data out to  */
-/* a .chk file so we don't have to recompute it all the next time.    */
+/* In loading up the 'day data' (basically a low-precision RA/dec for
+the geocentric position of each asteroid as of a certain day),  we
+attempt to open a file for that day of the form YYYYMMDD.chk.  If
+the file is opened,  and the header indicates the correct version,
+number of asteroids,  and checksum, we just load up the data
+from the file and return.   Otherwise,  this function creates the
+'day data' file,  saves it for future use,  and returns the data
+it's just generated.
 
-static char _dummy_filename[40];
+It used to be as simple as that,  but 'astcheck' now gets used in a
+mode where many instances are run in parallel.  Run seventeen
+instances for the same day, and all seventeen would start generating
+.chk files.  Ideally, _one_ would do so and the other sixteen would
+wait for the file to be ready.  So accessing and building of .chk
+files now works as follows :
+
+(1) We try to open the .chk day data file we need and read in the data.
+The file may not exist,  or may contain outdated data (the 'sof_checksum'
+or other header data may not match what we're looking for).  If that's
+the case,  we drop through the code to the point where we generate the
+day data and create the day data file.  Right away,  we write out the
+header information and fflush() it.  That way,  the other sixteen
+processes will see a header with no data (yet) and realize that they
+should wait a bit for the data to become available.
+
+(2) If we read in the header and it's what we're looking for (its
+"magic number",  checksum,  and the number of asteroids match),
+we try to read in the actual asteroid data.  That part may simply
+succeed (because the .chk file in question has already been completed).
+If we only get none or some of the data,  we assume we'll have to
+wait for some other process to finish creating and writing the file.
+
+In that case,  we 'sleep' for one second and try reading the data
+again.  Ideally,  we eventually get all the data.  Just as a check,
+if this takes more than sixty seconds, we assume something has gone
+seriously wrong and bomb out;  this is to avoid having phantom
+processes left hanging.  (Haven't seen that actually happen yet.) We
+also close the input file and reopen it and fseek() to the start of
+the remaining data.  That's just to force an update to the input
+file size.         */
 
 #define HEADER_SIZE 4
 
@@ -288,22 +319,46 @@ static AST_DATA *get_cached_day_data( const int ijd)
          fclose( ifile);
       else   /* appears to be legitimate cached data */
          {
+         int n_read = 0, n_iterations = 0;
+
          rval = (AST_DATA *)malloc( n_asteroids * sizeof( AST_DATA));
          if( !rval)
             {
             printf( "Ran out of memory\n");
             exit( -4);
             }
-         if( !fread( rval, n_asteroids, sizeof( AST_DATA), ifile))
+         while( n_read != n_asteroids)
             {
-            printf( "Error in asteroid data in '%s'\n", filename);
-            exit( -3);
+            n_read += (int)fread( rval + n_read, sizeof( AST_DATA),
+                                        n_asteroids - n_read, ifile);
+            if( n_read != n_asteroids)
+               {
+               if( n_iterations++ == 60)
+                  {               /* Give up after one minute */
+                  fprintf( stderr, "Overtime\n");
+                  exit( -3);
+                  }
+#ifndef _WIN32
+               if( verbose)
+                  printf( "(%d) %d of %d read, iter %d\n", (int)getpid( ),
+                        n_read, n_asteroids, n_iterations);
+#endif
+                                 /* Close/reopen file.  Gets around some */
+                                 /* caching issues.   */
+               fclose( ifile);
+#ifndef _WIN32
+               usleep( 1000000);    /* 1000000 microseconds = 1 second */
+#else
+               Sleep( 1000);        /* 1000 milliseconds = 1 second */
+#endif
+               ifile = get_file_from_path( filename, "rb");
+               fseek( ifile, 16 + 4L * n_read, SEEK_SET);
+               }
             }
          fclose( ifile);
          return( rval);
          }
       }
-   rval = compute_day_data( ijd);
    header[0] = magic_version_number;
    header[1] = sof_checksum;
    header[2] = n_asteroids;
@@ -311,11 +366,13 @@ static AST_DATA *get_cached_day_data( const int ijd)
    ofile = get_file_from_path( filename, "wb");
    if( !ofile)
       {
-      fprintf( stderr, "Couldn't open '%s'\n", _dummy_filename);
+      fprintf( stderr, "Couldn't open '%s'\n", filename);
       perror( "File open failure");
       exit( -1);
       }
    fwrite( header, HEADER_SIZE, sizeof( int), ofile);
+   fflush( ofile);
+   rval = compute_day_data( ijd);
    fwrite( rval, n_asteroids, sizeof( AST_DATA), ofile);
    fclose( ofile);
 
@@ -454,6 +511,8 @@ static int get_mpcorb_dot_dat_line( const char *filename, const int line_no,
    fclose( ifile);
    return( rval);
 }
+
+static char _dummy_filename[40];
 
 static void make_fake_file( const char **argv)
 {
