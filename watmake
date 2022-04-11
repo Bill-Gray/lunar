@@ -12,14 +12,15 @@ EXES= astcheck.exe astephem.exe calendar.exe cosptest.exe dist.exe &
 
 all: $(EXES)
 
-LIB_OBJS= alt_az.obj astfuncs.obj big_vsop.obj classel.obj com_file.obj &
-      cospar.obj date.obj de_plan.obj delta_t.obj dist_pa.obj elp82dat.obj &
-      eop_prec.obj &
+LIB_OBJS= ades2mpc.obj alt_az.obj astfuncs.obj big_vsop.obj &
+      brentmin.obj cgi_func.obj classel.obj com_file.obj &
+      cospar.obj date.obj de_plan.obj delta_t.obj dist_pa.obj &
+      eart2000.obj elp82dat.obj eop_prec.obj &
       getplane.obj get_time.obj jsats.obj lunar2.obj  &
-      miscell.obj mpc_code.obj mpc_fmt.obj &
+      miscell.obj moid.obj mpc_code.obj mpc_fmt.obj &
       nutation.obj obliquit.obj pluto.obj precess.obj  &
       refract.obj refract4.obj rocks.obj showelem.obj sof.obj &
-      spline.obj ssats.obj triton.obj vislimit.obj vsopson.obj
+      spline.obj ssats.obj triton.obj unpack.obj vislimit.obj vsopson.obj
 
 LINK=wcl386 -zq -k10000
 
@@ -33,7 +34,15 @@ COMMON_FLAGS = $(BASE_FLAGS) -EHsc -LD -DNDEBUG
 COMMON_FLAGS = $(BASE_FLAGS)
 !endif
 
+$(EXES) : $(LIBNAME).lib
+
+%.exe : %.obj
+   $(LINK) $< $(LIBNAME).lib
+
 .cpp.obj:
+   wcc386 $(COMMON_FLAGS) -za99 $<
+
+.c.obj:
    wcc386 $(COMMON_FLAGS) -za99 $<
 
 $(LIBNAME).lib : $(LIB_OBJS)
