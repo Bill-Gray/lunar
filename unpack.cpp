@@ -2,6 +2,7 @@
 #include <ctype.h>
 #include <string.h>
 #include <stdlib.h>
+#include "watdefs.h"
 #include "mpc_func.h"
 
 /* "Mutant hex" is frequently used by MPC.  It uses the usual hex digits
