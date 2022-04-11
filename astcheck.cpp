@@ -41,7 +41,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 const double radians_to_arcsec = 180. * 3600. / PI;
 
 int get_earth_loc( const double t_millennia, double *results);
-int extract_sof_data( ELEMENTS *elem, const char *buff, const char *header);
 
 static int get_mpc_data( const char *buff, double *jd, double *ra, double *dec)
 {
@@ -492,7 +491,7 @@ static int get_mpcorb_dot_dat_line( const char *filename, const int line_no,
 {
    static long offset, line_len;
    FILE *ifile = get_file_from_path( filename, "rb");
-   int rval = 0;
+   int rval = 0, n_iterations = 3;
 
    if( !ifile)
       return( -1);
@@ -503,12 +502,17 @@ static int get_mpcorb_dot_dat_line( const char *filename, const int line_no,
       line_len = (long)strlen( buff);
       offset = ftell( ifile) - line_len;
       }
+   *buff = '\0';
    if( fseek( ifile, offset + (long)line_no * line_len, SEEK_SET))
       rval = -1;
-   else if( !fgets( buff, 210, ifile))
+   else while( n_iterations && strlen( buff) != (size_t)line_len
+                         && fgets( buff, 210, ifile))
+      n_iterations--;
+   if( strlen( buff) != (size_t)line_len)
+      {
+      fprintf( stderr, "Error line %d;  length %d\n", line_no, (int)strlen( buff));
       rval = -2;
-   else if( strlen( buff) < 200 && !fgets( buff, 210, ifile))
-      rval = -3;
+      }
    fclose( ifile);
    return( rval);
 }
