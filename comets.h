@@ -54,6 +54,10 @@ double DLL_FUNC phase_angle_correction_to_magnitude( const double phase_angle,
                                  const double slope_param);
 int setup_planet_elem( ELEMENTS *elem, const int planet_idx,
                                              const double t_cen);
+int extract_sof_data( ELEMENTS *elem, const char *buff, const char *header);
+int extract_sof_data_ex( ELEMENTS *elem, const char *buff, const char *header,
+                        double *extra_info);                /* sof.cpp */
+double extract_yyyymmdd_to_jd( const char *buff);           /* sof.cpp */
 
 typedef struct
 {

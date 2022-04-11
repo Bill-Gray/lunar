@@ -27,11 +27,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 #include "comets.h"
 #include "date.h"
 
-double extract_yyyymmdd_to_jd( const char *buff);        /* sof.cpp */
-int extract_sof_data( ELEMENTS *elem, const char *buff, const char *header);
-int extract_sof_data_ex( ELEMENTS *elem, const char *buff, const char *header,
-                        double *extra_info);
-
 #define GAUSS_K .01720209895
 #define SOLAR_GM (GAUSS_K * GAUSS_K)
 
