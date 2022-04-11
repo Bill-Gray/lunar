@@ -18,6 +18,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 #include <stdio.h>
 #include <string.h>
 #include <assert.h>
+#include <stdlib.h>
 #include "cgi_func.h"
 #include "watdefs.h"
 
@@ -42,7 +43,6 @@ different for each program;  at present,  you get the Find_Orb message.)
 #include <sys/time.h>         /* these allow resource limiting */
 #include <sys/resource.h>
 #include <unistd.h>
-#include <stdlib.h>
 #include <signal.h>
 
 static const char *email_address_mangled_for_no_spam =
