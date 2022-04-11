@@ -8,8 +8,6 @@
 #include "afuncs.h"
 #include "mpc_func.h"
 
-int extract_sof_data( ELEMENTS *elem, const char *buff, const char *header);
-
 #define PI 3.1415926535897932384626433832795028841971693993751058209749445923
 #define GAUSS_K .01720209895
 #define SOLAR_GM (GAUSS_K * GAUSS_K)
