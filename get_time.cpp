@@ -174,8 +174,8 @@ static inline long double collect_time_offset( char *istr)
    return( rval);
 }
 
-#if defined(_MSC_VER) && _MSC_VER < 1900
-      /* Older MSVCs lack strtold */
+#if (defined(_MSC_VER) && _MSC_VER < 1900) || defined __WATCOMC__
+      /* OpenWATCOM and older MSVCs lack strtold */
    #define strtold strtod
 #endif
 
@@ -260,11 +260,18 @@ static int get_phase_idx( const char *istr)
    return( rval);
 }
 
-static const long double pi =
-     3.1415926535897932384626433832795028841971693993751058209749445923;
-static const long double deg2rad = pi / 180.;
 static const long double lunation = 29.530588853;
-static const long double lunar_phase_t0 = 2451550.09765 - J2000;
+#ifdef __WATCOMC__
+         /* OpenWATCOM insists on constants being 'explicit' : */
+   static const long double deg2rad =        /* pi / 180.; */
+            0.0174532925199432957692369076848861271344287188854172545609719144017;
+   static const long double lunar_phase_t0 = 5.09765;
+#else
+   static const long double pi =
+     3.1415926535897932384626433832795028841971693993751058209749445923;
+   static const long double deg2rad = pi / 180.;
+   static const long double lunar_phase_t0 = 2451550.09765 - J2000;
+#endif
 
 static long double get_phase_time( const long double k, const int phase_idx)
 {
