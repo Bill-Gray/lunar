@@ -659,7 +659,7 @@ static int calendar( const int month, const int year)
    return( 0);
 }
 
-static int error_exit( const int error_code)
+static void error_exit( const int error_code)
 {
    fprintf( stdout, "'calendar' needs a year and month on the command line.\n"
                     "It will produce a PostScript (R) calendar.  Given only\n"
