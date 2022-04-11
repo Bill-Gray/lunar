@@ -42,6 +42,18 @@ const double radians_to_arcsec = 180. * 3600. / PI;
 
 int get_earth_loc( const double t_millennia, double *results);
 
+#if defined( __WATCOMC__) && !defined( _WIN32)
+void usleep( const long microseconds)
+{
+   INTENTIONALLY_UNUSED_PARAMETER( microseconds);
+}
+
+int getpid( void)
+{
+   return( 1);
+}
+#endif
+
 static int get_mpc_data( const char *buff, double *jd, double *ra, double *dec)
 {
    int err_code;
