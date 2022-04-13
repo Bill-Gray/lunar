@@ -885,11 +885,6 @@ int main( const int argc, const char **argv)
                      computed_ra_motion =
                            centralize_angle( computed_ra_motion - ra1) * cos_dec;
                      computed_dec_motion -= dec1;
-                     if( !is_list_file)
-                        {
-                        computed_ra_motion -= d_ra;
-                        computed_dec_motion -= d_dec;
-                        }
                                  /* cvt motions from radians/day to "/hour: */
                      computed_ra_motion *=  radians_to_arcsec / dt_in_hours;
                      computed_dec_motion *= radians_to_arcsec / dt_in_hours;
