@@ -520,11 +520,8 @@ static int get_mpcorb_dot_dat_line( const char *filename, const int line_no,
    else while( n_iterations && strlen( buff) != (size_t)line_len
                          && fgets( buff, 210, ifile))
       n_iterations--;
-   if( strlen( buff) != (size_t)line_len)
-      {
-      fprintf( stderr, "Error line %d;  length %d\n", line_no, (int)strlen( buff));
+   if( !rval && strlen( buff) != (size_t)line_len)
       rval = -2;
-      }
    fclose( ifile);
    return( rval);
 }
