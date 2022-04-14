@@ -610,7 +610,7 @@ int main( const int argc, const char **argv)
    char **results = (char **)calloc( results_array_size, sizeof( char *));
    bool is_list_file = false;
    bool show_header = true;
-   const char *mpcorb_extracts = "162,4;118,19";
+   const char *mpcorb_extracts = "";
 
    if( argc < 2)
       {
@@ -929,8 +929,9 @@ int main( const int argc, const char **argv)
                                            sizeof( tbuff) - strlen( tbuff),
                                            "  %6.0f",
                                            dist_from_lov * radians_to_arcsec);
-                        if( !get_mpcorb_dot_dat_line( "mpcorb.dat", i, mpcorb_info)
-                                 || !get_mpcorb_dot_dat_line( "MPCORB.DAT", i, mpcorb_info))
+                        if( mpcorb_extracts &&
+                                   (!get_mpcorb_dot_dat_line( "mpcorb.dat", i, mpcorb_info)
+                                 || !get_mpcorb_dot_dat_line( "MPCORB.DAT", i, mpcorb_info)))
                            {
                            const char *tptr = mpcorb_extracts;
 
