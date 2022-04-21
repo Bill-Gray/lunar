@@ -83,8 +83,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 #define _tzset       tzset
 #define _swab        swab
 #define _unlink      unlink
-// int _stricmp( char *s1, char *s2);
-// int _memicmp( char *s1, char *s2, int n);
+/* int _stricmp( char *s1, char *s2);              */
+/* int _memicmp( char *s1, char *s2, int n);       */
 #endif
 #endif
 
