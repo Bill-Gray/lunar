@@ -186,6 +186,7 @@ int main( void)
    loc_t loc;
    char field[30], buff[100];
    int rval;
+   double xyz[3];
 
    printf( "Content-type: text/html\n\n");
    printf( "<pre>");
@@ -198,30 +199,38 @@ int main( void)
       return( 0);
       }
    memset( &loc, 0, sizeof( loc_t));
+   xyz[0] = xyz[1] = xyz[2] = 0.;
    while( !get_cgi_data( field, buff, NULL, sizeof( buff)))
       {
       if( !strcmp( field, "rho_sin_phi"))
-         {
          loc.rho_sin_phi = atof( buff);
-         if( loc.rho_sin_phi > 100.)    /* assume meters */
-            loc.rho_sin_phi /= EARTH_MAJOR_AXIS_IN_METERS;
-         }
       else if( !strcmp( field, "rho_cos_phi"))
-         {
          loc.rho_cos_phi = atof( buff);
-         if( loc.rho_cos_phi > 100.)    /* assume meters */
-            loc.rho_cos_phi /= EARTH_MAJOR_AXIS_IN_METERS;
-         }
       else if( !strcmp( field, "lat") && strchr( buff, '.'))
          loc.lat = get_angle( buff) * PI / 180.;
       else if( !strcmp( field, "lon") && strchr( buff, '.'))
          loc.lon = get_angle( buff) * PI / 180.;
       else if( !strcmp( field, "alt"))
          loc.alt = atof( buff) / EARTH_MAJOR_AXIS_IN_METERS;
+      else if( !memcmp( field, "xyz", 3) && field[3] >= '0' && field[3] <= '2')
+         xyz[field[3] - '0'] = atof( buff);
+      }
+   if( xyz[0] || xyz[1] || xyz[2])
+      {
+      loc.lon = atan2( xyz[1], xyz[0]);
+      loc.rho_cos_phi = sqrt( xyz[0] * xyz[0] + xyz[1] * xyz[1]);
+      loc.rho_sin_phi = xyz[2];
       }
    if( loc.rho_sin_phi && loc.rho_cos_phi)
+      {
+      if( fabs( loc.rho_sin_phi) > 100. || fabs( loc.rho_cos_phi) > 100.)
+         {           /* assume meters were entered */
+         loc.rho_sin_phi /= EARTH_MAJOR_AXIS_IN_METERS;
+         loc.rho_cos_phi /= EARTH_MAJOR_AXIS_IN_METERS;
+         }
       loc.lat = point_to_ellipse( 1., EARTH_MINOR_AXIS_IN_METERS / EARTH_MAJOR_AXIS_IN_METERS,
                  loc.rho_cos_phi, loc.rho_sin_phi, &loc.alt);
+      }
    else if( loc.lat)
       lat_alt_to_parallax( loc.lat, loc.alt, &loc.rho_cos_phi, &loc.rho_sin_phi,
               1., EARTH_MINOR_AXIS_IN_METERS / EARTH_MAJOR_AXIS_IN_METERS);
