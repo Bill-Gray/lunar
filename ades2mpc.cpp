@@ -39,7 +39,7 @@ int snprintf( char *string, const size_t max_len, const char *format, ...);
 
 #define NOT_A_VALID_TIME -3.141e+17
 #define MAX_DEPTH 20
-#define PIECE_SIZE   25
+#define PIECE_SIZE   26
 
 typedef struct
 {
@@ -49,6 +49,7 @@ typedef struct
    char rms_ra[PIECE_SIZE], rms_dec[PIECE_SIZE], corr[PIECE_SIZE];
    char rms_mag[PIECE_SIZE], rms_time[PIECE_SIZE], center[PIECE_SIZE];
    char full_ra[PIECE_SIZE], full_dec[PIECE_SIZE];
+   char trk_sub[14], obs_id[PIECE_SIZE], trk_id[12];
    long double full_t2k;
    int id_set, getting_lines;
    int prev_line_passed_through;
@@ -407,6 +408,18 @@ static int get_a_line( char *obuff, ades2mpc_t *cptr)
       cptr->rms_ra[0] = '\0';
       strcat( obuff, "\n");
       }
+   else if( cptr->trk_sub[0] || cptr->obs_id[0] || cptr->trk_id[0])
+      {
+      strcpy( obuff, "COM IDs");
+      if( cptr->trk_sub[0])
+         sprintf( obuff + strlen( obuff), " trkSub:%s", cptr->trk_sub);
+      if( cptr->obs_id[0])
+         sprintf( obuff + strlen( obuff), " obsID:%s", cptr->obs_id);
+      if( cptr->trk_id[0])
+         sprintf( obuff + strlen( obuff), " trkID:%s", cptr->trk_id);
+      cptr->trk_sub[0] = cptr->obs_id[0] = cptr->trk_id[0] = '\0';
+      strcat( obuff, "\n");
+      }
    else if( cptr->full_ra[0] || cptr->full_dec[0] || cptr->full_t2k != NOT_A_VALID_TIME)
       {
       sprintf( obuff, "COM RA/dec %s %s",
@@ -728,6 +741,7 @@ static int process_ades_tag( char *obuff, ades2mpc_t *cptr, const int itag,
          break;
       case ADES_trkSub:
          assert( len < 13);
+         strcpy( cptr->trk_sub, name);
          if( !cptr->id_set)
             {
             cptr->id_set = ADES_trkSub;
@@ -736,6 +750,15 @@ static int process_ades_tag( char *obuff, ades2mpc_t *cptr, const int itag,
             else
                memcpy( cptr->line + 12 - len, tptr, len);
             }
+         break;
+         break;
+      case ADES_trkID:
+         assert( len < sizeof( cptr->trk_id));
+         strcpy( cptr->trk_id, name);
+         break;
+      case ADES_obsID:
+         assert( len < sizeof( cptr->obs_id));
+         strcpy( cptr->obs_id, name);
          break;
       case ADES_mag:
          memcpy( cptr->line + 65, tptr, (len < 5) ? len : 5);
