@@ -158,10 +158,9 @@ int DLL_FUNC set_brightness_params( BRIGHTNESS_DATA *b)
          humidity_param = 1. - .32 / log( b->relative_humidity / 100.);
       k_aerosol_coeff *= exp( 1.33 * log( humidity_param));
       }
-   if( b->latitude < 0.)
-      k_aerosol_coeff *= 1. - sin( month_angle);
-   else
-      k_aerosol_coeff *= 1. + sin( month_angle);
+         /* Following line modified by BJG to avoid a discontinuity when */
+         /* crossing the equator.  Aerosols tend to increase in summer. */
+   k_aerosol_coeff *= 1. + sin( month_angle) * sin( b->latitude);
 
    b->year_term = 1. + .3 * cos( 2. * PI * (b->year - 1992) / 11.);
          /* accounts for a 30% variation due to sunspots over 11-yr cycle? */
