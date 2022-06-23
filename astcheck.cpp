@@ -578,6 +578,8 @@ static const char *get_arg( const int argc, const char **argv, const int idx)
       return( argv[idx + 1]);
 }
 
+#define IS_POWER_OF_TWO( n)    (((n) & ((n)-1)) == 0)
+
 #if defined(_MSC_VER) && _MSC_VER < 1900
                       /* For older MSVCs,  we have to supply our own  */
                       /* snprintf().  See snprintf.cpp for details.  */
@@ -594,7 +596,7 @@ int main( const int argc, const char **argv)
    FILE *ifile;
    const char *sof_filename = "mpcorb.sof";
    char buff[90];
-   char **ilines;
+   char **ilines = NULL;
    int show_lov = 0;
    int i, n_ilines = 0, n, max_results = 100;
    int n_lines_printed = 0;
@@ -717,21 +719,17 @@ int main( const int argc, const char **argv)
       return( -3);
       }
 
-               /* Run through input file and count lines of astrometry: */
-   while( fgets( buff, sizeof( buff), ifile))
-      if( !get_mpc_data( buff, &jd, &ra, &dec))
-         n_ilines++;
-
-               /* Allocate memory for astrometry lines, then read 'em: */
+               /* Read astrometry lines and allocate memory for them : */
    ilines = (char **)malloc( (n_ilines + 1) * sizeof( char *));
    n_ilines = 0;
-   fseek( ifile, 0L, SEEK_SET);
    while( fgets( buff, sizeof( buff), ifile))
       if( !get_mpc_data( buff, &jd, &ra, &dec))
          {
-         ilines[n_ilines] = (char *)malloc( strlen( buff) + 1);
-         strcpy( ilines[n_ilines], buff);
          n_ilines++;
+         if( IS_POWER_OF_TWO( n_ilines))
+            ilines = (char **)realloc( ilines, n_ilines * 2 * sizeof( char *));
+         ilines[n_ilines - 1] = (char *)malloc( strlen( buff) + 1);
+         strcpy( ilines[n_ilines - 1], buff);
          }
    fclose( ifile);
    if( is_list_file)
