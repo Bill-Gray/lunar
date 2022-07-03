@@ -61,6 +61,9 @@ DPT
 extern "C" {
 #endif /* #ifdef __cplusplus */
 
+int DLL_FUNC constell_from_ra_dec( const double ra_degrees_1875,
+                                   const double dec_degrees_1875,
+                                   char DLLPTR *constell_name);
 void DLL_FUNC make_var_desig( char DLLPTR *buff, int var_no);
 int DLL_FUNC decipher_var_desig( const char DLLPTR *desig);
 int DLL_FUNC setup_precession( double DLLPTR *matrix, const double year_from,

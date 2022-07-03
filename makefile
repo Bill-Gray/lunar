@@ -166,7 +166,7 @@ uninstall:
 	$(CC) $(CFLAGS) -c $<
 
 OBJS= alt_az.o ades2mpc.o astfuncs.o big_vsop.o  \
-   brentmin.o cgi_func.o classel.o cospar.o date.o  \
+   brentmin.o cgi_func.o classel.o conbound.o cospar.o date.o  \
    delta_t.o de_plan.o dist_pa.o eart2000.o elp82dat.o \
    eop_prec.o getplane.o get_time.o jsats.o lunar2.o miscell.o moid.o \
    mpc_code.o mpc_fmt.o nutation.o obliquit.o pluto.o precess.o showelem.o \
@@ -337,6 +337,9 @@ test_min$(EXE):                    test_min.o brentmin.o
 
 them_cat$(EXE): them_cat.c
 	$(CC) $(FLAGS) -o them_cat$(EXE) them_cat.c
+
+mpc_time$(EXE): mpc_time.c
+	$(CC) $(FLAGS) -o mpc_time$(EXE) mpc_time.c $(LIBLUNAR)
 
 themis$(EXE):                    themis.o $(LIBLUNAR)
 	$(CC) $(CFLAGS) -o themis$(EXE) themis.o $(LIBLUNAR) $(LIBSADDED)
