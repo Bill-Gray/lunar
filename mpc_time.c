@@ -11,7 +11,8 @@
 
 /*
    The obsID field in ADES starts with eight mutant-hex (base 62)
-digits that give the time of submission.  Mike Rudenko pointed me to
+digits that give the time the observation was received at MPC.
+Mike Rudenko pointed me to
 
 https://minorplanetcenter.net/decode_obsid.py
 
@@ -83,5 +84,13 @@ int main( const int argc, const char **argv)
             hms / 3600, (hms / 60) % 60, hms % 60,
             millisec);
    printf( "_%.8s_%.2s\n", id + 8, id + 16);
+   if( millisec >= 1000)
+      printf( "WARNING: milliseconds should be 999 or less\n");
+   if( hms > 86401)        /* allow for a possible leap second */
+      printf( "WARNING: time of day is out of range\n");
+            /* Further checking could be done for ymd.  We've already     */
+            /* seen "Nov 31" dates in MPC data.  If the date/time is in   */
+            /* the future,  that should also prompt an alert.  There may  */
+            /* be a minimum date before which we should assume an error.  */
    return( 0);
 }
