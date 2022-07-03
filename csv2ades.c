@@ -39,12 +39,13 @@ SsoObservation_-4284702096_-4283326086.csv.gz      26520 - 164121
 static char *get_csv( char *obuff, const char *ibuff,
             const char *header, const char *tag)
 {
-   ssize_t i;
+   size_t i;
    unsigned nval = 0;
    const char *found = strstr( header, tag);
 
    assert( found);
-   for( i = 0; i < found - header; i++)
+   assert( found >= header);
+   for( i = 0; i < (size_t)(found - header); i++)
       if( header[i] == ',')
          nval++;
    while( nval-- && ibuff)
