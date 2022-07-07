@@ -7,7 +7,7 @@ EXES= add_off.exe adestest.exe astcheck.exe astephem.exe \
       calendar.exe chinese.exe colors.exe colors2.exe cosptest.exe csv2ades.exe dist.exe \
       easter.exe get_test.exe gtest.exe htc20b.exe jd.exe jevent.exe \
       jpl2b32.exe jsattest.exe lun_test.exe marstime.exe \
-      moidtest.exe mpc2sof.exe oblitest.exe parallax.exe \
+      moidtest.exe mpc_time.exe mpc2sof.exe oblitest.exe parallax.exe \
       persian.exe phases.exe prectest.exe prectes2.exe ps_1996.exe \
       relativi.exe ssattest.exe tables.exe test_des.exe test_ref.exe \
       testprec.exe test_ref.exe themis.exe them_cat.exe uranus1.exe utc_test.exe
@@ -68,7 +68,7 @@ clean:
    $(RM) gust86.obj htc20b.obj jd.obj jevent.obj
    $(RM) jpl2b32.obj jsattest.obj lun_test.obj lun_tran.obj
    $(RM) marstime.obj mpc_code.obj mpc_fmt.obj mpcorb.obj
-   $(RM) moidtest.obj mpc2sof.obj obliqui2.obj oblitest.obj
+   $(RM) moidtest.obj mpc_time.obj mpc2sof.obj obliqui2.obj oblitest.obj
    $(RM) parallax.obj persian.obj phases.obj ps_1996.obj
    $(RM) prectest.obj prectes2.obj relativi.obj riseset3.obj
    $(RM) sof.obj solseqn.obj spline.obj ssattest.obj tables.obj
@@ -139,6 +139,9 @@ marstime.exe: marstime.cpp
 
 moidtest.exe: moidtest.obj $(LIBNAME).lib
    $(LINK)    moidtest.obj $(LIBNAME).lib
+
+mpc_time.exe: mpc_time.obj $(LIBNAME).lib
+   $(LINK)    mpc_time.obj $(LIBNAME).lib
 
 mpc2sof.exe: mpc2sof.obj mpcorb.obj $(LIBNAME).lib
    $(LINK)   mpc2sof.obj mpcorb.obj $(LIBNAME).lib
