@@ -68,29 +68,57 @@ telescopes, different observers for each subbatch, etc.)
 
 19-25 - base62 counter for the observation number within the sub-batch */
 
+static int show_usage( void)
+{
+   printf( "usage : ./mpc_time (obsID)\n"
+           "Can be full obsID or,  if you just want the submission time,\n"
+           "supply the first eight characters of the obsID.\n");
+   return( -1);
+}
+
 int main( const int argc, const char **argv)
 {
-   const char *id = argv[1];
+   const char *id = (argc == 2 ? argv[1] : "            ");
    const int ymd = get_mutant_hex_value( id, 3);
    const int hms = get_mutant_hex_value( id + 3, 3);
    const int millisec = get_mutant_hex_value( id + 6, 2);
    const int year = ymd / (31 * 12) + 1800;
    const int month = (ymd / 31) % 12 + 1;
    const int day = ymd % 31 + 1;
+   const int n_days = days_in_month( month, year, CALENDAR_GREGORIAN);
+   char buff[80];
 
-   assert( argc == 2);
-   printf( "%04d-%02d-%02d %02d:%02d:%02d.%03d",
+   if( argc != 2)
+      return( show_usage( ));
+   snprintf( buff, sizeof( buff), "%04d-%02d-%02d %02d:%02d:%02d.%03d",
             year, month, day,
             hms / 3600, (hms / 60) % 60, hms % 60,
             millisec);
-   printf( "_%.8s_%.2s\n", id + 8, id + 16);
+   printf( "%s = JD %f\n", buff,
+               get_time_from_string( 0., buff, FULL_CTIME_YMD, NULL));
+   if( strlen( id) >= 16)
+      printf( "Submission counter: %.8s (mutant hex)\n", id + 8);
+   if( strlen( id) >= 18)
+      printf( "Sub-batch number within main batch counter: %.2s (mutant hex)\n", id + 16);
+   if( strlen( id) >= 25)
+      printf( "Observation number within the sub-batch: %.7s (mutant hex)\n", id + 18);
+   if( day > n_days)
+      printf( "WARNING: There are only %d days in that month\n", n_days);
    if( millisec >= 1000)
       printf( "WARNING: milliseconds should be 999 or less\n");
-   if( hms > 86401)        /* allow for a possible leap second */
+   if( hms > 86400)        /* allow for one possible leap second */
       printf( "WARNING: time of day is out of range\n");
-            /* Further checking could be done for ymd.  We've already     */
-            /* seen "Nov 31" dates in MPC data.  If the date/time is in   */
-            /* the future,  that should also prompt an alert.  There may  */
-            /* be a minimum date before which we should assume an error.  */
+   if( hms == 86400)
+      {
+      if( (month % 6) || day != n_days)
+         printf( "WARNING: This is an invalid leap second.  It's not on the\n"
+                 "last day of June or December.\n");
+      else
+         printf( "WARNING: This is a leap second.  Theoretically,  it's allowed,\n"
+                 "but my code and MPC's will probably break if this submission\n"
+                 "time is used.\n");
+      }
+         /* Further checking could be done.  Times in the future or
+         before the time of the actual observation should be flagged. */
    return( 0);
 }
