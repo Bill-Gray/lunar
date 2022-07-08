@@ -39,6 +39,8 @@ double DLL_FUNC get_time_from_string( double initial_jd,
          const char *time_str, const int time_format, int *is_ut);
 long double DLL_FUNC get_time_from_stringl( long double initial_t2k,
          const char *time_str, const int time_format, int *is_ut);
+int DLL_FUNC days_in_month( const int month, const long year,
+                            const int calendar);
 
 #define FULL_CTIME_FORMAT_MASK           0x700
 #define FULL_CTIME_FORMAT_SECONDS        0x000

@@ -680,6 +680,8 @@ int DLL_FUNC get_chinese_intercalary_month( void)
    return( chinese_intercalary_month);
 }
 
+#define RETURN_DAYS_IN_MONTH    -999
+
 /* dmy_to_day( ) just gets calendar data for the current year,  including
 the JD of New Years Day for that year.  After that,  all it has to do is
 add up the days in intervening months,  plus the day of the month,  and
@@ -705,6 +707,8 @@ long DLL_FUNC dmy_to_day( const int day, const int month, const long year,
    rval = get_calendar_data( year, year_ends, mdata, calendar_to_use);
    if( !rval)
       {
+      if( day == RETURN_DAYS_IN_MONTH)
+         return( mdata[month - 1]);
       jd = year_ends[0];
       for( int i = 0; i < month - 1; i++)
          jd += mdata[i];
@@ -713,6 +717,12 @@ long DLL_FUNC dmy_to_day( const int day, const int month, const long year,
    else
       jd = 0;
    return( jd);
+}
+
+int DLL_FUNC days_in_month( const int month, const long year,
+                            const int calendar)
+{
+   return( dmy_to_day( RETURN_DAYS_IN_MONTH, month, year, calendar));
 }
 
 /* This usually gets you the correct year for a given JD,  but is
