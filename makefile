@@ -338,8 +338,8 @@ test_min$(EXE):                    test_min.o brentmin.o
 them_cat$(EXE): them_cat.c
 	$(CC) $(CFLAGS) -o them_cat$(EXE) them_cat.c
 
-mpc_time$(EXE): mpc_time.c
-	$(CC) $(CFLAGS) -o mpc_time$(EXE) mpc_time.c $(LIBLUNAR)
+mpc_time$(EXE):                    mpc_time.c $(LIBLUNAR)
+	$(CC) $(CFLAGS) -o mpc_time$(EXE) mpc_time.c $(LIBLUNAR) $(LIBSADDED)
 
 themis$(EXE):                    themis.o $(LIBLUNAR)
 	$(CC) $(CFLAGS) -o themis$(EXE) themis.o $(LIBLUNAR) $(LIBSADDED)
