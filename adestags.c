@@ -4,7 +4,9 @@
 /* See 'ades2mpc.cpp'.  This takes a list of ADES tags,  in the order
 specified in the documentation,  and produces arrays suitable for use
 in 'ades2mpc.cpp'.  It also sorts the tags;  this will allow for a
-binary search,  gaining 0.001% (probably) in speed.  */
+binary search,  gaining 0.001% (probably) in speed.
+
+2022 Aug 02 : added shapeOcc, obsSubID, trkMPC elements.    */
 
 #define INTENTIONALLY_UNUSED_PARAMETER( param) (void)(param)
 
@@ -12,7 +14,8 @@ int main( const int intentionally_unused_argc,
           const char **intentionally_unused_argv)
 {
    static const char *tags[] = {
-         "permID", "provID", "artSat", "trkSub", "obsID", "trkID",
+         "permID", "provID", "artSat", "trkSub", "obsID", "obsSubID", "trkID",
+         "trkMPC",
          "mode", "stn", "trx", "rcv", "sys", "ctr", "pos1", "pos2", "pos3",
          "posCov11", "posCov12", "posCov13",
          "posCov22", "posCov23", "posCov33",
@@ -20,7 +23,7 @@ int main( const int intentionally_unused_argc,
          "deltaRA", "deltaDec", "dist", "pa", "rmsRA", "rmsDec", "rmsDist",
          "rmsPA", "rmsCorr", "delay", "rmsDelay", "doppler", "rmsDoppler",
          "astCat", "mag", "rmsMag", "band", "photCat", "photAp",
-         "nucMag", "logSNR", "seeing", "exp",
+         "nucMag", "logSNR", "shapeOcc", "seeing", "exp",
                      /* end p6, start p7 */
          "rmsFit", "nStars", "com",
          "frq", "ref", "disc", "subFmt", "subFrm",
