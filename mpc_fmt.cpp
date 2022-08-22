@@ -506,6 +506,7 @@ static const char *net_codes[] = {
            "VGaia-DR2",
            "WGaia-DR3",
            "XGaia-EDR3",
+           "XGaia-3E",
            "YUCAC-5",
            "ZATLAS-2",
            NULL };
