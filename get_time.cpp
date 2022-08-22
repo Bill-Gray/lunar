@@ -309,7 +309,17 @@ static long double get_phase_time( const long double k, const int phase_idx)
    return( rval);
 }
 
-static long double set_from_lunar( const int phase_idx, const long double t2k)
+#ifdef __cplusplus
+extern "C" {
+#endif /* #ifdef __cplusplus */
+long double DLL_FUNC find_nearest_lunar_phase_time(
+                         const int phase_idx, const long double t2k);
+#ifdef __cplusplus
+}
+#endif  /* #ifdef __cplusplus */
+
+long double DLL_FUNC find_nearest_lunar_phase_time(
+                         const int phase_idx, const long double t2k)
 {
    const long double phase = (long double)phase_idx * .25;
    const long double k = floorl((t2k - lunar_phase_t0) / lunation - phase + .5) + phase;
@@ -449,7 +459,7 @@ long double DLL_FUNC get_time_from_stringl( long double initial_t2k,
          rval = get_time_from_stringl( initial_t2k, str, time_format, NULL);
          if( rval != -J2000 && is_ut)
             *is_ut = 1;
-         return( set_from_lunar( phase, rval) + offset);
+         return( find_nearest_lunar_phase_time( phase, rval) + offset);
          }
       }
 

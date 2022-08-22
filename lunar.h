@@ -59,6 +59,8 @@ int DLL_FUNC calc_big_vsop_loc( FILE *ifile, const int planet,
 
 int DLL_FUNC lunar_fundamentals( const void FAR *data, const double t,
                                         double DLLPTR *fund);
+long double DLL_FUNC find_nearest_lunar_phase_time(
+                         const int phase_idx, const long double t2k);
 double DLL_FUNC mean_obliquity( const double t_cen);
 int DLL_FUNC calc_pluto_loc( const void FAR *data, double DLLPTR *loc,
                                 const double t, const long precision);
