@@ -25,6 +25,12 @@ endif
 ifeq ($(origin CC),default)
 	CC=gcc
 endif
+
+ifeq ($(shell uname -s),FreeBSD)
+	CC=cc
+	CPP=c++
+endif
+
 LIBSADDED=
 EXE=
 CFLAGS+=-Wextra -Wall -O3 -pedantic
