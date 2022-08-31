@@ -233,7 +233,7 @@ int DLL_FUNC elements_in_mpc_format( char *obuff, const ELEMENTS *elem,
       if( elem->abs_mag != 0.)
          {
          sprintf( obuff,
-             (elem->is_asteroid ? "H%7.1f  G %4.2f   " :
+             (elem->is_asteroid ? "H%7.1f  G%5.2f   " :
                                   "M(T)%5.1f  K%5.1f  " ),
                                    elem->abs_mag,
                                    elem->slope_param);
@@ -339,7 +339,7 @@ int DLL_FUNC elements_in_mpc_format( char *obuff, const ELEMENTS *elem,
          }
       if( elem->abs_mag != 0.)
          {
-         sprintf( obuff, (elem->is_asteroid ? "  H%7.1f     G   %4.2f" :
+         sprintf( obuff, (elem->is_asteroid ? "  H%7.1f     G %6.2f" :
                                               "  M(T)%5.1f    K %5.1f"),
                                               elem->abs_mag,
                                               elem->slope_param);
