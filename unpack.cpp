@@ -341,3 +341,29 @@ int unpack_mpc_desig( char *obuff, const char *packed)
       rval = OBJ_DESIG_ARTSAT;
    return( rval);
 }
+
+/* The above function will work if the designation in question is
+aligned in the correct columns.  The following function will generally
+unpack designations even if they're misaligned. */
+
+int unpack_unaligned_mpc_desig( char *obuff, const char *packed)
+{
+   size_t len = 0, column = 0;
+   char aligned[13];
+
+   while( *packed == ' ')
+      packed++;
+   while( packed[len] > ' ' && packed[len] < 127)
+      len++;
+   if( len > 12)
+      {
+      memcpy( obuff, packed, 12);
+      return( OBJ_DESIG_OTHER);
+      }
+   memset( aligned, ' ', 12);
+   aligned[12] = '\0';
+   if( len == 7 || len == 8)
+      column = (size_t)( 12 - len);
+   memcpy( aligned + column, packed, len);
+   return( unpack_mpc_desig( obuff, aligned));
+}
