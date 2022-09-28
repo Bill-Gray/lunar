@@ -901,6 +901,7 @@ int main( int argc, const char **argv)
 #endif
    int quit = 0, n_found_from_update = 0;
    clock_t t0;
+   bool update_existing_file = true;
 
    if( argc == 2 && !memcmp( argv[1], "today", 5))
       {
@@ -929,9 +930,12 @@ int main( int argc, const char **argv)
       error_exit( );
       return( -1);
       }
+   for( i = 1; i < argc; i++)
+      if( !strcmp( argv[i], "-u"))
+         update_existing_file = false;
    setvbuf( stdout, NULL, _IONBF, 0);
    ifile = err_fopen( argv[1], "rb");
-   if( !rename( argv[2], temp_file_name))
+   if( update_existing_file && !rename( argv[2], temp_file_name))
       {
       int n_hashes = 0;
 
@@ -1020,6 +1024,8 @@ int main( int argc, const char **argv)
                break;
             case 't':
                max_err = atof( argv[i] + 2);
+               break;
+            case 'u':      /* handled above */
                break;
             case 'v':
                verbose = 1 + atoi( argv[i] + 2);
