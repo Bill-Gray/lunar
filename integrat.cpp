@@ -87,7 +87,7 @@ results from the chunk files together and unlinks them.     */
    #define PERTURBERS_CERES_PALLAS_VESTA 0x1c00   */
 #define N_PERTURBERS 13
          /* hash table sizes should be prime numbers: */
-#define HASH_TABLE_SIZE 1000001
+#define HASH_TABLE_SIZE 3000017
 
 static int verbose = 0, n_steps_taken = 0, resync_freq = 50;
 static int asteroid_perturber_number = -1;
@@ -951,6 +951,9 @@ int main( int argc, const char **argv)
             hashes[hash_loc] = hash_val;
             file_offsets[hash_loc] = ftell( update_file) - strlen( buff);
             n_hashes++;
+                      /* We shouldn't try to fill the table more than 80%. */
+                      /* If that happens,  raise HASH_TABLE_SIZE.          */
+            assert( n_hashes < HASH_TABLE_SIZE * 4 / 5);
             }
       printf( "Got %d hashes\n", n_hashes);
       }
