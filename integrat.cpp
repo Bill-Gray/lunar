@@ -883,6 +883,8 @@ static void error_exit( void)
 }
 
 #define JAN_1970 2440587.5
+#define MIN_MPCORB_LINE_SIZE        203
+      /* lines may be 204 bytes long if they have CR/LF enders */
 
 int main( int argc, const char **argv)
 {
@@ -1229,6 +1231,11 @@ int main( int argc, const char **argv)
                        n_integrated,
                        n_found_from_update);
             }
+         if( strlen( buff) < MIN_MPCORB_LINE_SIZE)
+            {
+            printf( "Line is %d bytes long\n%s", (int)strlen( buff), buff);
+            }
+         assert( strlen( buff) >= MIN_MPCORB_LINE_SIZE);
 #ifdef _MSC_VER
          if( kbhit( ))
             if( getch( ) == 27)
@@ -1266,6 +1273,7 @@ int main( int argc, const char **argv)
          i = 0;
          while( fgets( buff, sizeof( buff), ifiles[i]))
             {
+            assert( strlen( buff) >= MIN_MPCORB_LINE_SIZE);
             fputs( buff, ofile);
             i = (i + 1) % n_processes;
             }
