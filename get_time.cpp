@@ -415,7 +415,7 @@ long double DLL_FUNC get_time_from_stringl( long double initial_t2k,
    char buff[80];
    char symbol = 0;
    char *str = buff;
-   const double jan_1_1970 = 2440587.5;      /* starting point for UNIX time */
+   const long double jan_1_1970 = 2440587.5;      /* starting point for UNIX time */
 
    if( is_ut)
       *is_ut = 0;
@@ -501,12 +501,10 @@ long double DLL_FUNC get_time_from_stringl( long double initial_t2k,
 
    if( !strncmp( str, "now", 3))
       {
-      static const long double jan_1970 = 2440587.5;
-
       str += 3;
       while( *str == ' ')
          str++;
-      initial_t2k = (jan_1970 - J2000) + (long double)time( NULL) / seconds_per_day;
+      initial_t2k = jan_1_1970 - J2000 + (long double)time( NULL) / seconds_per_day;
       }
 
    if( !*str)
