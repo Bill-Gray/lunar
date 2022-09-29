@@ -739,7 +739,7 @@ static int extract_mpcorb_dat( ELEMENTS *elem, const char *buff,
          elem->asc_node     = atof( buff + 48) * PI / 180.;
          elem->incl         = atof( buff + 59) * PI / 180.;
          elem->ecc          = atof( buff + 69);
-         elem->major_axis   = atof( buff + 92);
+         elem->major_axis   = atof( buff + 91);
          elem->q = elem->major_axis * (1. - elem->ecc);
          derive_quantities( elem, SOLAR_GM);
          elem->perih_time = elem->epoch - elem->mean_anomaly * elem->t0;
@@ -792,6 +792,8 @@ static double try_to_integrate( char *buff, const double dest_jd,
          const long epoch_stored = (long)floor( dest_jd + 1.); /* rounds up */
          const double time_diff = (double)epoch_stored - .5 - dest_jd;
 
+         assert( elem.ecc < 1.);
+         assert( elem.ecc > 0.);
          put_mpc_epoch( buff + 20, epoch_stored);
          elem.mean_anomaly += time_diff / elem.t0;
 
