@@ -781,7 +781,13 @@ long double DLL_FUNC get_time_from_stringl( long double initial_t2k,
 
          if( year > 0 && year < 100 && !is_bc)
             if( time_format & FULL_CTIME_TWO_DIGIT_YEAR)
-               year += (year < 40 ? 2000 : 1900);
+               {
+               const int curr_year = 1970 + (int)( time( NULL) / (1461 * 86400 / 4));
+                                  /* two-digit years are assumed to be  */
+               year += 1900;      /* between 60 years ago to 40 years hence */
+               while( year < curr_year - 60)
+                  year += 100;
+               }
          }
          break;
       case '\0':       /* no dividing symbols found */
