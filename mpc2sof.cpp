@@ -214,8 +214,8 @@ int main( const int argc, const char **argv)
             memcpy( obuff + n_out * reclen, tbuff, reclen);
             n_out++;
             }
+      fclose( ifile);
       }
-   fclose( ifile);
    n_written = fwrite( obuff, reclen, n_out, ofile);
    assert( n_written == n_out);
    free( obuff);
