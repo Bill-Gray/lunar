@@ -216,5 +216,6 @@ install:
    copy mpc_func.h $(INSTALL_DIR)
    copy riseset3.h $(INSTALL_DIR)
    copy showelem.h $(INSTALL_DIR)
+   copy stringex.h $(INSTALL_DIR)
    copy vislimit.h $(INSTALL_DIR)
    copy watdefs.h  $(INSTALL_DIR)

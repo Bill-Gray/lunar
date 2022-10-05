@@ -138,6 +138,7 @@ install:
 	$(CP) lunar.h    $(INSTALL_DIR)/include
 	$(CP) mpc_func.h $(INSTALL_DIR)/include
 	$(CP) showelem.h $(INSTALL_DIR)/include
+	$(CP) stringex.h $(INSTALL_DIR)/include
 	$(CP) vislimit.h $(INSTALL_DIR)/include
 	$(CP) watdefs.h  $(INSTALL_DIR)/include
 	$(MKDIR) $(LIB_DIR)
@@ -159,6 +160,7 @@ uninstall:
 	rm -f $(INSTALL_DIR)/include/lunar.h
 	rm -f $(INSTALL_DIR)/include/mpc_func.h
 	rm -f $(INSTALL_DIR)/include/showelem.h
+	rm -f $(INSTALL_DIR)/include/stringex.h
 	rm -f $(INSTALL_DIR)/include/vislimit.h
 	rm -f $(INSTALL_DIR)/include/watdefs.h
 	rm -f $(INSTALL_DIR)/lib/$(LIBLUNAR)
@@ -176,7 +178,7 @@ OBJS= alt_az.o ades2mpc.o astfuncs.o big_vsop.o  \
    delta_t.o de_plan.o dist_pa.o eart2000.o elp82dat.o \
    eop_prec.o getplane.o get_time.o jsats.o lunar2.o miscell.o moid.o \
    mpc_code.o mpc_fmt.o nutation.o obliquit.o pluto.o precess.o showelem.o \
-   sof.o spline.o ssats.o triton.o unpack.o vislimit.o vsopson.o
+   snprintf.o sof.o spline.o ssats.o triton.o unpack.o vislimit.o vsopson.o
 
 $(LIBLUNAR): $(OBJS)
 	$(LIBEXE) $(LIBFLAGS) $(LIBLUNAR) $(OBJS)
