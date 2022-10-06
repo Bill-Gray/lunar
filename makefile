@@ -199,7 +199,7 @@ clean:
 	$(RM) easter$(EXE) get_test$(EXE) gtest$(EXE) htc20b$(EXE)
 	$(RM) integrat$(EXE) jd$(EXE) jevent$(EXE) jpl2b32$(EXE)
 	$(RM) jsattest$(EXE) lun_test$(EXE) marstime$(EXE) moidtest$(EXE) mms$(EXE)
-	$(RM) mpc2sof$(EXE) oblitest$(EXE) parallax$(EXE) parallax.cgi
+	$(RM) mpc2sof$(EXE) mpc_time$(EXE) oblitest$(EXE) parallax$(EXE) parallax.cgi
 	$(RM) persian$(EXE) phases$(EXE) prectest$(EXE) prectes2$(EXE)
 	$(RM) ps_1996$(EXE) relativi$(EXE) solseqn$(EXE) ssattest$(EXE) tables$(EXE)
 	$(RM) test_des$(EXE) test_ref$(EXE) testprec$(EXE) themis$(EXE)
