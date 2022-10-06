@@ -87,15 +87,15 @@ static int get_cospar_data_from_text_file( int object_number,
                ;
             if( i)      /* yes,  it's a for-real line */
                {
+               int j;
+
                buff[i] = '\0';
                         /* remove redundant spaces: */
                if( memcmp( buff, "Remap:", 6))
-                  for( i = 0; buff[i]; i++)
-                     if( buff[i] == ' ')
-                        {
-                        memmove( buff + i, buff + i + 1, strlen( buff + i));
-                        i--;
-                        }
+                  for( i = j = 0; buff[j]; j++)
+                     if( buff[j] != ' ')
+                        buff[i++] = buff[j];
+               buff[i] = '\0';
                if( pass)
                   {
                   strcpy( cospar_text[line], buff);
