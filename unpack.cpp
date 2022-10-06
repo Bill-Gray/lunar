@@ -219,7 +219,7 @@ int unpack_mpc_desig( char *obuff, const char *packed)
             2019-O55 for explanation of this 'extended numbering scheme'. */
    if( packed[0] == '~' && (space_mask & 0x3e0) == 0x3e0)
       {
-      int num = get_mutant_hex_value( packed + 1, 4);
+      const int num = get_mutant_hex_value( packed + 1, 4);
 
       if( num >= 0)    /* yes,  it's a valid 'extended' numbered object */
          {
@@ -257,11 +257,10 @@ int unpack_mpc_desig( char *obuff, const char *packed)
          }
       else if( strchr( "PCDXA", packed[4]))   /* it's a numbered comet */
          {
-         const char suffix_char = packed[11];
-         char tbuff[20];
-
          if( obuff)
             {
+            const char suffix_char = packed[11];
+
             *obuff++ = packed[4];
             *obuff++ = '/';
             i = 0;
@@ -280,7 +279,6 @@ int unpack_mpc_desig( char *obuff, const char *packed)
                   *obuff++ = extra_suffix_char + 'A' - 'a';
                *obuff++ = suffix_char + 'A' - 'a';
                }
-            sprintf( tbuff, "%3d%c/", atoi( packed), packed[4]);
             *obuff = '\0';
             }
          rval = OBJ_DESIG_COMET_NUMBERED;
@@ -299,13 +297,6 @@ int unpack_mpc_desig( char *obuff, const char *packed)
          rval = ((packed[4] == ' ' || packed[4] == 'A') ?
                                       OBJ_DESIG_ASTEROID_PROVISIONAL
                                     : OBJ_DESIG_COMET_PROVISIONAL);
-      if( rval != OBJ_DESIG_OTHER && packed[4] != ' '
-                                  && packed[4] != 'A' && obuff)
-         {
-         char tbuff[40];
-
-         sprintf( tbuff, "   %s ", obuff - 2);
-         }
       }
    if( rval == OBJ_DESIG_OTHER && space_mask == 0x1f
             && (digit_mask & 0xf00) == 0xf00 && packed[7] == 'S')
