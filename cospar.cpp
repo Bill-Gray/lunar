@@ -41,12 +41,18 @@ and quadratic terms.  It still needs some of the logic from the original
 'cospar.cpp' to convert this to a matrix and to handle odd cases such as
 the Earth, which has a rotation matrix based on a separate precession
 formula, and to set an identity matrix for unknown objects and such.
-'cospar.txt' may be extended to include asteroids... someday. */
+'cospar.txt' includes asteroids,  but there's no way (yet) to access
+that data.
+
+'cospar.txt' also has object dimensions.  These can be one number
+(for a sphere),  two (for an oblate spheroid),  or three (for a
+triaxial ellipsoid).  If 'radii' is non-NULL,  one,  two,  or three
+numbers will be set accordingly,  with the remainder set to zero. */
 
 static int get_cospar_data_from_text_file( int object_number,
          const int system_number, const double jde,
          double *pole_ra, double *pole_dec, double *omega,
-         bool *is_retrograde)
+         double *radii, bool *is_retrograde)
 {
    const double J2000 = 2451545.0;        /* JD 2451545.0 = 1.5 Jan 2000 */
    const double d = (jde - J2000);
@@ -119,6 +125,8 @@ static int get_cospar_data_from_text_file( int object_number,
          return( 0);       /* computing orientations quite yet (see    */
       }                    /* load_cospar_file( ) below)               */
    *is_retrograde = false;
+   if( radii)
+      radii[0] = radii[1] = radii[2] = 0.;
    for( line = 0; cospar_text[line] && !done && !err; line++)
       {
       char *tptr = cospar_text[line];
@@ -156,7 +164,12 @@ static int get_cospar_data_from_text_file( int object_number,
          {
          double *oval = NULL;
 
-         if( *tptr == 'a')    /* "a0=" */
+         if( *tptr == 'r')
+            {
+            if( radii)
+               sscanf( tptr + 2, "%lf,%lf,%lf", radii, radii + 1, radii + 2);
+            }
+         else if( *tptr == 'a')    /* "a0=" */
             oval = pole_ra;
          else if( *tptr == 'd')   /* "d0=" */
             oval = pole_dec;
@@ -249,7 +262,8 @@ static int get_cospar_data_from_text_file( int object_number,
    if( !err)
       if( !done)    /* never did find the object... fill with  */
          {          /* semi-random values and signal an error: */
-         *pole_ra = *pole_dec = (double)( object_number * 20);
+         if( pole_ra && pole_dec)
+            *pole_ra = *pole_dec = (double)( object_number * 20);
          if( omega)
             *omega = d * 360. / 1.3;   /* rotation once every 1.3 days */
          err = -1;
@@ -274,7 +288,7 @@ int DLL_FUNC load_cospar_file( const char *filename)
    cospar_filename = filename;
    for( pass = 0; pass < (filename ? 2 : 1); pass++)
       rval = get_cospar_data_from_text_file( (pass ? 0 : FREE_INTERNAL_DATA),
-                    0, 0., NULL, NULL, NULL, NULL);
+                    0, 0., NULL, NULL, NULL, NULL, NULL);
    cospar_filename = temp_name;
    return( rval);
 }
@@ -285,11 +299,21 @@ double DLL_FUNC planet_rotation_rate( const int planet_no, const int system_no)
    bool is_retrograde;
    double omega;
    const int rval = get_cospar_data_from_text_file( planet_no, system_no,
-              dummy_tdt, NULL, NULL, &omega, &is_retrograde);
+              dummy_tdt, NULL, NULL, &omega, NULL, &is_retrograde);
 
    if( rval)
       omega = 0.;
    return( omega);
+}
+
+int DLL_FUNC planet_radii( const int planet_no, double *radii_in_km)
+{
+   const double dummy_tdt = 2451545.;     /* not really used */
+   bool is_retrograde;
+   const int rval = get_cospar_data_from_text_file( planet_no, 0,
+              dummy_tdt, NULL, NULL, NULL, radii_in_km, &is_retrograde);
+
+   return( rval);
 }
 
 /* The returned matrix contains three J2000 equatorial unit vectors :
@@ -348,7 +372,7 @@ int DLL_FUNC calc_planet_orientation( const int planet_no, const int system_no,
       }
 
    rval = get_cospar_data_from_text_file( planet_no, system_no,
-              tdt, &pole_ra, &pole_dec, &omega, &is_retrograde);
+              tdt, &pole_ra, &pole_dec, &omega, NULL, &is_retrograde);
    pole_ra *= PI / 180.;
    pole_dec *= PI / 180.;
    polar3_to_cartesian( matrix, pole_ra - PI / 2., 0.);
@@ -378,7 +402,7 @@ void main( int argc, char **argv)
         i < (planet_number == -1 ? 100 : planet_number + 1); i++)
       {
       int err = get_cospar_data_from_text_file( i, system_number, jde,
-                      &pole_ra, &pole_dec, &omega);
+                      &pole_ra, &pole_dec, NULL, &omega);
 
       printf( "Planet %d\n", i);
       if( !err)

@@ -57,7 +57,12 @@ int main( const int argc, const char **argv)
          else if( !rval)
             if( memcmp( matrix, prev_matrix, 9 * sizeof( double)))
                {
+               double radii[3];
+
                printf( "Planet %d, system %d\n", i, system_number);
+               planet_radii( i, radii);
+               printf( "  Radii %.2f %.2f %.2f km\n",
+                             radii[0], radii[1], radii[2]);
                for( j = 0; j < 9; j += 3)
                   printf( "%11.8f %11.8f %11.8f\n",
                              matrix[j], matrix[j + 1], matrix[j + 2]);
