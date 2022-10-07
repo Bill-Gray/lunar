@@ -192,6 +192,7 @@ size_t strlcpy_err( char *dst, const char *src, const size_t dsize)
       {
       fprintf( stderr, "strlcpy overflow: dsize = %ld, rval %ld, '%s'\n",
                      (long)dsize, (long)rval, src);
+      assert( rval >= dsize);
       exit( -1);
       }
    return( rval);
@@ -205,7 +206,7 @@ size_t strlcat_err( char *dst, const char *src, const size_t dsize)
       {
       fprintf( stderr, "strlcat overflow: dsize = %ld, rval %ld, '%s'\n",
                      (long)dsize, (long)rval, src);
-      assert( 0);
+      assert( rval >= dsize);
       exit( -1);
       }
    return( rval);
