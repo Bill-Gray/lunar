@@ -213,31 +213,37 @@ Planet: S
 # S7=29.80-52.1T
 
 Obj: 6018 # XVIII Pan
+   r=17.2,15.4,10.4
    a0=40.6   -0.036T
    d0=83.5   -0.004T
    W=48.8   +626.0440000d
 
 Obj: 6015 # XV Atlas
+   r=20.5,17.8,9.4
    a0=40.58   -0.036T
    d0=83.53   -0.004T
    W=137.88   +598.3060000d
 
 Obj: 6016 # XVI Prometheus
+   r=68.2,41.6,28.2
    a0=40.58   -0.036T
    d0=83.53   -0.004T
    W=296.14   +587.289000d
 
 Obj: 6017 # XVII Pandora
+   r=52.2,40.8,31.5
    a0=40.58 -0.036T
    d0=83.53 -0.004T
    W=162.92 +572.7891000d
 
 Obj: 6010 # X Janus
+   r=101.7,93.0,76.3
    a0=40.58 -0.036T   -1.623 sin S2   +0.023 sin 2S2
    d0=83.52 -0.004T   -0.183 cos S2   +0.001 cos 2S2
    W=58.83  +518.2359876d   +1.613 sin S2   -0.023 sin 2S2      # (j)
 
 Obj: 6011 # XI Epimetheus
+   r=64.9,57.3,53.0
    a0=40.58 -0.036T   -3.153 sin S1   +0.086 sin 2S1
    d0=83.52 -0.004T   -0.356 cos S1   +0.005 cos 2S1
    W=293.87 +518.4907239d   +3.133 sin S1   -0.086 sin 2S1      # (j)
@@ -261,11 +267,13 @@ Obj: 6003 # III Tethys
    W=10.45   +190.6979085d   -9.60 sin S4  +2.23 sin S5    # (f)
 
 Obj: 6013 # XIII Telesto
+   r=16.3,11.8,9.8
    a0=50.51   -0.036T
    d0=84.06   -0.004T
    W=56.88   +190.6979332d       # (j)
 
 Obj: 6014 # XIV Calypso
+   r=15.3,9.3,6.3
    a0=36.41   -0.036T
    d0=85.04   -0.004T
    W=153.51   +190.69792373d     # (j)
@@ -277,6 +285,7 @@ Obj: 6004 # IV Dione
    W=357.00  +131.5349316d      # (g)
 
 Obj: 6012 # XII Helene
+   r=22.5,19.6,13.3
    a0=40.85  -0.036T
    d0=83.34  -0.004T
    W=245.12  +131.6174056d
@@ -328,76 +337,91 @@ Planet: U
   U16=259.14-504.81T
 
 Obj: 7006   # VI Cordelia
+   r=13
    a0=257.31  -0.15 sin U1
    d0=-15.18  +0.14 cos U1
    W=127.69   -1074.5205730d   -0.04 sin U1
 
 Obj: 7007 # VII Ophelia
+   r=15
    a0=257.31  -0.09 sin U2
    d0=-15.18  +0.09 cos U2
    W=130.35   -956.4068150d   -0.03 sin U2
 
 Obj: 7008  # VIII Bianca
+   r=21
    a0=257.31  -0.16 sin U3
    d0=-15.18  +0.16 cos U3
    W=105.46   -828.3914760d   -0.04 sin U3
 
 Obj: 7009 # IX Cressida
+   r=31
    a0=257.31  -0.04 sin U4
    d0=-15.18  +0.04 cos U4
    W=59.16   -776.5816320d   -0.01 sin U4
 
 Obj: 7010 # X Desdemona
+   r=27
    a0=257.31  -0.17 sin U5
    d0=-15.18  +0.16 cos U5
    W=95.08   -760.0531690d   -0.04 sin U5
 
 Obj: 7011 # XI Juliet
+   r=42
    a0=257.31  -0.06 sin U6
    d0=-15.18  +0.06 cos U6
    W=302.56   -730.1253660d   -0.02 sin U6
 
 Obj: 7012 # XII Portia
+   r=54
    a0=257.31  -0.09 sin U7
    d0=-15.18  +0.09 cos U7
    W=25.03   -701.4865870d   -0.02 sin U7
 
 Obj: 7013 # XIII Rosalind
+   r=27
    a0=257.31  -0.29 sin U8
    d0=-15.18  +0.28 cos U8
    W=314.90   -644.6311260d   -0.08 sin U8
 
 Obj: 7014 # XIV Belinda
+   r=33
    a0=257.31  -0.03 sin U9
    d0=-15.18  +0.03 cos U9
    W=297.46   -577.3628170d   -0.01 sin U9
 
 Obj: 7015 # XV Puck
+   r=77
    a0=257.31  -0.33 sin U10
    d0=-15.18  +0.31 cos U10
    W=91.24   -472.5450690d   -0.09 sin U10
 
 Obj: 7001 # I Ariel
+   r=581.1,577.9,577.7
    a0=257.43  +0.29 sin U13
    d0=-15.10  +0.28 cos U13
    W=156.22   -142.8356681d   +0.05 sin U12   +0.08 sin U13
 
 Obj: 7002 # II Umbriel
+   r=584.7
    a0=257.43  +0.21 sin U14
    d0=-15.10  +0.20 cos U14
    W=108.05   -86.8688923d   -0.09 sin U12   +0.06 sin U14
 
 Obj: 7003 # III Titania
+   r=788.9
    a0=257.43  +0.29 sin U15
    d0=-15.10  +0.28 cos U15
    W=77.74   -41.3514316d   +0.08 sin U15
 
 Obj: 7004 # IV Oberon
+   r=761.4
    a0=257.43 +0.16 sin U16
    d0=-15.10 +0.16 cos U16
    W=6.77 -26.7394932d +0.04 sin U16
 
 Obj: 7005 # V Miranda
+   r=240.4,234.2,232.9
    a0=257.43 +4.41 sin U11 -0.04 sin 2U11
    d0=-15.08 +4.25 cos U11 -0.02 cos 2U11
    W=30.70 -254.6906892d -1.27 sin U12 +0.15 sin 2U12 +1.15 sin U11 -0.09 sin 2U11
@@ -413,41 +437,49 @@ Planet: N
   N7=177.85+52.316T
 
 Obj: 8 # Neptune
+   r=24764,24341
    a0= 299.36+0.70 sin N0
    d0= 43.46-0.51 cos N0
    W= 249.978 + 541.1397757d -0.48 sin N0   # (d) (2018 Jul 17)
 
 Obj: 8003 # III Naiad
+   r=29
    a0=299.36 +0.70 sin N0 -6.49 sin N1 +0.25 sin 2N1
    d0=43.36 -0.51 cos N0 -4.75 cos 2N1 +0.09 cos 2N1
    W=254.06 +1222.8441209d -0.48 sin N0 +4.40 sin N1 -0.27 sin 2N1
 
 Obj: 8004 # IV Thalassa
+   r=40
    a0=299.36 +0.70 sin N0 -0.28 sin N2
    d0=43.45 -0.51 cos N0 -0.21 cos N2
    W=102.06 +1155.7555612d -0.48 sin N0 +0.19 sin N2
 
 Obj: 8005 # V Despina
+   r=74
    a0=299.36 +0.70 sin N0 -0.09 sin N3
    d0=43.45 -0.51 cos N0 -0.07 cos N3
    W=306.51 +1075.7341562d -0.49 sin N0 +0.06 sin N3
 
 Obj: 8006 # VI Galatea
+   r=79
    a0=299.36 +0.70 sin N0 -0.07 sin N4
    d0=43.43 -0.51 cos N0 -0.05 cos N4
    W=258.09 +839.6597686d -0.48 sin N0 +0.05 sin N4
 
 Obj: 8007 # VII Larissa
+   r=96
    a0=299.36 +0.70 sin N0 -0.27 sin N5
    d0=43.41 -0.51 cos N0 -0.20 cos N5
    W=179.41 +649.0534470d -0.48 sin N0 +0.19 sin N5
 
 Obj: 8008 # VIII Proteus
+   r=208
    a0=299.27 +0.70 sin N0 -0.05 sin N6
    d0=42.91 -0.51 cos N0 -0.04 cos N6
    W=93.38 +320.7654228d -0.48 sin N0 +0.04 sin N6
 
 Obj: 8001 # I Triton
+   r=1352.6
    a0=299.36 -32.35 sin N7 -6.28 sin 2N7 -2.08 sin 3N7 -0.74 sin 4N7 -0.28 sin 5N7 -0.11 sin 6N7 -0.07 sin 7N7 -0.02 sin 8N7 -0.01 sin 9N7
    d0=41.17 +22.55 cos N7 +2.10 cos 2N7 +0.55 cos 3N7 +0.16 cos 4N7 +0.05 cos 5N7 +0.02 cos 6N7 +0.01 cos 7N7
    W=296.53 -61.2572637d +22.25 sin N7 +6.73 sin 2N7 +2.05 sin 3N7 +0.74 sin 4N7 +0.28 sin 5N7 +0.11 sin 6N7 +0.05 sin 7N7 +0.02 sin 8N7 +0.01 sin 9N7
@@ -461,32 +493,37 @@ Obj: 9001 # Charon/Pluto I
    W=122.695 +56.3625225d
 
 Obj: 9002 # Nix/Pluto II = S/2005 P 2      (n)
+   r=48.7,33.2,31.1
    a0= 132.993
    d0= -6.163
    W=272.24 +14.483934d
 
 Obj: 9003 # Hydra/Pluto III = S/2005 P 1   (n)
+   r=50.9,36.1,30.9
    a0= 132.993
    d0= -6.163
    W=57.19 +9.422837d
 
 Obj: 9004 # Kerberos/Pluto IV = S/2011 (134340) 1 (n)
+   r=19,10,9
    a0= 132.993
    d0= -6.163
    W=90.19 +11.1913026d
 
 Obj: 9005 # Styx/Pluto V = S/2012 (134340) 1      (n)
+   r=16,9,8
    a0= 132.993
    d0= -6.163
    W=11.7 +17.8551357d
 
 Obj: -1      # Ceres  (r), (t)
-   r=487.3,446
+   r=487.3,487.3,446
    a0=291.42763
    d0=66.76033
    W=170.309 +952.1532635d
 
 Obj: -2     # Pallas
+   r=568,532,448
    a0= 33
    d0= -3
    W= 38 + 1105.8036d
@@ -504,36 +541,43 @@ Obj: -21     # Lutetia
    W=94 + 1057.7515d
 
 Obj: -52      # Europa
+   r=379,330,249
    a0=257
    d0=12   # no uncertainties given
    W=55 + 1534.6472187d
 
 Obj: -243     # Ida
+   r=26.8,12.0,7.6
    a0=168.76
    d0=-87.12
    W=274.05 + 1864.6280070d  (2018 Jul 17)
 
 Obj: -433    # Eros
+   r=17.0,5.5,5.5
    a0=11.35    # +/- 0.02
    d0=17.22    # +/- 0.02
    W=326.07+1639.38864745d
 
 Obj: -511    # Davida
+   r=180,147,127
    a0=297
    d0=5
    W=268.1 +1684.4193549d
 
 Obj: -951    # (951) Gaspra
+   r=9.1,5.2,4.4
    a0 = 9.47
    d0 = 26.70
    W = 83.67 + 1226.9114850d
 
 Obj: -2867   # (2867) Šteins
+   r=3.24,2.73,2.04
    a0 = 90
    d0 =-62
    W = 93.94 + 1428.852332d
 
 Obj: -25143  # (25143) Itokawa
+   r=0.268,0.147,0.104
    a0 = 90.53
    d0 =-66.30
    W = 0+ 712.143d      # No central meridian defined yet
@@ -743,3 +787,4 @@ accurate).  I do still use the latter in situations where the accurate
 alternative (orientations from DE-4xx) would be overkill.
 
    (2022 Feb 02) Added some planetary radii,  for future use.
+   (2022 Oct 06) Added still more planetary radii.
