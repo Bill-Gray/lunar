@@ -26,6 +26,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 #include "date.h"
 #include "afuncs.h"
 #include "showelem.h"
+#include "stringex.h"
 
 /* 23 Sep 2006:  revised to show 'M1' and 'K1' for comets instead of
 the (very wrong) 'H' and 'G',  and made sure those parameters were shown
@@ -90,28 +91,29 @@ static double normal_vect( double *norm, const double *ival)
    return( rval);
 }
 
-static int show_formatted_dist( char *obuff, const double dist_in_au,
-                     const int precision)
+static int show_formatted_dist( char *obuff, const size_t obuff_size,
+           const double dist_in_au, const int precision)
+
 {
    int in_km = 0, i, n_digits = 0;
 
    if( dist_in_au < 0.)
       {
       *obuff++ = '-';
-      return( show_formatted_dist( obuff, -dist_in_au, precision));
+      return( show_formatted_dist( obuff, obuff_size, -dist_in_au, precision));
       }
    if( dist_in_au > 999999.)
       {
-      strcpy( obuff, " <HUGE>");
+      strlcpy_err( obuff, " <HUGE>", obuff_size);
       return( 0);
       }
    else if( dist_in_au > 9999.)
-      sprintf( obuff, "%23.15f", dist_in_au);
+      snprintf_err( obuff, obuff_size, "%23.15f", dist_in_au);
    else if( dist_in_au > 999999. / AU_IN_KM)      /* within a million km */
-      sprintf( obuff, "%23.18f", dist_in_au);
+      snprintf_err( obuff, obuff_size, "%23.18f", dist_in_au);
    else
       {
-      sprintf( obuff, "%23.16f", dist_in_au * AU_IN_KM);
+      snprintf_err( obuff, obuff_size, "%23.16f", dist_in_au * AU_IN_KM);
       in_km = 1;
       }
    for( i = 0; obuff[i] == ' '; i++)
@@ -123,16 +125,16 @@ static int show_formatted_dist( char *obuff, const double dist_in_au,
    else
       obuff[i - 1] = '\0';
    if( in_km)
-      strcat( obuff, "km");
+      strlcat_err( obuff, "km", obuff_size);
    return( 0);
 }
 
-static void add_pq_data( char *obuff, const double p, const double q,
-                           const int precision)
+static void add_pq_data( char *obuff, const size_t obuff_size,
+          const double p, const double q, const int precision)
 {
    const int n_digits_to_show = (precision > 13 ? precision : 13);
 
-   sprintf( obuff + strlen( obuff), "%+*.*f%+*.*f",
+   snprintf_append( obuff, obuff_size, "%+*.*f%+*.*f",
             n_digits_to_show + 3, n_digits_to_show, p,
             n_digits_to_show + 3, n_digits_to_show, q);
    lop_digits( obuff + 11, precision);
@@ -159,9 +161,10 @@ int DLL_FUNC elements_in_mpc_format( char *obuff, const ELEMENTS *elem,
    const int precision = (format & SHOWELEM_PRECISION_MASK);
    const int n_digits_to_show = (precision > 10 ? precision : 10);
    int n_lines = 0;
-   char *tptr;
+   const size_t obuff_size = 500;
+   char *tptr, *endptr = obuff + obuff_size;
 
-   FSTRCPY( obuff, obj_id);
+   strlcpy_err( obuff, obj_id, endptr - obuff);
    obuff += strlen( obuff) + 1;
    n_lines++;
    if( elem->perih_time > 2. && elem->perih_time < 3000000.)
@@ -175,7 +178,8 @@ int DLL_FUNC elements_in_mpc_format( char *obuff, const ELEMENTS *elem,
 
       dday = decimal_day_to_dmy( elem->perih_time, &year, &month,
                                              CALENDAR_JULIAN_GREGORIAN);
-      sprintf( obuff, "   Peri%s %ld %s %.*f TT", pericenter_name, year,
+      snprintf_err( obuff, endptr - obuff, "   Peri%s %ld %s %.*f TT",
+              pericenter_name, year,
               set_month_name( month, NULL), precision, dday);
       if( format & SHOWELEM_PERIH_TIME_MASK)
          {
@@ -185,7 +189,7 @@ int DLL_FUNC elements_in_mpc_format( char *obuff, const ELEMENTS *elem,
          if( precision > 5)
             format |= FULL_CTIME_N_PLACES( precision - 5);
          full_ctime( hhmmss, elem->perih_time, format);
-         sprintf( obuff + strlen( obuff), " = %s (JD %.*f)",
+         snprintf_append( obuff, endptr - obuff,  " = %s (JD %.*f)",
                                hhmmss, precision, elem->perih_time);
          }
       obuff += strlen( obuff) + 1;
@@ -194,7 +198,7 @@ int DLL_FUNC elements_in_mpc_format( char *obuff, const ELEMENTS *elem,
 
    dday = decimal_day_to_dmy( elem->epoch, &year, &month,
                                              CALENDAR_JULIAN_GREGORIAN);
-   sprintf( obuff, "Epoch %4ld %s %9.6f TT = JDT %.6f", year,
+   snprintf_err( obuff, endptr - obuff, "Epoch %4ld %s %9.6f TT = JDT %.6f", year,
               set_month_name( month, NULL), dday + 1.e-7, elem->epoch + 1.e-7);
                      /* lop off trailing zeroes after JD...: */
    for( i = 0; i < 5 && obuff[strlen( obuff) - (size_t)i - 1] == '0'; i++)
@@ -209,7 +213,7 @@ int DLL_FUNC elements_in_mpc_format( char *obuff, const ELEMENTS *elem,
    if( is_cometary || elem->ecc >= 1.)
       {
       *obuff = 'q';
-      show_formatted_dist( obuff + 1, perihelion_dist, precision);
+      show_formatted_dist( obuff + 1, (endptr - obuff) - 1, perihelion_dist, precision);
       for( i = (int)strlen( obuff); i < n_digits_to_show + 9; i++)
          obuff[i] = ' ';
       obuff[n_digits_to_show + 9] = '\0';
@@ -218,11 +222,11 @@ int DLL_FUNC elements_in_mpc_format( char *obuff, const ELEMENTS *elem,
       {
       const double mean_anomaly = zero_to_two_pi( elem->mean_anomaly);
 
-      sprintf( obuff, "M%20.15f", mean_anomaly * 180. / PI);
+      snprintf_err( obuff, endptr - obuff, "M%20.15f", mean_anomaly * 180. / PI);
       lop_digits( obuff + 9, precision);
       }
    if( !(format & SHOWELEM_OMIT_PQ_MASK))
-      strcat( obuff, " (2000.0)            P               Q");
+      strlcat_err( obuff, " (2000.0)            P               Q", endptr - obuff);
    obuff += strlen( obuff) + 1;
    n_lines++;
 
@@ -232,7 +236,7 @@ int DLL_FUNC elements_in_mpc_format( char *obuff, const ELEMENTS *elem,
       {
       if( elem->abs_mag != 0.)
          {
-         sprintf( obuff,
+         snprintf_err( obuff, endptr - obuff,
              (elem->is_asteroid ? "H%7.1f  G%5.2f   " :
                                   "M(T)%5.1f  K%5.1f  " ),
                                    elem->abs_mag,
@@ -242,65 +246,66 @@ int DLL_FUNC elements_in_mpc_format( char *obuff, const ELEMENTS *elem,
                obuff[2] = 'N';
          }
       else
-         strcpy( obuff, nineteen_blank_spaces);
+         strlcpy( obuff, nineteen_blank_spaces, endptr - obuff);
       for( i = 19; i < n_digits_to_show + 9; i++)
          obuff[i] = ' ';
       obuff[i] = '\0';
       }
    else
       {
-      sprintf( obuff, "n%*.*f", n_digits_to_show + 8, n_digits_to_show + 3,
-                              (180 / PI) / elem->t0);
+      snprintf_err( obuff, endptr - obuff, "n%*.*f",
+                              n_digits_to_show + 8, n_digits_to_show + 3,
+                             (180 / PI) / elem->t0);
       lop_digits( obuff + 9, precision);
       }
    obuff += strlen( obuff);
 
-   sprintf( obuff, "Peri.%*.*f",
+   snprintf_err( obuff, endptr - obuff, "Peri.%*.*f",
                n_digits_to_show + 6, n_digits_to_show, arg_per * 180. / PI);
    if( format & SHOWELEM_OMIT_PQ_MASK)
       obuff[11 + precision] = '\0';
    else
-      add_pq_data( obuff, p_vect[0], q_vect[0], precision);
+      add_pq_data( obuff, endptr - obuff, p_vect[0], q_vect[0], precision);
    obuff += strlen( obuff) + 1;
    n_lines++;
 
    if( is_cometary || elem->ecc >= 1.)
-      strcpy( obuff, nineteen_blank_spaces);
+      strlcpy_err( obuff, nineteen_blank_spaces, endptr - obuff);
    else
       {
       *obuff = 'a';
-      show_formatted_dist( obuff + 1, elem->major_axis, precision);
+      show_formatted_dist( obuff + 1, (endptr - obuff) - 1, elem->major_axis, precision);
       }
    for( i = (int)strlen( obuff); i < n_digits_to_show + 9; i++)
       obuff[i] = ' ';
    obuff[i] = '\0';
    obuff += strlen( obuff);
 
-   sprintf( obuff, "Node %*.*f", n_digits_to_show + 6, n_digits_to_show,
-               asc_node * 180. / PI);
+   snprintf_err( obuff, endptr - obuff, "Node %*.*f", n_digits_to_show + 6,
+               n_digits_to_show, asc_node * 180. / PI);
    if( format & SHOWELEM_OMIT_PQ_MASK)
       obuff[11 + precision] = '\0';
    else
-      add_pq_data( obuff, p_vect[1], q_vect[1], precision);
+      add_pq_data( obuff, endptr - obuff, p_vect[1], q_vect[1], precision);
    obuff += strlen( obuff) + 1;
    n_lines++;
 
    if( is_cometary)
-      sprintf( obuff, "e   1.0            ");
+      snprintf_err( obuff, endptr - obuff, "e   1.0            ");
    else
       {
-      sprintf( obuff, "e%*.*f", n_digits_to_show + 8,
+      snprintf_err( obuff, endptr - obuff, "e%*.*f", n_digits_to_show + 8,
                        n_digits_to_show + 3, elem->ecc);
       lop_digits( obuff + 8, precision);
       }
    obuff += strlen( obuff);
 
-   sprintf( obuff, "Incl.%*.*f", n_digits_to_show + 6, n_digits_to_show,
-                 elem->incl * 180. / PI);
+   snprintf_err( obuff, endptr - obuff, "Incl.%*.*f", n_digits_to_show + 6,
+               n_digits_to_show, elem->incl * 180. / PI);
    if( format & SHOWELEM_OMIT_PQ_MASK)
       obuff[11 + precision] = '\0';
    else
-      add_pq_data( obuff, p_vect[2], q_vect[2], precision);
+      add_pq_data( obuff, endptr - obuff, p_vect[2], q_vect[2], precision);
    obuff += strlen( obuff) + 1;
    n_lines++;
 
@@ -318,48 +323,48 @@ int DLL_FUNC elements_in_mpc_format( char *obuff, const ELEMENTS *elem,
       if( elem->central_obj <= 0 || t0 > 1.)         /* helio or barycentric */
          {
          if( t0 > 1e+8 - 1.)        /* too big to fit in buffer */
-            obuff += sprintf( obuff, "P!!!!!!!");
+            snprintf_err( obuff, endptr - obuff, "P!!!!!!!");
          else if( t0 > 9999.)
-            obuff += sprintf( obuff, "P%7ld", (long)t0);
+            snprintf_err( obuff, endptr - obuff, "P%7ld", (long)t0);
          else
-            obuff += sprintf( obuff, "P%7.2f", t0);
+            snprintf_err( obuff, endptr - obuff, "P%7.2f", t0);
          if( t0_in_days < 999.9)
-            obuff += sprintf( obuff, "/%6.2fd ", t0_in_days);
+            snprintf_append( obuff, endptr - obuff, "/%6.2fd ", t0_in_days);
          else
-            obuff += sprintf( obuff, "         ");
+            snprintf_append( obuff, endptr - obuff, "         ");
          }
       else
          {
          if( t0_in_days * minutes_per_day < 9999.)  /* about 6.944 days */
-            obuff += sprintf( obuff, "P%7.2fm/%5.3fd ",
+            snprintf_err( obuff, endptr - obuff, "P%7.2fm/%5.3fd ",
                               t0_in_days * minutes_per_day,
                               t0_in_days);
          else
-            obuff += sprintf( obuff, "P%7.2fd        ", t0_in_days);
+            snprintf_err( obuff, endptr - obuff, "P%7.2fd        ", t0_in_days);
          }
       if( elem->abs_mag != 0.)
          {
-         sprintf( obuff, (elem->is_asteroid ? "  H%7.1f     G %6.2f" :
+         obuff += strlen( obuff);
+         snprintf_err( obuff, endptr - obuff, (elem->is_asteroid ? "  H%7.1f     G %6.2f" :
                                               "  M(T)%5.1f    K %5.1f"),
                                               elem->abs_mag,
                                               elem->slope_param);
          if( !elem->is_asteroid)
             if( format & SHOWELEM_COMET_MAGS_NUCLEAR)
                obuff[4] = 'N';
-         obuff += strlen( obuff);
          }
 
-      strcat( obuff, "   q ");
-      show_formatted_dist( tbuff, perihelion_dist, precision);
+      strlcat_err( obuff, "   q ", endptr - obuff);
+      show_formatted_dist( tbuff, sizeof( tbuff), perihelion_dist, precision);
       for( i = 0; tbuff[i] == ' '; i++)   /* skip leading spaces */
          ;
-      strcat( obuff, tbuff + i);
+      strlcat_err( obuff, tbuff + i, endptr - obuff);
 
-      strcat( obuff, "  Q ");
-      show_formatted_dist( tbuff, apoapsis_dist, precision);
+      strlcat_err( obuff, "  Q ", endptr - obuff);
+      show_formatted_dist( tbuff, sizeof( tbuff), apoapsis_dist, precision);
       for( i = 0; tbuff[i] == ' '; i++)   /* skip leading spaces */
          ;
-      strcat( obuff, tbuff + i);
+      strlcat_err( obuff, tbuff + i, endptr - obuff);
       n_lines++;
       }
    return( n_lines);
