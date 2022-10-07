@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include "watdefs.h"
 #include "mpc_func.h"
+#include "stringex.h"
 
 /* "Mutant hex" is frequently used by MPC.  It uses the usual hex digits
    0123456789ABCDEF for numbers 0 to 15,  followed by G...Z for 16...35
@@ -76,7 +77,8 @@ int encode_value_in_mutant_hex( char *buff, size_t n_digits, int value)
 '2004 JX42'. Returns 0 if it's a packed desig,  non-zero otherwise. Call
 with obuff == NULL just to find out if ibuff is actually a packed desig. */
 
-static int unpack_provisional_packed_desig( char *obuff, const char *ibuff)
+static int unpack_provisional_packed_desig( char *obuff, const size_t obuff_size,
+                                        const char *ibuff)
 {
    int rval = 0;
 
@@ -91,21 +93,24 @@ static int unpack_provisional_packed_desig( char *obuff, const char *ibuff)
 
       if( obuff)
          {
-         *obuff++ = ((*ibuff >= 'K') ? '2' : '1');          /* millennium */
-         *obuff++ = (char)( '0' + ((*ibuff - 'A') % 10));   /* century   */
-         *obuff++ = ibuff[1];                               /* decade   */
-         *obuff++ = ibuff[2];                               /* year    */
-         *obuff++ = ' ';
-         *obuff++ = ibuff[3];       /* half-month designator */
+         obuff[0] = ((*ibuff >= 'K') ? '2' : '1');          /* millennium */
+         obuff[1] = (char)( '0' + ((*ibuff - 'A') % 10));   /* century   */
+         obuff[2] = ibuff[1];                               /* decade   */
+         obuff[3] = ibuff[2];                               /* year    */
+         obuff[4] = ' ';
+         obuff[5] = ibuff[3];       /* half-month designator */
          if( isupper( ibuff[6]))    /* asteroid second letter */
-            *obuff++ = ibuff[6];
-         output_no = output_no * 10 + ibuff[5] - '0';
-         if( !output_no)
-            *obuff = '\0';
+            {
+            obuff[6] = ibuff[6];
+            obuff[7] = '\0';
+            }
          else
-            sprintf( obuff, "%d", output_no);
+            obuff[6] = '\0';
+         output_no = output_no * 10 + ibuff[5] - '0';
+         if( output_no)
+            snprintf_append( obuff, obuff_size, "%d", output_no);
          if( islower( ibuff[6]))    /* comet fragment letter */
-            sprintf( obuff + strlen( obuff), "-%c", ibuff[6] + 'A' - 'a');
+            snprintf_append( obuff, obuff_size, "-%c", ibuff[6] + 'A' - 'a');
          }
       }
    else
@@ -147,11 +152,12 @@ int unpack_mpc_desig( char *obuff, const char *packed)
    size_t i;
    int mask = 1, digit_mask = 0, space_mask = 0, digit;
    char provisional_desig[40];
+   const size_t obuff_size = 16;
 
    if( *packed == '$')         /* Find_Orb extension to allow storing of */
       {                        /* an unpacked name,  up to 11 chars */
       if( obuff)
-         strcpy( obuff, packed + 1);
+         strlcpy_err( obuff, packed + 1, obuff_size);
       return( OBJ_DESIG_ASTEROID_NUMBERED);     /* fix later... will be a project! */
       }
    for( i = 0; i < 12; i++, mask <<= 1)
@@ -178,15 +184,15 @@ int unpack_mpc_desig( char *obuff, const char *packed)
             for( i = 0; i < 8; i++)
                if( planet_names_in_english[i][0] == *packed)
                   {
-                  strcpy( obuff, planet_names_in_english[i]);
-                  strcat( obuff, " ");
+                  strlcpy( obuff, planet_names_in_english[i], obuff_size);
+                  strlcat( obuff, " ", obuff_size);
                   }
             if( obj_number / 100)
-               strcat( obuff, roman_hundreds[obj_number / 100]);
+               strlcat_err( obuff, roman_hundreds[obj_number / 100], obuff_size);
             if( (obj_number / 10) % 10)
-               strcat( obuff, roman_tens[(obj_number / 10) % 10]);
+               strlcat_err( obuff, roman_tens[(obj_number / 10) % 10], obuff_size);
             if( obj_number % 10)
-               strcat( obuff, roman_digits[obj_number % 10]);
+               strlcat_err( obuff, roman_digits[obj_number % 10], obuff_size);
             }
          rval = OBJ_DESIG_NATSAT_NUMBERED;
          }
@@ -213,7 +219,8 @@ int unpack_mpc_desig( char *obuff, const char *packed)
          rval = OBJ_DESIG_NATSAT_PROVISIONAL;
          }
       }
-   unpack_provisional_packed_desig( provisional_desig, packed + 5);
+   unpack_provisional_packed_desig( provisional_desig, sizeof( provisional_desig),
+                                 packed + 5);
 
             /* Check for numbered asteroids (620000) or greater.  See MPEC
             2019-O55 for explanation of this 'extended numbering scheme'. */
@@ -259,27 +266,28 @@ int unpack_mpc_desig( char *obuff, const char *packed)
          {
          if( obuff)
             {
+            int j = 2;
             const char suffix_char = packed[11];
 
-            *obuff++ = packed[4];
-            *obuff++ = '/';
+            obuff[0] = packed[4];
+            obuff[1] = '/';
             i = 0;
             while( packed[i] == '0')         /* skip leading zeroes */
                i++;
             while( packed[i] >= '0' && packed[i] <= '9')   /* read digits... */
-               *obuff++ = packed[i++];
+               obuff[j++] = packed[i++];
             if( suffix_char >= 'a' && suffix_char <= 'z')
                {
                const char extra_suffix_char = packed[10];
 
-               *obuff++ = '-';
+               obuff[j++] = '-';
                   /* possibly _two_ suffix letters... so far,  only the  */
                   /* components of 73P/Schwassmann-Wachmann 3 have this: */
                if( extra_suffix_char >= 'a' && extra_suffix_char <= 'z')
-                  *obuff++ = extra_suffix_char + 'A' - 'a';
-               *obuff++ = suffix_char + 'A' - 'a';
+                  obuff[j++] = extra_suffix_char + 'A' - 'a';
+               obuff[j++] = suffix_char + 'A' - 'a';
                }
-            *obuff = '\0';
+            obuff[j] = '\0';
             }
          rval = OBJ_DESIG_COMET_NUMBERED;
          }
@@ -293,7 +301,7 @@ int unpack_mpc_desig( char *obuff, const char *packed)
          *obuff++ = packed[4];
          *obuff++ = '/';
          }
-      if( !unpack_provisional_packed_desig( obuff, packed + 5))
+      if( !unpack_provisional_packed_desig( obuff, obuff_size, packed + 5))
          rval = ((packed[4] == ' ' || packed[4] == 'A') ?
                                       OBJ_DESIG_ASTEROID_PROVISIONAL
                                     : OBJ_DESIG_COMET_PROVISIONAL);
