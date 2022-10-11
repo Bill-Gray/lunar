@@ -25,17 +25,12 @@ parsing in my software.
 #include <string.h>
 #include <assert.h>
 #include <stdlib.h>
+#include "stringex.h"
 #include <stdio.h>
 #include <ctype.h>
 #include "watdefs.h"
 #include "date.h"
 #include "mpc_func.h"
-
-#if defined(_MSC_VER) && _MSC_VER < 1900
-                      /* For older MSVCs,  we have to supply our own  */
-                      /* snprintf().  See snprintf.cpp for details.  */
-int snprintf( char *string, const size_t max_len, const char *format, ...);
-#endif
 
 #define NOT_A_VALID_TIME -3.141e+17
 #define MAX_DEPTH 20
@@ -61,6 +56,7 @@ void *init_ades2mpc( void)
 {
    ades2mpc_t *rval = (ades2mpc_t *)calloc( 1, sizeof( ades2mpc_t));
 
+   rval->full_t2k = NOT_A_VALID_TIME;
    return( rval);
 }
 
@@ -365,7 +361,7 @@ static inline int place_value( char *optr, const char *iptr, const size_t ilen,
       {
       char tbuff[13];
 
-      snprintf( tbuff, sizeof( tbuff), (leading_places == 2 ? "%11.8f " : "%12.8f"),
+      snprintf_err( tbuff, sizeof( tbuff), (leading_places == 2 ? "%11.8f " : "%12.8f"),
                         atof( iptr));
       memcpy( optr, tbuff, 12);
       return (1);
@@ -386,68 +382,68 @@ static const char *skip_whitespace( const char *tptr)
    return( tptr);
 }
 
-static int get_a_line( char *obuff, ades2mpc_t *cptr)
+static int get_a_line( char *obuff, const size_t obuff_size, ades2mpc_t *cptr)
 {
    if (cptr->rms_ra[0])
       {
-      sprintf( obuff, "COM Sigmas %s", cptr->rms_ra);
+      snprintf_err( obuff, obuff_size, "COM Sigmas %s", cptr->rms_ra);
       if( strcmp( cptr->rms_ra, cptr->rms_dec))
          {
-         sprintf( obuff + strlen( obuff), "x%s", cptr->rms_dec);
+         snprintf_append( obuff, obuff_size, "x%s", cptr->rms_dec);
          if( atof( cptr->corr))
-            sprintf( obuff + strlen( obuff), ",%s", cptr->corr);
+            snprintf_append( obuff, obuff_size, ",%s", cptr->corr);
          }
       if( cptr->rms_mag[0])
          {
-         strcat( obuff, " m:");
-         strcat( obuff, cptr->rms_mag);
+         strlcat_err( obuff, " m:", obuff_size);
+         strlcat_err( obuff, cptr->rms_mag, obuff_size);
          cptr->rms_mag[0] = '\0';
          }
       if( cptr->rms_time[0])
          {
-         strcat( obuff, " t:");
-         strcat( obuff, cptr->rms_time);
+         strlcat_err( obuff, " t:", obuff_size);
+         strlcat_err( obuff, cptr->rms_time, obuff_size);
          cptr->rms_time[0] = '\0';
          }
       cptr->rms_ra[0] = '\0';
-      strcat( obuff, "\n");
+      strlcat_err( obuff, "\n", obuff_size);
       }
    else if( cptr->trk_sub[0] || cptr->obs_id[0] || cptr->trk_id[0])
       {
-      strcpy( obuff, "COM IDs");
+      strlcpy_err( obuff, "COM IDs", obuff_size);
       if( cptr->trk_sub[0])
-         sprintf( obuff + strlen( obuff), " trkSub:%s", cptr->trk_sub);
+         snprintf_append( obuff, obuff_size, " trkSub:%s", cptr->trk_sub);
       if( cptr->obs_id[0])
-         sprintf( obuff + strlen( obuff), " obsID:%s", cptr->obs_id);
+         snprintf_append( obuff, obuff_size, " obsID:%s", cptr->obs_id);
       if( cptr->trk_id[0])
-         sprintf( obuff + strlen( obuff), " trkID:%s", cptr->trk_id);
+         snprintf_append( obuff, obuff_size, " trkID:%s", cptr->trk_id);
       cptr->trk_sub[0] = cptr->obs_id[0] = cptr->trk_id[0] = '\0';
-      strcat( obuff, "\n");
+      strlcat_err( obuff, "\n", obuff_size);
       }
    else if( cptr->full_ra[0] || cptr->full_dec[0] || cptr->full_t2k != NOT_A_VALID_TIME)
       {
-      sprintf( obuff, "COM RA/dec %s %s",
+      snprintf_err( obuff, obuff_size, "COM RA/dec %s %s",
                (cptr->full_ra[0] ? cptr->full_ra : "-"),
                (cptr->full_dec[0] ? cptr->full_dec : "-"));
       if( cptr->full_t2k != NOT_A_VALID_TIME)
-         sprintf( obuff + strlen( obuff), " %.15f", (double)cptr->full_t2k);
-      strcat( obuff, "\n");
+         snprintf_append( obuff, obuff_size, " %.15f", (double)cptr->full_t2k);
+      strlcat_err( obuff, "\n", obuff_size);
       cptr->full_ra[0] = cptr->full_dec[0] = '\0';
       cptr->full_t2k = NOT_A_VALID_TIME;
       }
    else if( cptr->full_dec[0])
       {
-      sprintf( obuff, "COM RA/dec - %s\n", cptr->full_dec);
+      snprintf_err( obuff, obuff_size, "COM RA/dec - %s\n", cptr->full_dec);
       cptr->full_dec[0] = '\0';
       }
    else if( cptr->center[0])
       {
-      sprintf( obuff, "COM Offset center %s", cptr->center);
+      snprintf_err( obuff, obuff_size, "COM Offset center %s", cptr->center);
       cptr->center[0] = '\0';
       }
    else if( cptr->line[0])
       {
-      strcpy( obuff, cptr->line);
+      strlcpy( obuff, cptr->line, obuff_size);
       if( cptr->line2[0])     /* yes,  we've a valid line 2 */
          {
          memcpy( cptr->line2, cptr->line, 12);
@@ -458,7 +454,7 @@ static int get_a_line( char *obuff, ades2mpc_t *cptr)
       }
    else if( cptr->line2[0])
       {
-      strcpy( obuff, cptr->line2);
+      strlcpy_err( obuff, cptr->line2, obuff_size);
       cptr->line2[0] = '\0';
       }
    else                         /* got all the lines we'll get */
@@ -475,6 +471,7 @@ static int process_ades_tag( char *obuff, ades2mpc_t *cptr, const int itag,
 {
    int rval = 0;
    char name[40];
+   const size_t obuff_size = 221;
 
    assert( obuff);
    *obuff = '\0';
@@ -486,7 +483,7 @@ static int process_ades_tag( char *obuff, ades2mpc_t *cptr, const int itag,
    switch( itag)
       {
       case ADES_mpcCode:
-         sprintf( obuff, "COD %s\n", name);
+         snprintf_err( obuff, obuff_size, "COD %s\n", name);
          rval = 1;
          break;
       case ADES_name:
@@ -519,9 +516,9 @@ static int process_ades_tag( char *obuff, ades2mpc_t *cptr, const int itag,
                   break;
                }
          if( format)
-            sprintf( obuff, format, (int)len, tptr);
+            snprintf_err( obuff, obuff_size, format, (int)len, tptr);
          else
-            strcpy( obuff, "COM Mangled name data\n");
+            strlcpy_err( obuff, "COM Mangled name data\n", obuff_size);
          rval = 1;
          }
          break;
@@ -586,19 +583,19 @@ static int process_ades_tag( char *obuff, ades2mpc_t *cptr, const int itag,
             }
          else if( !strcmp( name, "ITRF") || !strcmp( name, "IAU"))
             {
-            strcpy( obuff, "Can't handle <sys> ITRF or IAU yet\n");
+            strlcpy_err( obuff, "Can't handle <sys> ITRF or IAU yet\n", obuff_size);
             assert( 0);
             }
          else
             {
-            strcpy( obuff, "Bad <sys> tag\n");
+            strlcpy_err( obuff, "Bad <sys> tag\n", obuff_size);
             assert( 0);
             }
          cptr->line[14]  = toupper( cptr->line2[14]);
          break;
       case ADES_ctr:
          assert( len < sizeof( cptr->center));
-         strcpy( cptr->center, name);
+         strlcpy_err( cptr->center, name, sizeof( cptr->center));
          break;
       case ADES_pos1:
       case ADES_pos2:
@@ -613,7 +610,7 @@ static int process_ades_tag( char *obuff, ades2mpc_t *cptr, const int itag,
                      /* cvt scientific notation,  if any : */
             if( strchr( name, 'e') || strchr( name, 'E'))
                {
-               snprintf( name, sizeof( name), "%.13f", atof( name));
+               snprintf_err( name, sizeof( name), "%.13f", atof( name));
                nlen = 12;
                }
             if( *name != '+' && *name != '-')   /* no sign provided; */
@@ -630,7 +627,7 @@ static int process_ades_tag( char *obuff, ades2mpc_t *cptr, const int itag,
                dec_loc -= 4;
             else if( cptr->line2[32] != '1')
                {
-               strcpy( obuff, "Bad posn data\n");
+               strlcpy_err( obuff, "Bad posn data\n", obuff_size);
                rval = 1;
                }
             memcpy( &cptr->line2[dec_loc + 1], name + 1,
@@ -694,26 +691,26 @@ static int process_ades_tag( char *obuff, ades2mpc_t *cptr, const int itag,
          break;
       case ADES_rmsRA:
          assert( len < sizeof( cptr->rms_ra));
-         strcpy( cptr->rms_ra, name);
+         strlcpy_err( cptr->rms_ra, name, sizeof( cptr->rms_ra));
          break;
       case ADES_notes:
          cptr->line[13] = name[0];
          break;
       case ADES_rmsDec:
          assert( len < sizeof( cptr->rms_dec));
-         strcpy( cptr->rms_dec, name);
+         strlcpy_err( cptr->rms_dec, name, sizeof( cptr->rms_dec));
          break;
       case ADES_rmsCorr:
          assert( len < sizeof( cptr->corr));
-         strcpy( cptr->corr, name);
+         strlcpy_err( cptr->corr, name, sizeof( cptr->corr));
          break;
       case ADES_rmsTime:
          assert( len < sizeof( cptr->rms_time));
-         strcpy( cptr->rms_time, name);
+         strlcpy_err( cptr->rms_time, name, sizeof( cptr->rms_time));
          break;
       case ADES_rmsMag:
          assert( len < sizeof( cptr->rms_mag));
-         strcpy( cptr->rms_mag, name);
+         strlcpy_err( cptr->rms_mag, name, sizeof( cptr->rms_mag));
          break;
       case ADES_provID:
          if( cptr->id_set == ADES_permID)
@@ -748,7 +745,7 @@ static int process_ades_tag( char *obuff, ades2mpc_t *cptr, const int itag,
          break;
       case ADES_trkSub:
          assert( len < 13);
-         strcpy( cptr->trk_sub, name);
+         strlcpy_err( cptr->trk_sub, name, sizeof( cptr->trk_sub));
          if( !cptr->id_set)
             {
             cptr->id_set = ADES_trkSub;
@@ -761,18 +758,18 @@ static int process_ades_tag( char *obuff, ades2mpc_t *cptr, const int itag,
          break;
       case ADES_trkID:
          assert( len < sizeof( cptr->trk_id));
-         strcpy( cptr->trk_id, name);
+         strlcpy_err( cptr->trk_id, name, sizeof( cptr->trk_id));
          break;
       case ADES_obsID:
          assert( len < sizeof( cptr->obs_id));
-         strcpy( cptr->obs_id, name);
+         strlcpy_err( cptr->obs_id, name, sizeof( cptr->obs_id));
          break;
       case ADES_mag:
          memcpy( cptr->line + 65, tptr, (len < 5) ? len : 5);
          break;
       default:
-         strcpy( obuff, "COM Unhandled ");
-         strcat( obuff, tptr);
+         strlcpy_err( obuff, "COM Unhandled ", obuff_size);
+         strlcat_err( obuff, tptr, obuff_size);
          break;
       }
    return( rval);
@@ -797,9 +794,9 @@ static int process_psv_tag( ades2mpc_t *cptr, char *obuff, const int itag,
 static void setup_observation( ades2mpc_t *cptr)
 {
    memset( cptr->line, ' ', 80);
-   strcpy( cptr->line + 80, "\n");
+   strlcpy_err( cptr->line + 80, "\n", 2);
    memset( cptr->line2, ' ', 80);
-   strcpy( cptr->line2 + 80, "\n");
+   strlcpy_err( cptr->line2 + 80, "\n", 2);
    cptr->line2[0] = '\0';
    cptr->id_set = 0;
    cptr->full_t2k = NOT_A_VALID_TIME;
@@ -836,7 +833,7 @@ static int check_for_tholen_sigmas( ades2mpc_t *cptr, char *obuff, const char *i
          memcpy( cptr->rms_ra, ibuff + 81, 5);
          memcpy( cptr->rms_dec, ibuff + 87, 5);
          cptr->rms_ra[5] = cptr->rms_dec[5] = '\0';
-         strcpy( cptr->line, obuff);
+         strlcpy_err( cptr->line, obuff, sizeof( cptr->line));
          obuff[12] = '\0';
          if( !create_mpc_packed_desig( packed_desig, obuff))
             memcpy( cptr->line, packed_desig, 12);
@@ -965,6 +962,7 @@ int xlate_ades2mpc( void *context, char *obuff, const char *buff)
    const char *tptr;
    ades2mpc_t *cptr = (ades2mpc_t *)context;
    char temp_obuff[300], *orig_obuff = NULL;
+   const size_t obuff_size = 221;
 
    if( cptr->prev_line_passed_through)
       {
@@ -972,7 +970,7 @@ int xlate_ades2mpc( void *context, char *obuff, const char *buff)
       return( 0);
       }
    if( cptr->getting_lines)
-      return( get_a_line( obuff, cptr));
+      return( get_a_line( obuff, obuff_size, cptr));
    if( !cptr->depth && strstr( buff, "<optical>"))
       cptr->depth = 1;
    if( check_for_psv_header( cptr, buff))
@@ -1001,7 +999,7 @@ int xlate_ades2mpc( void *context, char *obuff, const char *buff)
          if( rval == 1)
             {
             if( obuff == buff)
-               strcpy( obuff, temp_obuff);
+               strlcpy_err( obuff, temp_obuff, obuff_size);
             }
          else        /* 'container' tag;  affects internal state,  but */
             rval = 0;    /* nothing is output */
@@ -1014,12 +1012,12 @@ int xlate_ades2mpc( void *context, char *obuff, const char *buff)
    if( !rval && !cptr->depth && !strstr( buff, "<ades version"))
       {
       if( obuff != buff)
-         strcpy( obuff, buff);
+         strlcpy_err( obuff, buff, obuff_size);
       cptr->prev_line_passed_through = 1;
       return( 1);
       }
    if( cptr->getting_lines)
-      return( get_a_line( obuff, cptr));
+      return( get_a_line( obuff, obuff_size, cptr));
    if( obuff == buff)            /* translating in place */
       {
       orig_obuff = obuff;
@@ -1080,9 +1078,9 @@ int xlate_ades2mpc( void *context, char *obuff, const char *buff)
       tptr = skip_whitespace( tptr);
       }
    if( rval)
-      get_a_line( obuff, cptr);
+      get_a_line( obuff, obuff_size, cptr);
    if( orig_obuff)
-      strcpy( orig_obuff, temp_obuff);
+      strlcpy_err( orig_obuff, temp_obuff, obuff_size);
    return( rval);
 }
 
