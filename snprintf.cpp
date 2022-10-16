@@ -32,7 +32,6 @@ int snprintf( char *string, const size_t max_len, const char *format, ...)
 #else
    rval = vsnprintf( string, max_len, format, argptr);
 #endif
-   string[max_len - 1] = '\0';
    va_end( argptr);
    return( rval);
 }
@@ -57,7 +56,6 @@ static int _sn_append( const bool no_truncation, char *string,
 #else
    rval = vsnprintf( string + ilen, max_len - ilen, format, argptr);
 #endif
-   string[max_len - 1] = '\0';
    va_end( argptr);
    if( rval < 0 || rval + ilen >= max_len)
       if( no_truncation)
