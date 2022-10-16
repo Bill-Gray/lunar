@@ -22,6 +22,7 @@ directory as well.  */
 #include "watdefs.h"
 #include "date.h"
 #include "comets.h"
+#include "stringex.h"
 
 long extract_mpcorb_dat( ELEMENTS *elem, const char *buff);
 
@@ -83,6 +84,7 @@ const char *sof_header =
 
 static void output_sof( const ELEMENTS *elem, char *obuff)
 {
+   const size_t obuff_size = 90;
    char perih_time[20], epoch_time[20];
    const int base_time_format = FULL_CTIME_YMD | FULL_CTIME_NO_SPACES
                 | FULL_CTIME_MONTHS_AS_DIGITS | FULL_CTIME_FORMAT_DAY
@@ -91,8 +93,8 @@ static void output_sof( const ELEMENTS *elem, char *obuff)
    full_ctime( perih_time, elem->perih_time, base_time_format |
                                  FULL_CTIME_7_PLACES);
    full_ctime( epoch_time, elem->epoch, base_time_format);
-   sprintf( obuff, "%s %s %11.8f ", perih_time, epoch_time, elem->q);
-   snprintf( obuff + strlen( obuff), 45, "%10.6f %10.6f %10.6f %10.8f ",
+   snprintf_err( obuff, obuff_size, "%s %s %11.8f ", perih_time, epoch_time, elem->q);
+   snprintf_append( obuff, obuff_size, "%10.6f %10.6f %10.6f %10.8f ",
                   elem->incl * 180. / PI,  elem->asc_node * 180. / PI,
                   elem->arg_per * 180. / PI, elem->ecc);
 }
@@ -139,9 +141,9 @@ int main( const int argc, const char **argv)
          double jd;
 
          extract_name( name, buff);
-         snprintf( tbuff, 14, "%-13s", name);
+         snprintf_err( tbuff, 14, "%-13s", name);
          output_sof( &elem, tbuff + 13);
-         sprintf( tbuff + strlen( tbuff), "%.4s %.5s ",
+         snprintf_append( tbuff, sizeof( tbuff), "%.4s %.5s ",
                       buff + 137, buff + 117);         /* rms, number obs */
          jd = get_time_from_string( 0., buff + 194, FULL_CTIME_YMD, NULL);
          if( !memcmp( buff + 132, "days", 4))
@@ -160,7 +162,7 @@ int main( const int argc, const char **argv)
          full_ctime( tfirst_buff, jd, FULL_CTIME_YMD | FULL_CTIME_NO_SPACES
                            | FULL_CTIME_MONTHS_AS_DIGITS | FULL_CTIME_DATE_ONLY
                            | FULL_CTIME_LEADING_ZEROES);
-         sprintf( tbuff + strlen( tbuff), "%.8s %.8s %.5s %.5s\n",
+         snprintf_append( tbuff, sizeof( tbuff), "%.8s %.8s %.5s %.5s\n",
                   tfirst_buff,
                   buff + 194, buff + 8, buff + 14);        /* Tfirst, Tlast, H, G */
          assert( strlen( tbuff) == reclen);
@@ -208,8 +210,6 @@ int main( const int argc, const char **argv)
             output_sof( &elem, tbuff + 13);
             strcat( tbuff, "           ");    /* rms, number obs */
             strcat( tbuff, "                             \n");     /* Tlast, H, G */
-            if( strlen( tbuff) != reclen)
-               printf( "%d %d\n", (int)strlen( tbuff), (int)reclen);
             assert( strlen( tbuff) == reclen);
             memcpy( obuff + n_out * reclen, tbuff, reclen);
             n_out++;

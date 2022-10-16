@@ -27,6 +27,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 #include <string.h>
 #include <ctype.h>
 #include "watdefs.h"
+#include "stringex.h"
 #include "afuncs.h"
 #include "date.h"
 
@@ -307,6 +308,8 @@ void DLL_FUNC full_ctimel( char *buff, long double t2k, const int format)
    long year, int_t2k, day_of_week;
    long double add_on = 1.;
    long double remains;
+   const size_t max_buff_size = 80;
+   char *leading_digit_ptr;
 
    if( output_format == FULL_CTIME_FORMAT_SECONDS)
       units = seconds_per_day;
@@ -328,11 +331,11 @@ void DLL_FUNC full_ctimel( char *buff, long double t2k, const int format)
       {
       char tbuff[40];
 
-      sprintf( tbuff, "%21.16Lf", t2k / 365.25 + 2000.);
+      snprintf_err( tbuff, sizeof( tbuff), "%21.16Lf", t2k / 365.25 + 2000.);
       tbuff[precision + 5] = '\0';
       if( !precision)
          tbuff[4] = '\0';
-      strcpy( buff, tbuff);
+      strlcpy_err( buff, tbuff, max_buff_size);
       if( leading_zeroes)
          while( *buff == ' ')
             *buff++ = '0';
@@ -343,7 +346,7 @@ void DLL_FUNC full_ctimel( char *buff, long double t2k, const int format)
       {
       char format_str[10];
 
-      sprintf( format_str, "JD %%.%dLf", precision);
+      snprintf_err( format_str, sizeof( format_str), "JD %%.%dLf", precision);
       if( output_format == FULL_CTIME_FORMAT_MJD)
          {
          *buff++ = 'M';
@@ -351,7 +354,7 @@ void DLL_FUNC full_ctimel( char *buff, long double t2k, const int format)
          }
       else
          t2k += j2000;
-      sprintf( buff, format_str, t2k);
+      snprintf_err( buff, max_buff_size, format_str, t2k);
       if( leading_zeroes)
          while( *buff == ' ')
             *buff++ = '0';
@@ -364,8 +367,10 @@ void DLL_FUNC full_ctimel( char *buff, long double t2k, const int format)
    if( day_of_week < 0)    /* keep 0 <= day_of_week < 7: */
       day_of_week += 7;
    if( format & FULL_CTIME_DAY_OF_WEEK_FIRST)
-      buff += sprintf( buff, "%s ",
+      snprintf_err( buff, max_buff_size, "%s ",
                      set_day_of_week_name( (int)day_of_week, NULL));
+   else
+      *buff = '\0';
 
    day_to_dmy( int_t2k + 2451545, &day, &month, &year, calendar);
 
@@ -378,27 +383,20 @@ void DLL_FUNC full_ctimel( char *buff, long double t2k, const int format)
       char day_str[15];
 
       if( format & FULL_CTIME_MONTHS_AS_DIGITS)
-         sprintf( month_str, (leading_zeroes ? "%02d" : "%2d"), month);
+         snprintf_err( month_str, sizeof( month_str), (leading_zeroes ? "%02d" : "%2d"), month);
       else
-         {
-         strcpy( month_str, set_month_name( month, NULL));
-//       strcat( month_str, "   ");    /* ensure three-digit abbr for */
-//       month_str[3] = '\0';          /* all months */
-            /* 2016 Feb 17:  I don't think we need to ensure this.  And it */
-            /* causes trouble with UTF-8 months in (e.g.) Russian,  where */
-            /* three chars = six bytes.   */
-         }
+         strlcpy_err( month_str, set_month_name( month, NULL), sizeof( month_str));
 
       if( format & FULL_CTIME_TWO_DIGIT_YEAR)
-         sprintf( year_str, "%02d", abs( (int)year % 100));
+         snprintf_err( year_str, sizeof( year_str), "%02d", abs( (int)year % 100));
       else
-         sprintf( year_str, (leading_zeroes ? "%04ld" : "%4ld"), year);
+         snprintf_err( year_str, sizeof( year_str), (leading_zeroes ? "%04ld" : "%4ld"), year);
 
       if( format & FULL_CTIME_YEAR_FIRST)
          if( !(format & FULL_CTIME_NO_YEAR))
-            buff += sprintf( buff, "%s ", year_str);
+            snprintf_append( buff, max_buff_size, "%s ", year_str);
 
-      sprintf( day_str, (leading_zeroes ? "%02d" : "%2d"), day);
+      snprintf_err( day_str, sizeof( day_str), (leading_zeroes ? "%02d" : "%2d"), day);
       if( output_format == FULL_CTIME_FORMAT_DAY && precision)
          show_remainder( day_str + 2, remains, (unsigned)precision);
 
@@ -406,47 +404,48 @@ void DLL_FUNC full_ctimel( char *buff, long double t2k, const int format)
          {
          const int day_of_year = int_t2k + 2451545 - dmy_to_day( 0, 1, year, calendar);
 
-         buff += sprintf( buff, "%03d%s", day_of_year, day_str + 2);
+         snprintf_append( buff, max_buff_size, "%03d%s", day_of_year, day_str + 2);
          }
       else if( format & FULL_CTIME_MONTH_DAY)
-         buff += sprintf( buff, "%s %s", month_str, day_str);
+         snprintf_append( buff, max_buff_size, "%s %s", month_str, day_str);
       else
-         buff += sprintf( buff, "%s %s", day_str, month_str);
+         snprintf_append( buff, max_buff_size, "%s %s", day_str, month_str);
 
       if( !(format & FULL_CTIME_YEAR_FIRST))       /* year comes at end */
          if( !(format & FULL_CTIME_NO_YEAR))
-            buff += sprintf( buff, " %s", year_str);
+            snprintf_append( buff, max_buff_size, " %s", year_str);
       if( output_format != FULL_CTIME_FORMAT_DAY)
-         *buff++ = ' ';
+         strlcat_err( buff, " ", max_buff_size);
       }
 
    remains *= (double)units;
    i = (long)remains;
    if( i == units)   /* keep things from rounding up incorrectly */
       i--;
+   leading_digit_ptr = buff + strlen( buff);
    switch( output_format)
       {
       case FULL_CTIME_FORMAT_SECONDS:
-         sprintf( buff, "%2ld:%02ld:%02ld", i / 3600L, (i / 60) % 60L,
+         snprintf_append( buff, max_buff_size, "%2ld:%02ld:%02ld", i / 3600L, (i / 60) % 60L,
                            i % 60L);
          break;
       case FULL_CTIME_FORMAT_HH_MM:
-         sprintf( buff, "%2ld:%02ld", i / 60L, i % 60L);
+         snprintf_append( buff, max_buff_size, "%2ld:%02ld", i / 60L, i % 60L);
          break;
       case FULL_CTIME_FORMAT_HH:
-         sprintf( buff, "%2ld", i);
+         snprintf_append( buff, max_buff_size, "%2ld", i);
          break;
       }
    if( output_format != FULL_CTIME_FORMAT_DAY)
       {
-      if( leading_zeroes && *buff == ' ')
-         *buff = '0';
+      if( leading_zeroes && *leading_digit_ptr == ' ')
+         *leading_digit_ptr = '0';
       if( precision)
          show_remainder( buff + strlen( buff), remains - (double)i,
                                                       (unsigned)precision);
       }
    if( format & FULL_CTIME_DAY_OF_WEEK_LAST)
-      sprintf( buff + strlen( buff), " %s",
+      snprintf_append( buff, max_buff_size, " %s",
                      set_day_of_week_name( (int)day_of_week, NULL));
    if( format & FULL_CTIME_NO_SPACES)
       remove_char( ibuff, ' ');

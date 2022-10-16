@@ -21,6 +21,7 @@ has worked well thus far,  but the above URL could come in handy. */
 #include "watdefs.h"
 #include "afuncs.h"
 #include "mpc_func.h"
+#include "stringex.h"
 
 typedef struct
 {
@@ -109,7 +110,7 @@ static int set_mpc_style_offsets( char *buff, const double *xyz)
       {
       buff[32] = '2';         /* mark as units = AU */
       for( i = 0; i < 3; i++)
-         sprintf( buff + 35 + i * 12,
+         snprintf_err( buff + 35 + i * 12, 12,
                 (maxval > 9.9 * AU_IN_KM ? "%11.8f" : "%11.9f"),
                      fabs( xyz[i] / AU_IN_KM));
       }
@@ -125,7 +126,7 @@ static int set_mpc_style_offsets( char *buff, const double *xyz)
       else
          format = "%11.5f";
       for( i = 0; i < 3; i++)
-         sprintf( buff + 35 + i * 12, format, fabs( xyz[i]));
+         snprintf_err( buff + 35 + i * 12, 12, format, fabs( xyz[i]));
       }
    for( i = 0; i < 3; i++)
       buff[34 + i * 12] = (xyz[i] > 0. ? '+' : '-');
@@ -181,18 +182,18 @@ static int set_offsets( offset_t *offsets, const int n_offsets)
             offsets[i].xyz[0] = -0.1;     /* mark as "don't try again" */
       return( 0);
       }
-   snprintf( buff, sizeof( buff), cmd_start,
+   snprintf_err( buff, sizeof( buff), cmd_start,
             (verbose ? "" : "-q "), horizons_idx);
    for( i = 0; i < n_offsets; i++)
       if( !strcmp( offsets[i].mpc_code, offsets[0].mpc_code))
          {
          if( i)
-            strcat( buff, ",");
-         sprintf( buff + strlen( buff), "'%.6f'", offsets[i].jd);
+            strlcat_err( buff, ",", sizeof( buff));
+         snprintf_err( buff + strlen( buff), 18, "'%.6f'", offsets[i].jd);
          if( strlen( buff) + 60 > sizeof( buff))
             break;
          }
-   strcat( buff, cmd_end);
+   strlcat_err( buff, cmd_end, sizeof( buff));
    if( verbose)
       printf( "%s\n", buff);
    if( !system( buff))
