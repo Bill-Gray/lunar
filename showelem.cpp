@@ -237,7 +237,7 @@ int DLL_FUNC elements_in_mpc_format( char *obuff, const ELEMENTS *elem,
       if( elem->abs_mag != 0.)
          {
          snprintf_err( obuff, endptr - obuff,
-             (elem->is_asteroid ? "H%7.1f  G%5.2f   " :
+             (elem->is_asteroid ? "H%8.2f G%5.2f   " :
                                   "M(T)%5.1f  K%5.1f  " ),
                                    elem->abs_mag,
                                    elem->slope_param);
@@ -345,7 +345,7 @@ int DLL_FUNC elements_in_mpc_format( char *obuff, const ELEMENTS *elem,
       if( elem->abs_mag != 0.)
          {
          obuff += strlen( obuff);
-         snprintf_err( obuff, endptr - obuff, (elem->is_asteroid ? "  H%7.1f     G %6.2f" :
+         snprintf_err( obuff, endptr - obuff, (elem->is_asteroid ? "  H%8.2f    G %6.2f" :
                                               "  M(T)%5.1f    K %5.1f"),
                                               elem->abs_mag,
                                               elem->slope_param);
