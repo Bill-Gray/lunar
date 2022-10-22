@@ -5,14 +5,17 @@
 silently truncate buffer overruns,  or abort so you know you
 have such overruns.
 
-First, the BSD strlcxx functions.  See comments in 'stringex.cpp'. */
+First, the OpenBSD strlcxx functions.  See comments in 'stringex.cpp'. */
 
 #ifdef __cplusplus
 extern "C" {
 #endif /* #ifdef __cplusplus */
 
+
+#if !defined( __APPLE__)
 size_t strlcpy( char *dst, const char *src, const size_t dsize);
 size_t strlcat( char *dst, const char *src, const size_t dsize);
+#endif
 
 /* The above truncate silently.  On occasion,  one wants that.  Most of
 the time,  such truncation indicates a bug,  and the program should
