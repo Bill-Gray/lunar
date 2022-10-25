@@ -80,7 +80,7 @@ static void extract_name( char *name, const char *iline)
 const char *sof_header =
        "Name        |Tp      .       |Te      |q          |"
        "i  .      |Om .      |om .      |e         |"
-       "rms |n_o  |Tfirst  |Tlast   |H .  |G . ^\n";
+       "rms |n_o  |Tfirst  |Tlast   |Perts  |H .  |G . ^\n";
 
 static void output_sof( const ELEMENTS *elem, char *obuff)
 {
@@ -162,9 +162,9 @@ int main( const int argc, const char **argv)
          full_ctime( tfirst_buff, jd, FULL_CTIME_YMD | FULL_CTIME_NO_SPACES
                            | FULL_CTIME_MONTHS_AS_DIGITS | FULL_CTIME_DATE_ONLY
                            | FULL_CTIME_LEADING_ZEROES);
-         snprintf_append( tbuff, sizeof( tbuff), "%.8s %.8s %.5s %.5s\n",
-                  tfirst_buff,
-                  buff + 194, buff + 8, buff + 14);        /* Tfirst, Tlast, H, G */
+         snprintf_append( tbuff, sizeof( tbuff), "%.8s %.8s %.7s %.5s %.5s\n",
+                  tfirst_buff, buff + 194,             /* Tfirst, Tlast */
+                  buff + 142, buff + 8, buff + 14);    /* perts, H, G */
          assert( strlen( tbuff) == reclen);
          n_out++;
          if( IS_POWER_OF_TWO( n_out))
@@ -209,7 +209,7 @@ int main( const int argc, const char **argv)
             snprintf( tbuff, 14, "%-12s ", name);
             output_sof( &elem, tbuff + 13);
             strcat( tbuff, "           ");    /* rms, number obs */
-            strcat( tbuff, "                             \n");     /* Tlast, H, G */
+            strcat( tbuff, "                                     \n");     /* Tlast, perts, H, G */
             assert( strlen( tbuff) == reclen);
             memcpy( obuff + n_out * reclen, tbuff, reclen);
             n_out++;
