@@ -27,6 +27,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 #include <time.h>
 #include <string.h>
 #include "watdefs.h"
+#include "stringex.h"
 #include "comets.h"
 #include "lunar.h"
 #include "date.h"
@@ -583,185 +584,79 @@ int load_vsop_data( void)
    return( ifile && vsop_data ? 0 : -1);
 }
 
-static long extract_mpc_epoch( const char *epoch_buff)
+static double centralize( double ang)
 {
-   long year = 100 * (epoch_buff[0] - 'A' + 10) +
-                10 * (epoch_buff[1] - '0') + (epoch_buff[2] - '0');
-   int arr[2], i;
-
-   for( i = 0; i < 2; i++)
-      arr[i] = ((epoch_buff[i + 3] >= 'A') ? epoch_buff[i + 3] - 'A' + 10 :
-                                             epoch_buff[i + 3] - '0');
-   return( dmy_to_day( arr[1], arr[0], year, 0));
+   while( ang < 0.)
+      ang += PI + PI;
+   while( ang > PI + PI)
+      ang -= PI + PI;
+   return( ang);
 }
 
-/* MPC stores many quantities that range from 0 to 61 in a single character */
-/* where 0..9 = 0..9,  A...Z = 10...35,  a...z = 36...61.  As far as I know, */
-/* there are no plans in place for handling overflow past 61.                */
-
-static char extended_hex( const int ival)
+static int put_elem_into_sof( const char *header, char *buff, const ELEMENTS *elem)
 {
-   int rval;
+   const char *tptr;
+   char tbuff[40];
 
-   assert( ival >= 0 && ival < 62);
-   if( ival < 10)
-      rval = '0';
-   else if( ival < 36)
-      rval = 'A' - 10;
-   else
-      rval = 'a' - 36;
-   return( (char)( rval + ival));
-}
+   tptr = strstr( header, "|Tp ");
+   assert( tptr);
+   full_ctime( tbuff, elem->perih_time, FULL_CTIME_YMD | FULL_CTIME_NO_SPACES
+               | FULL_CTIME_LEADING_ZEROES | FULL_CTIME_MONTHS_AS_DIGITS
+               | FULL_CTIME_FORMAT_DAY | FULL_CTIME_7_PLACES);
+   memcpy( buff + (tptr - header) + 1, tbuff, strlen( tbuff));
 
-static inline void put_mpc_epoch( char *epoch_buff, long epoch)
-{
-   long year;
-   int month, day;
+   tptr = strstr( header, "|Te ");
+   assert( tptr);
+   full_ctime( tbuff, elem->epoch,  FULL_CTIME_YMD | FULL_CTIME_NO_SPACES
+               | FULL_CTIME_LEADING_ZEROES | FULL_CTIME_MONTHS_AS_DIGITS
+               | FULL_CTIME_FORMAT_DAY);
+   memcpy( buff + (tptr - header) + 1, tbuff, strlen( tbuff));
 
-   day_to_dmy( epoch, &day, &month, &year, 0);
-   epoch_buff[0] = extended_hex( (int)year / 100);
-   sprintf( epoch_buff + 1, "%02ld", year % 100L);
-   epoch_buff[3] = extended_hex( month);
-   epoch_buff[4] = extended_hex( day);
-}
+   tptr = strstr( header, "|q ");
+   assert( tptr);
+   snprintf_err( tbuff, 13, " %11.8f", elem->q);
+   memcpy( buff + (tptr - header), tbuff, 12);
 
-static void centralize( double *ang)
-{
-   while( *ang < 0.)
-      *ang += PI + PI;
-   while( *ang > PI + PI)
-      *ang -= PI + PI;
-}
+   tptr = strstr( header, "|i ");
+   assert( tptr);
+   snprintf_err( tbuff, 12, " %10.6f", elem->incl * 180. / PI);
+   memcpy( buff + (tptr - header), tbuff, 11);
 
-static int extract_comet_dat( ELEMENTS *elem, const char *buff)
-{
-   int rval = 0;
+   tptr = strstr( header, "|Om ");
+   assert( tptr);
+   snprintf_err( tbuff, 12, " %10.6f", centralize( elem->asc_node) * 180. / PI);
+   memcpy( buff + (tptr - header), tbuff, 11);
 
-   if( strlen( buff) > 104)
-      {
-      static const char check_bytes[20] = { 24, '.',   21, ' ',
-                 18, ' ', 32, '.', 42, '.', 50, ' ',   74, '.',
-                 89, ' ', 98, '.', 0,0 };
-      int i;
+   tptr = strstr( header, "|om ");
+   assert( tptr);
+   snprintf_err( tbuff, 12, " %10.6f", centralize( elem->arg_per) * 180. / PI);
+   memcpy( buff + (tptr - header), tbuff, 11);
 
-      rval = 1;
-      for( i = 0; check_bytes[i]; i += 2)
-         if( buff[(int)check_bytes[i]] != check_bytes[i + 1])
-            rval = 0;
-      memset( elem, 0, sizeof( ELEMENTS));
-      if( rval && buff[81] >= '1')
-         {
-         const long epoch_date = atol( buff + 81);
+   tptr = strstr( header, "|e ");
+   assert( tptr);
+   snprintf_err( tbuff, 12, " %10.8f", elem->ecc);
+   memcpy( buff + (tptr - header), tbuff, 11);
 
-         elem->epoch = dmy_to_day( epoch_date % 100,
-                  (epoch_date / 100) % 100, epoch_date / 10000, 0) - .5;
-         elem->perih_time = dmy_to_day( 0, atoi( buff + 19),
-                  atoi( buff + 14), 0) + atof( buff + 22) - .5;
-         elem->arg_per      = atof( buff + 51) * PI / 180.;
-         elem->asc_node     = atof( buff + 61) * PI / 180.;
-         elem->incl         = atof( buff + 71) * PI / 180.;
-         elem->ecc          = atof( buff + 41);
-         elem->q =            atof( buff + 30);
-         derive_quantities( elem, SOLAR_GM);
-         }
-      }
-   return( rval);
-}
-
-static void comet_dat_to_guide_format( char *obuff, const char *ibuff)
-{
-   int i, j = 0;
-
-   if( ibuff[102] <= '9')        /* periodic comet */
-      {
-      for( i = 102; ibuff[i] && ibuff[i] != '/'; i++)
-         ;
-      for( i++; ibuff[i] >= ' '; i++)
-         obuff[j++] = ibuff[i];
-      obuff[j++] = ' ';
-      obuff[j++] = '(';
-      for( i = 102; ibuff[i] != 'P'; i++)
-         obuff[j++] = ibuff[i];
-      obuff[j++] = 'P';
-      obuff[j++] = ')';
-      }
-   else
-      {
-      int len;
-
-      for( i = 102; ibuff[i] && ibuff[i] != '('; i++)
-         ;
-      len = i - 103;
-      i++;
-      while( ibuff[i] != ')')
-         obuff[j++] = ibuff[i++];
-      obuff[j++] = ' ';
-      obuff[j++] = '(';
-      memcpy( obuff + j, ibuff + 102, (size_t)len);
-      j += len;
-      obuff[j++] = ')';
-      }
-   memset( obuff + j, ' ', (size_t)( 160 - j));
-   memcpy( obuff + 55, ibuff + 14, 4);    /* year */
-   memcpy( obuff + 52, ibuff + 19, 2);    /* month */
-   memcpy( obuff + 43, ibuff + 22, 8);    /* day */
-   memcpy( obuff + 62, "0.0", 3);         /* mean anomaly = 0 for comets */
-   memcpy( obuff + 73, ibuff + 30, 9);    /* q */
-   memcpy( obuff + 86, ibuff + 41, 8);    /* ecc */
-   memcpy( obuff + 96,  ibuff + 71, 9);    /* incl */
-   memcpy( obuff + 108, ibuff + 51, 9);    /* arg per */
-   memcpy( obuff + 120, ibuff + 61, 9);    /* asc node */
-   memcpy( obuff + 132, "2000.0", 6);
-   memcpy( obuff + 141, ibuff + 91, 9);    /* magnitude data */
-   memcpy( obuff + 154, "Epoch:", 6);
-   memcpy( obuff + 160, ibuff + 81, 8);    /* epoch */
-   obuff[168] = '\0';
+   return( 0);
 }
 
 static int integrate_unperturbed = 0;
 
-static int extract_mpcorb_dat( ELEMENTS *elem, const char *buff,
-                              const int format_check_only)
-{
-   int rval = 0;
-
-   elem->epoch = 0.;
-   if( strlen( buff) > 200 && buff[10] == '.' && buff[16] == '.' &&
-                buff[25] == ' ' && buff[29] == '.' && buff[36] == ' ')
-      if( buff[142] != ' ' || integrate_unperturbed)
-         {   /* it's a perturbed orbit,  or we're integrating it anyway */
-         rval = 1;
-         elem->epoch = (double)extract_mpc_epoch( buff + 20) - .5;
-         if( format_check_only)
-            return( rval);
-         elem->mean_anomaly = atof( buff + 26) * PI / 180.;
-         elem->arg_per      = atof( buff + 37) * PI / 180.;
-         elem->asc_node     = atof( buff + 48) * PI / 180.;
-         elem->incl         = atof( buff + 59) * PI / 180.;
-         elem->ecc          = atof( buff + 69);
-         elem->major_axis   = atof( buff + 91);
-         elem->q = elem->major_axis * (1. - elem->ecc);
-         derive_quantities( elem, SOLAR_GM);
-         elem->perih_time = elem->epoch - elem->mean_anomaly * elem->t0;
-         }
-   return( rval);
-}
-
-static int convert_comets_to_guide_format = 0;
-
-#define FOUR_DECIMAL_PLACES (4 << 4)
-
-static double try_to_integrate( char *buff, const double dest_jd,
+static double try_to_integrate( const char *header, char *buff, const double dest_jd,
                          const double max_err, const double stepsize)
 {
    ELEMENTS elem;
    int got_it = 0, pluto_removed = 0;
 
-   if( extract_mpcorb_dat( &elem, buff, (dest_jd == .0)))
-      got_it = 1;
-   else if( extract_comet_dat( &elem, buff))
-      got_it = 2;
-   if( !memcmp( buff, "D4340 ", 6))           /* don't let (134340) Pluto */
+   if( !integrate_unperturbed)
+      {
+      const char *tptr = strstr( header, "|Perts");
+
+      if( tptr && !memcmp( buff + (tptr - header), "      ", 6))
+         return( 0.);
+      }
+   got_it = !extract_sof_data_ex( &elem, buff, header, NULL);
+   if( !memcmp( buff, "      134340 ", 13))   /* don't let (134340) Pluto */
       if( perturber_mask & PERTURBERS_PLUTO)    /* perturb itself! */
          {
          pluto_removed = 1;
@@ -784,68 +679,34 @@ static double try_to_integrate( char *buff, const double dest_jd,
          }
 
       integrate_orbit( &elem, elem.epoch, dest_jd, max_err, n_steps);
-      centralize( &elem.mean_anomaly);
-      centralize( &elem.arg_per);
-      centralize( &elem.asc_node);
-      if( got_it == 1)        /* mpcorb.dat format */
-         {
-         const long epoch_stored = (long)floor( dest_jd + 1.); /* rounds up */
-         const double time_diff = (double)epoch_stored - .5 - dest_jd;
-
-         assert( elem.ecc < 1.);
-         assert( elem.ecc > 0.);
-         put_mpc_epoch( buff + 20, epoch_stored);
-         elem.mean_anomaly += time_diff / elem.t0;
-
-         sprintf( buff + 26, "%9.5f  %9.5f  %9.5f  %9.5f%12.8f",
-                  elem.mean_anomaly * 180. / PI,
-                  elem.arg_per * 180. / PI,
-                  elem.asc_node * 180. / PI,
-                  elem.incl * 180. / PI,
-                  elem.ecc);
+      put_elem_into_sof( header, buff, &elem);
+#if 0
          sprintf( buff + 79, "%12.8f%12.7f", (180. / PI) / elem.t0,
                                             elem.major_axis);
-         buff[103] = ' ';
-         }
-      else                    /* MPC's 'comet.dat' format */
-         {
-         char tbuff[50];
-
-         full_ctime( buff + 14, elem.perih_time,
-                  FULL_CTIME_YEAR_FIRST | FULL_CTIME_MONTHS_AS_DIGITS |
-                  FULL_CTIME_MONTH_DAY |
-                  FULL_CTIME_FORMAT_DAY | FOUR_DECIMAL_PLACES);
-         if( buff[19] == ' ')
-            buff[19] = '0';
-         buff[strlen( buff)] = ' ';
-         sprintf( buff + 30, "%9.6f%10.6f  %9.5f %9.5f %9.5f",
-                  elem.q, elem.ecc, elem.arg_per * 180. / PI,
-                  elem.asc_node * 180. / PI,
-                  elem.incl * 180. / PI);
-         buff[strlen( buff)] = ' ';
-
-         full_ctime( tbuff, elem.epoch,
-                  FULL_CTIME_YEAR_FIRST | FULL_CTIME_MONTHS_AS_DIGITS |
-                  FULL_CTIME_MONTH_DAY | FULL_CTIME_LEADING_ZEROES |
-                  FULL_CTIME_FORMAT_DAY);
-         memcpy( buff + 81, tbuff, 4);           /* year */
-         memcpy( buff + 85, tbuff + 5, 2);       /* month */
-         memcpy( buff + 87, tbuff + 8, 2);       /* day */
-         }
-      }
-
-   if( got_it == 2 && convert_comets_to_guide_format)
-      {
-      char tbuff[200];
-
-      comet_dat_to_guide_format( tbuff, buff);
-      strcpy( buff, tbuff);
-      strcat( buff, "\n");
+#endif
       }
 
    if( pluto_removed)
       perturber_mask ^= PERTURBERS_PLUTO;
    return( elem.epoch);
+}
+
+static void get_sof_element( char *obuff, const size_t obuff_size,
+            const char *buff, const char *header, const char *tag)
+{
+   const char *tptr = strstr( header, tag);
+
+   if( tptr && (tptr == header || tptr[-1] == '|'))
+      {
+      size_t i;
+
+      buff += tptr - header;
+      for( i = 0; i < obuff_size - 1 && tptr[i] != '|' && tptr[i] != '^'; i++)
+         obuff[i] = buff[i];
+      obuff[i] = '\0';
+      }
+   else
+      obuff[0] = '\0';
 }
 
 /* If we're updating a previous result,  we check to see if the designation,
@@ -855,15 +716,21 @@ re-integrate that object's orbit.  But if our previous result does contain an
 object with the same name and other details,  we don't have to do all the
 math to integrate it all over again just to get the same result as before. */
 
-static long compute_hash( const char *buff)
+static long compute_hash( const char *buff, const char *header)
 {
    long rval = 0;
    const long big_prime = 2141592701L;
-   int i;
+   size_t i, j;
+   char obuff[30];
+   const char *tags[] =
+             { "H .", "G .", "Tlast", "Tfirst", "n_o", "rms", "Name" };
 
-   for( i = 0; *buff >= ' '; i++, buff++)
-      if( i < 20 || i > 105)        /* skip cols containing orbital elems */
-         rval = rval * big_prime + (long)*buff;
+   for( i = 0; i < sizeof( tags) / sizeof( tags[0]); i++)
+      {
+      get_sof_element( obuff, sizeof( obuff), buff, header, tags[i]);
+      for( j = 0; obuff[j]; j++)
+         rval = rval * big_prime + (long)obuff[j];
+      }
    return( rval);
 }
 
@@ -885,8 +752,7 @@ static void error_exit( void)
 }
 
 #define JAN_1970 2440587.5
-#define MIN_MPCORB_LINE_SIZE        203
-      /* lines may be 204 bytes long if they have CR/LF enders */
+#define LINE_SIZE 300
 
 int main( int argc, const char **argv)
 {
@@ -895,9 +761,9 @@ int main( int argc, const char **argv)
    long *hashes, *file_offsets, hash_val;
    const char *ephem_filename = NULL;
    double dest_jd, max_err = 1.e-12, stepsize = 2., t_last_printout = 0.;
-   double starting_jd = 0., curr_jd;
-   char buff[220], time_buff[60];
-   int i, n_integrated = 0, total_asteroids_in_file, header_found = 0;
+   double starting_jd = 0.;
+   char buff[LINE_SIZE], time_buff[60], header[LINE_SIZE];
+   int i, n_integrated = 0, total_asteroids_in_file;
    int max_asteroids = (1 << 30);
 #ifdef FORKING
    int n_processes = 0, process_number = 0, child_status;
@@ -907,30 +773,16 @@ int main( int argc, const char **argv)
    clock_t t0;
    bool update_existing_file = true;
 
-   if( argc == 2 && !memcmp( argv[1], "today", 5))
-      {
-      static const char *new_args[5] = { NULL, "nea.dat", "neatod.dat",
-                                          NULL, NULL };
-
-      new_args[0] = argv[0];
-      new_args[3] = argv[1];
-      argv = new_args;
-      argc = 4;
-      }
-
    if( argc < 4)
       {
       printf( "INTEGRAT takes as command-line arguments the name of an input\n");
-      printf( "file of the MPCORB.DAT or COMET.DAT type;  the name of the output\n");
+      printf( "file in .sof format;  the name of the output\n");
       printf( "file that is to be created;  and the epoch (JD or YYYYMMDD)\n");
       printf( "of that file.  For example: either\n\n");
-      printf( "integrat mpcorbcr.dat 2452600.mpc 2452600.5\n\n");
-      printf( "integrat mpcorbcr.dat 2452600.mpc 20021122\n\n");
-      printf( "would read in the 'mpcorbcr.dat' file,  and create a new file\n");
+      printf( "integrat mpcorb.sof 2452600.sof 2452600.5\n\n");
+      printf( "integrat mpcorb.sof 2452600.sof 20021122\n\n");
+      printf( "would read in the 'mpcorb.sof' file,  and create a new file\n");
       printf( "updated to the epoch JD 2452600.5 = 22 Nov 2002.\n");
-      printf( "Also:  in place of a date,  one can use 'today'.  For example:\n");
-      printf( "\nintegrat nea.dat neatod.dat today\n\n");
-      printf( "would read in 'nea.dat' and write out an 'neatod.dat' file.\n");
       error_exit( );
       return( -1);
       }
@@ -939,6 +791,12 @@ int main( int argc, const char **argv)
          update_existing_file = false;
    setvbuf( stdout, NULL, _IONBF, 0);
    ifile = err_fopen( argv[1], "rb");
+   if( !fgets( header, sizeof( header), ifile))
+      {
+      fprintf( stderr, "Couldn't read header from original file\n");
+      error_exit( );
+      return( -1);
+      }
    if( update_existing_file && !rename( argv[2], temp_file_name))
       {
       int n_hashes = 0;
@@ -948,7 +806,7 @@ int main( int argc, const char **argv)
       hashes = (long *)calloc( HASH_TABLE_SIZE * 2, sizeof( long));
       file_offsets = hashes + HASH_TABLE_SIZE;
       while( fgets( buff, sizeof( buff), update_file))
-         if( (hash_val = compute_hash( buff)) != 0L)
+         if( (hash_val = compute_hash( header, buff)) != 0L)
             {
             const unsigned hash_loc = find_in_table( hashes, hash_val);
 
@@ -964,25 +822,11 @@ int main( int argc, const char **argv)
    else
       hashes = file_offsets = NULL;
 
-   curr_jd = JAN_1970 + (double)time( NULL) / seconds_per_day;
-               /* Start with the destination epoch being "right now",    */
-               /* suitably rounded to 0h TD.  One can then set the time  */
-               /* relative to that point (e.g., "25 Feb" will be assumed */
-               /* to refer to that date in the current year).            */
-   dest_jd = floor( curr_jd) + .5;
-   *buff = '\0';
-   for( i = 3; i < argc && argv[i][0] != '-'; i++)
-      {
-      strcat( buff, " ");
-      strcat( buff, argv[i]);
-      }
-   if( !memcmp( buff, " today", 6))
-      dest_jd += atof( buff + 6);
-   else
-      dest_jd = get_time_from_string( dest_jd, buff, FULL_CTIME_YMD, NULL);
+   dest_jd = get_time_from_string( 0., argv[3], FULL_CTIME_YMD, NULL);
    full_ctime( time_buff, dest_jd, 0);
-   sprintf( buff, "Integrat version %s %s\nIntegrating to %s = JD %.5f\n",
-                        __DATE__, __TIME__, time_buff, dest_jd);
+   snprintf( buff, sizeof( buff),
+                   "Integrat version %s %s\nIntegrating to %s = JD %.5f\n",
+                    __DATE__, __TIME__, time_buff, dest_jd);
    printf( "%s", buff);
    ofile = err_fopen( argv[2], "wb");
    setvbuf( ofile, NULL, _IONBF, 0);
@@ -997,18 +841,10 @@ int main( int argc, const char **argv)
       getch( );
 #endif
       }
-   fprintf( ofile, "%s", buff);
-   full_ctime( time_buff, curr_jd, 0);
-   fprintf( ofile, "Time started: %s\n", time_buff);
-
    for( i = 1; i < argc; i++)
       if( argv[i][0] == '-')
          switch( argv[i][1])
             {
-            case 'c':
-               convert_comets_to_guide_format = 1;
-               printf( "Comet output will be in Guide format\n");
-               break;
             case 'f':
                ephem_filename = argv[i] + 2;
                if( !*ephem_filename && i < argc - 1)
@@ -1078,7 +914,7 @@ int main( int argc, const char **argv)
    while( fgets( buff, sizeof( buff), ifile)
                      && total_asteroids_in_file < max_asteroids)
       {
-      const double tval = try_to_integrate( buff, 0., max_err, stepsize);
+      const double tval = try_to_integrate( header, buff, 0., max_err, stepsize);
 
       if( tval != 0. && starting_jd == 0.)
          {
@@ -1087,21 +923,16 @@ int main( int argc, const char **argv)
          sprintf( buff, "'%s' has elements for %s = JD %.1f (and possibly other epochs)\n",
                                 argv[1], time_buff, starting_jd);
          printf( "%s", buff);
-         fprintf( ofile, "%s", buff);
          }
       if( tval != 0.)
          total_asteroids_in_file++;
-      if( !memcmp( buff, "--------------------", 20))
-         header_found = 1;
       }
 
    sprintf( buff, "%d asteroids to be integrated\n", total_asteroids_in_file);
    printf( "%s", buff);
-   fprintf( ofile, "%s", buff);
-   if( !header_found)
-      fprintf( ofile, "----------------------------------------------------------------\n");
+   fputs( header, ofile);
 
-   fseek( ifile, 0L, SEEK_SET);
+   fseek( ifile, strlen( header), SEEK_SET);
 
    t0 = clock( );
    while( !quit && fgets( buff, sizeof( buff), ifile)
@@ -1110,23 +941,21 @@ int main( int argc, const char **argv)
       bool got_it_from_update = false;
 
       asteroid_perturber_number = -1;
-      switch( atoi( buff))
-         {
-         case 1:              /* Ceres */
-            if( strstr( buff + 174, "Ceres "))
+      if( n_integrated < 4 && !memcmp( buff, "           ", 11))
+         switch( atoi( buff))
+            {
+            case 1:              /* Ceres */
                asteroid_perturber_number = 10;
-            break;
-         case 2:              /* Pallas */
-            if( strstr( buff + 174, "Pallas "))
+               break;
+            case 2:              /* Pallas */
                asteroid_perturber_number = 11;
-            break;
-         case 4:              /* Vesta */
-            if( strstr( buff + 174, "Vesta "))
+               break;
+            case 4:              /* Vesta */
                asteroid_perturber_number = 12;
-            break;
-         default:
-            break;
-         }
+               break;
+            default:
+               break;
+            }
 #ifdef FORKING
       if( (perturber_mask & 0x1c00) == 0x1c00 && n_processes
                && !forking_has_happened)
@@ -1176,7 +1005,7 @@ int main( int argc, const char **argv)
          }
 #endif
       if( update_file && asteroid_perturber_number == -1
-                          && (hash_val = compute_hash( buff)) != 0L)
+                          && (hash_val = compute_hash( header, buff)) != 0L)
          {
          char buff2[220];
          const unsigned hash_loc = find_in_table( hashes, hash_val);
@@ -1197,7 +1026,7 @@ int main( int argc, const char **argv)
          }
 
       if( !got_it_from_update &&
-                  try_to_integrate( buff, dest_jd, max_err, stepsize) != 0.)
+                  try_to_integrate( header, buff, dest_jd, max_err, stepsize) != 0.)
          {
          clock_t t = clock( );
          const double elapsed_time = (double)(t - t0) / (double)CLOCKS_PER_SEC;
@@ -1233,11 +1062,6 @@ int main( int argc, const char **argv)
                        n_integrated,
                        n_found_from_update);
             }
-         if( strlen( buff) < MIN_MPCORB_LINE_SIZE)
-            {
-            printf( "Line is %d bytes long\n%s", (int)strlen( buff), buff);
-            }
-         assert( strlen( buff) >= MIN_MPCORB_LINE_SIZE);
 #ifdef _MSC_VER
          if( kbhit( ))
             if( getch( ) == 27)
@@ -1275,7 +1099,6 @@ int main( int argc, const char **argv)
          i = 0;
          while( fgets( buff, sizeof( buff), ifiles[i]))
             {
-            assert( strlen( buff) >= MIN_MPCORB_LINE_SIZE);
             fputs( buff, ofile);
             i = (i + 1) % n_processes;
             }
