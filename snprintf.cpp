@@ -85,6 +85,8 @@ int snprintf_append( char *string, const size_t max_len,      /* ephem0.cpp */
    return( _sn_append( true, string, max_len, format, argptr));
 }
 
+#if !defined( __APPLE__) && !defined( __OpenBSD__)
+
 /* strlcat() and strlcpy() appear in some BSDs,  but I don't think they
 appear anyplace else (though in my opinion,  they should).  In my
 humble opinion,  they should only be used when truncation may
@@ -141,7 +143,6 @@ size_t strlcpy( char *dst, const char *src, const size_t dsize)
    return(src - osrc - 1); /* count does not include NUL */
 }
 
-
 /*
  * Appends src to string dst of size dsize (unlike strncat, dsize is the
  * full size of dst, not space left).  At most dsize-1 characters
@@ -176,6 +177,7 @@ size_t strlcat( char *dst, const char *src, const size_t dsize)
 
    return(dlen + (src - osrc));  /* count does not include NUL */
 }
+#endif    /* #if !defined( __APPLE__) && !defined( __OpenBSD__) */
 
 /* Same as strlcpy() and strlcat(),  except that if truncation occurs,
 we abort.  strlcpy()/strlcat() should only be used in situations where

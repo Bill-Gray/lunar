@@ -12,7 +12,7 @@ extern "C" {
 #endif /* #ifdef __cplusplus */
 
 
-#if !defined( __APPLE__)
+#if !defined( __APPLE__) && !defined( __OpenBSD__)
 size_t strlcpy( char *dst, const char *src, const size_t dsize);
 size_t strlcat( char *dst, const char *src, const size_t dsize);
 #endif
