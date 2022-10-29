@@ -334,7 +334,9 @@ static inline size_t move_fits_time( char *optr, const char *iptr)
    if( iptr[4] == '-' && iptr[7] == '-' && iptr[10] == 'T'
                && iptr[13] == ':')
       {
-      *optr++ = (char)((iptr[0] * 10 + iptr[1] - '0' * 11) + 'A' - 10);
+      const int century = iptr[0] * 10 + iptr[1] - '0' * 11;
+
+      *optr++ = int_to_mutant_hex_char( century);
       iptr += 2;
       while( *iptr && *iptr != 'Z')
          {
@@ -526,14 +528,20 @@ static int process_ades_tag( char *obuff, ades2mpc_t *cptr, const int itag,
          memcpy( cptr->line + 77, tptr, 3);
          break;
       case ADES_obsTime:
-         if( move_fits_time( cptr->line + 15, tptr) > 17)
+         {
+         const bool too_far_in_future = (atoi( tptr) > 2099);
+
+         if( move_fits_time( cptr->line + 15, tptr) > 17 || too_far_in_future)
             {
             char *zptr = strchr( name, 'Z');
 
             if( zptr)
                *zptr = '\0';
             cptr->full_t2k = get_time_from_stringl( 0., name, 0, NULL);
+            if( too_far_in_future)
+               cptr->line[15] = 'K';
             }
+         }
          break;
       case ADES_band:
          if( *tptr == 'P' && strchr( "grizwy", tptr[1]))
