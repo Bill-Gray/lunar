@@ -25,7 +25,7 @@ has worked well thus far,  but the above URL could come in handy. */
 
 typedef struct
 {
-   double jd, xyz[3];
+   double jd, xyz[3], vel[3];
    char mpc_code[4];
 } offset_t;
 
@@ -214,11 +214,16 @@ static int set_offsets( offset_t *offsets, const int n_offsets)
                   if( !strcmp( offsets[j].mpc_code, offsets[0].mpc_code)
                            && fabs( offsets[j].jd - jd) < tolerance)
                      {
-                     const int n_found = sscanf( buff, "%lf %lf %lf",
+                     int n_found = sscanf( buff, "%lf %lf %lf",
                            &offsets[j].xyz[0], &offsets[j].xyz[1], &offsets[j].xyz[2]);
 
                      if( verbose)
                         printf( "Set for offset %d\n", j);
+                     assert( n_found == 3);
+                     if( !fgets( buff, sizeof( buff), ifile))
+                        assert( 0);
+                     n_found = sscanf( buff, "%lf %lf %lf",
+                           &offsets[j].vel[0], &offsets[j].vel[1], &offsets[j].vel[2]);
                      assert( n_found == 3);
                      n_positions_set++;
                      }
@@ -279,16 +284,26 @@ int process_file( const char *filename)
       }
    fseek( ifile, 0, SEEK_SET);
    while( fgets( buff, sizeof( buff), ifile))
-      if( (jd = get_sat_obs_jd( buff)) <= 0.)
-         printf( "%s", buff);
+      if( (jd = get_sat_obs_jd( buff)) <= 0.)    /* not an observation;  */
+         printf( "%s", buff);                    /* just pass it through */
       else if( buff[14] != 's')
          {
-         printf( "%s", buff);
-         for( i = 0; i < n_offsets; i++)
+         int idx = -1;
+
+         for( i = 0; idx < 0 && i < n_offsets; i++)
             if( !memcmp( buff + 77, offsets[i].mpc_code, 3)
                        && fabs( jd - offsets[i].jd) < tolerance)
-               set_mpc_style_offsets( buff, offsets[i].xyz);
+               {
+               printf( "COM Spacecraft vel %f %f %f km/s\n",
+                              offsets[i].vel[0], offsets[i].vel[1], offsets[i].vel[2]);
+               idx = i;
+               }
          printf( "%s", buff);
+         if( idx >= 0)
+            {
+            set_mpc_style_offsets( buff, offsets[idx].xyz);
+            printf( "%s", buff);
+            }
          }
    fclose( ifile);
    free( offsets);
