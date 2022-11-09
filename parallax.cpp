@@ -1,7 +1,10 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+#include <assert.h>
 #include <math.h>
 #include "watdefs.h"
+#include "afuncs.h"
 #include "mpc_func.h"
 
 /* Test program I run when I encounter a latitude/altitude and want to turn
@@ -38,12 +41,66 @@ static char *show_angle( char *buff, double angle)
    return( buff);
 }
 
+static int get_mpc_obscode_data( loc_t *loc, const char *mpc_code)
+{
+   int pass, rval = -1;
+
+   for( pass = 0; pass < 2 && rval; pass++)
+      {
+      const char *ifilename = (pass ? "ObsCodes.htm" : "rovers.txt");
+      FILE *ifile;
+      char buff[200];
+      mpc_code_t code_data;
+
+#ifdef CGI_VERSION
+      strcpy( buff, "/home/projectp/public_html/cgi_bin/fo/");
+#else
+      strcpy( buff, getenv( "HOME"));
+      strcat( buff, "/.find_orb/");
+#endif
+      strcat( buff, ifilename);
+      ifile = fopen( buff, "rb");
+      if( !ifile)
+         ifile = fopen( ifilename, "rb");
+      if( !ifile)
+         perror( buff);
+      assert( ifile);
+      while( rval && fgets( buff, sizeof( buff), ifile))
+         if( !memcmp( buff, mpc_code, 3) && buff[3] == ' '
+               && 3 == get_mpc_code_info( &code_data, buff))
+            {
+            loc->lat = code_data.lat;
+            loc->lon = code_data.lon;
+            if( loc->lon > PI)
+               loc->lon -= PI + PI;
+            loc->alt = code_data.alt;
+            loc->rho_sin_phi = code_data.rho_sin_phi;
+            loc->rho_cos_phi = code_data.rho_cos_phi;
+            loc->x = cos( loc->lon) * loc->rho_cos_phi;
+            loc->y = sin( loc->lon) * loc->rho_cos_phi;
+            rval = 0;
+            printf( "%s !%+014.9f  %+013.9f %9.3f   %s\n", mpc_code,
+                  loc->lon * 180. / PI - 0.000026364,
+                  loc->lat * 180. / PI + 0.000013133,
+                  loc->alt + 4.975, code_data.name);
+            }
+      fclose( ifile);
+      }
+   return( rval);
+}
+
 static void show_location( const loc_t *loc)
 {
    char buff[80];
 
    if( loc->lon)
-      printf( "Longitude %11.9f = %s\n", loc->lon, show_angle( buff, loc->lon));
+      {
+      printf( "Longitude %14.9f = %s\n", loc->lon, show_angle( buff, loc->lon));
+      if( loc->lon < 0.)
+         printf( "Longitude %14.9f = %s\n", loc->lon + 360., show_angle( buff, loc->lon + 360.));
+      if( loc->lon > 180.)
+         printf( "Longitude %14.9f = %s\n", loc->lon - 360., show_angle( buff, loc->lon - 360.));
+      }
    printf( "Latitude  %11.9f = %s\n", loc->lat, show_angle( buff, loc->lat));
    printf( "Altitude %.5f meters\n", loc->alt);
    printf( "Parallax constants %.11f %+.11f\n", loc->rho_cos_phi, loc->rho_sin_phi);
@@ -122,7 +179,8 @@ static void error_exit( void)
    printf( "Run 'parallax' with three arguments (latitude, longitude, altitude)\n"
            "and they will be converted to parallax constants.  Run with two arguments\n"
            "(rho_cos_phi, rho_sin_phi) and the corresponding latitude and altitude\n"
-           "will be computed and shown.\n");
+           "will be computed and shown.  Run with one argument (MPC obscode) and\n"
+           "all the location data for it wiss be shown.\n");
    exit( -1);
 }
 
@@ -130,8 +188,26 @@ int main( const int argc, const char **argv)
 {
    loc_t loc;
 
-   if( argc < 3 || argc > 4)
+   if( argc < 2 || argc > 4)
       error_exit( );
+   else if( argc == 2)          /* MPC code provided */
+      get_mpc_obscode_data( &loc, argv[1]);
+   else if( argc == 3 && 3 == strlen( argv[1]) && 3 == strlen( argv[2]))
+      {           /* two MPC codes provided */
+      loc_t loc2;
+      double dist, posn_ang, p1[2], p2[2];
+
+      get_mpc_obscode_data( &loc, argv[1]);
+      get_mpc_obscode_data( &loc2, argv[2]);
+      p1[0] = loc.lon;
+      p1[1] = loc.lat;
+      p2[0] = loc2.lon;
+      p2[1] = loc2.lat;
+      calc_dist_and_posn_ang( p1, p2, &dist, &posn_ang);
+      printf( "(%s) is %.3f km from (%s),  at bearing %.2f (0=N, 90=E, 180=S, 270=W)\n",
+               argv[2], dist * EARTH_MAJOR_AXIS_IN_METERS / 1000.,
+               argv[1], 360. - posn_ang * 180. / PI);
+      }
    else if( argc == 3)          /* parallax constants provided */
       set_location_two_params( &loc, atof( argv[1]), atof( argv[2]));
    else        /* argc == 4 */
@@ -214,6 +290,8 @@ int main( void)
          loc.alt = atof( buff) / EARTH_MAJOR_AXIS_IN_METERS;
       else if( !memcmp( field, "xyz", 3) && field[3] >= '0' && field[3] <= '2')
          xyz[field[3] - '0'] = atof( buff);
+      else if( !strcmp( field, "mpc_code"))
+         get_mpc_obscode_data( &loc, buff);
       }
    if( xyz[0] || xyz[1] || xyz[2])
       {
@@ -239,7 +317,9 @@ int main( void)
       printf( "Must provide either rho sin(phi) and rho cos(phi),  in\n"
               "which case the latitude and altitude will be computed and\n"
               "shown;  <i>or</i> latitude and altitude,  in which case you'll\n"
-              "get the parallax constants as output.\n");
+              "get the parallax constants as output.  Or,  you can provide\n"
+              "x, y, and z;  or an MPC code.  Hit the Back-arrow in your\n"
+              "browser and review your options.\n");
       return( 0);
       }
    loc.x = loc.rho_cos_phi * cos( loc.lon);
