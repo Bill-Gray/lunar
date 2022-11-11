@@ -135,7 +135,7 @@ static int set_mpc_style_offsets( char *buff, const double *xyz)
    return( 0);
 }
 
-const char *cmd_start = "wget -O /tmp/locs %s"
+const char *cmd_start = "curl -o /tmp/locs %s"
     "\"https://ssd.jpl.nasa.gov/horizons_batch.cgi?batch=1&COMMAND='%d'"
     "&REF_PLANE='FRAME'"
     "&OBJ_DATA='NO'&TABLE_TYPE='V'&TLIST=";
@@ -154,9 +154,7 @@ https://ssd.jpl.nasa.gov/horizons_batch.cgi?batch=1&COMMAND='-163'
 This requests positions on the four JDEs given on the third line for
 object -163 (which is Horizons' index for (C51) WISE.)  REF_PLANE='FRAME'
 specifies J2000 equatorial coordinates.  TABLE_TYPE='V' specifies
-vectors.  VEC_TABLE='2' specifies positions and velocities... we actually
-could skip the latter,  but I have some possible use cases for them
-(adjusting for timing errors,  for example).
+vectors.  VEC_TABLE='2' specifies positions and velocities.
 
    Each time adds 17 bytes to our URL.  I've yet to determine what
 JPL's limit is on URL length.  A buffer size of 1700 bytes,  after
