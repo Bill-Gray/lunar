@@ -135,7 +135,7 @@ static int set_mpc_style_offsets( char *buff, const double *xyz)
    return( 0);
 }
 
-const char *cmd_start = "curl -o /tmp/locs %s"
+const char *cmd_start = "curl -s -o /tmp/locs %s"
     "\"https://ssd.jpl.nasa.gov/horizons_batch.cgi?batch=1&COMMAND='%d'"
     "&REF_PLANE='FRAME'"
     "&OBJ_DATA='NO'&TABLE_TYPE='V'&TLIST=";
@@ -156,16 +156,17 @@ object -163 (which is Horizons' index for (C51) WISE.)  REF_PLANE='FRAME'
 specifies J2000 equatorial coordinates.  TABLE_TYPE='V' specifies
 vectors.  VEC_TABLE='2' specifies positions and velocities.
 
-   Each time adds 17 bytes to our URL.  I've yet to determine what
-JPL's limit is on URL length.  A buffer size of 1700 bytes,  after
-allowing for the header and trailer data,  accommodates 89 times.
-So if we encounter an unset offset,  we look for up to 88 other
-instances where that particular obscode was used,  form a query to
-ask for all of them,  and then set up to 89 offsets at a go.  */
+   Each time adds 17 bytes to our URL.  I can send JPL an 8000-byte
+URL,  but not much beyond that without getting errors.  After
+allowing for the header and trailer data,  we can request 458
+offsets without overflowing the 8000-byte URL.   So if we
+encounter an unset offset,  we look for up to 457 other instances
+where that particular obscode was used,  form a query to ask for
+all of them, and then set up to ask for up to 458 offsets at a go.  */
 
 static int set_offsets( offset_t *offsets, const int n_offsets)
 {
-   char buff[1700];     /* supports 89 times at a go */
+   char buff[8000];     /* supports 458 offsets at a go */
    int i;
    const int horizons_idx = get_horizons_idx( offsets->mpc_code);
 
@@ -203,28 +204,35 @@ static int set_offsets( offset_t *offsets, const int n_offsets)
          if( strstr( buff, " = A.D. ") && strstr( buff, " TDB"))
             {
             const double jd = atof( buff);
+            double state[6];
             int j;
 
             if( verbose)
                printf( "Found locations\n%s", buff);
-            if( fgets( buff, sizeof( buff), ifile))
-               for( j = 0; j < i; j++)
-                  if( !strcmp( offsets[j].mpc_code, offsets[0].mpc_code)
-                           && fabs( offsets[j].jd - jd) < tolerance)
-                     {
-                     int n_found = sscanf( buff, "%lf %lf %lf",
-                           &offsets[j].xyz[0], &offsets[j].xyz[1], &offsets[j].xyz[2]);
+            for( j = 0; j < 6; j += 3)
+               {
+               int n_found;
 
-                     if( verbose)
-                        printf( "Set for offset %d\n", j);
-                     assert( n_found == 3);
-                     if( !fgets( buff, sizeof( buff), ifile))
-                        assert( 0);
-                     n_found = sscanf( buff, "%lf %lf %lf",
-                           &offsets[j].vel[0], &offsets[j].vel[1], &offsets[j].vel[2]);
-                     assert( n_found == 3);
-                     n_positions_set++;
-                     }
+               if( !fgets( buff, sizeof( buff), ifile))
+                  assert( 0);
+               n_found = sscanf( buff, "%lf %lf %lf", state + j,
+                                 state + j + 1, state + j + 2);
+               assert( 3 == n_found);
+               }
+            for( j = 0; j < i; j++)
+               if( !strcmp( offsets[j].mpc_code, offsets[0].mpc_code)
+                        && fabs( offsets[j].jd - jd) < tolerance
+                        && !offsets[j].xyz[0] && !offsets[j].xyz[1]
+                        && !offsets[j].xyz[2])
+                  {
+                  offsets[j].xyz[0] = state[0];
+                  offsets[j].xyz[1] = state[1];
+                  offsets[j].xyz[2] = state[2];
+                  offsets[j].vel[0] = state[3];
+                  offsets[j].vel[1] = state[4];
+                  offsets[j].vel[2] = state[5];
+                  n_positions_set++;
+                  }
             }
          else if( verbose > 1 || !memcmp( buff, "No ephemeris", 12))
             printf( "%s", buff);
@@ -257,6 +265,7 @@ int process_file( const char *filename)
    FILE *ifile = fopen( filename, "rb");
    char buff[300];
    double jd;
+   time_t t0 = time( NULL);
    offset_t *offsets = NULL;
    int i, n_offsets = 0;
 
@@ -308,7 +317,7 @@ int process_file( const char *filename)
    printf( "COM %d positions set by add_off; %d failed in %.2f seconds\n",
          n_positions_set, n_positions_failed,
          (double)clock( ) / (double)CLOCKS_PER_SEC);
-   printf( "COM add_off ver " __DATE__ " " __TIME__ "\n");
+   printf( "COM add_off ver " __DATE__ " " __TIME__ " run at %s", ctime( &t0));
    return( 0);
 }
 
