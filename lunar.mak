@@ -92,6 +92,9 @@ astephem.exe: astephem.obj eart2000.obj mpcorb.obj $(LIBNAME).lib
 calendar.exe: calendar.obj $(LIBNAME).lib
    $(LINK)    calendar.obj $(LIBNAME).lib
 
+chinese.exe: chinese.cpp snprintf.obj
+   cl -DTEST_CODE $(BASE_FLAGS) chinese.cpp snprintf.obj
+
 colors.exe: colors.cpp
    cl -DSIMPLE_TEST_PROGRAM $(BASE_FLAGS) colors.cpp
 
@@ -134,8 +137,8 @@ jsattest.exe: jsattest.obj $(LIBNAME).lib
 lun_test.exe: lun_test.obj lun_tran.obj riseset3.obj $(LIBNAME).lib
    $(LINK)    lun_test.obj lun_tran.obj riseset3.obj $(LIBNAME).lib
 
-marstime.exe: marstime.cpp
-   cl /DTEST_PROGRAM $(BASE_FLAGS) marstime.cpp
+marstime.exe: marstime.cpp snprintf.obj
+   cl /DTEST_PROGRAM $(BASE_FLAGS) marstime.cpp snprintf.obj
 
 moidtest.exe: moidtest.obj $(LIBNAME).lib
    $(LINK)    moidtest.obj $(LIBNAME).lib
@@ -190,6 +193,9 @@ test_des.exe: test_des.obj $(LIBNAME).lib
 
 test_ref.exe: test_ref.obj refract.obj refract4.obj
    $(LINK)    test_ref.obj refract.obj refract4.obj
+
+them_cat.exe: them_cat.cpp snprintf.obj
+   cl -DTEST_CODE $(BASE_FLAGS) them_cat.cpp snprintf.obj
 
 themis.exe:   themis.obj $(LIBNAME).lib
    $(LINK)    themis.obj $(LIBNAME).lib
