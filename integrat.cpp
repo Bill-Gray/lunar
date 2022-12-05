@@ -145,7 +145,8 @@ static FILE *err_fopen( const char *filename, const char *permits)
 #ifdef FORKING
 static char *chunk_filename( char *filename, const int chunk_number)
 {
-   sprintf( filename, "chunk%d.ugh", chunk_number);
+   assert( chunk_number >= 0 && chunk_number <= 99);
+   snprintf_err( filename, 12, "chunk%d.ugh", chunk_number);
    return( filename);
 }
 #endif
@@ -680,10 +681,6 @@ static double try_to_integrate( const char *header, char *buff, const double des
 
       integrate_orbit( &elem, elem.epoch, dest_jd, max_err, n_steps);
       put_elem_into_sof( header, buff, &elem);
-#if 0
-         sprintf( buff + 79, "%12.8f%12.7f", (180. / PI) / elem.t0,
-                                            elem.major_axis);
-#endif
       }
 
    if( pluto_removed)
@@ -920,15 +917,17 @@ int main( int argc, const char **argv)
          {
          starting_jd = tval;
          full_ctime( time_buff, starting_jd, FULL_CTIME_DATE_ONLY | 0x30);
-         sprintf( buff, "'%s' has elements for %s = JD %.1f (and possibly other epochs)\n",
-                                argv[1], time_buff, starting_jd);
+         snprintf_err( buff, sizeof( buff),
+                      "'%s' has elements for %s = JD %.1f (and possibly other epochs)\n",
+                      argv[1], time_buff, starting_jd);
          printf( "%s", buff);
          }
       if( tval != 0.)
          total_asteroids_in_file++;
       }
 
-   sprintf( buff, "%d asteroids to be integrated\n", total_asteroids_in_file);
+   snprintf_err( buff, sizeof( buff),
+                 "%d asteroids to be integrated\n", total_asteroids_in_file);
    printf( "%s", buff);
    fputs( header, ofile);
 
@@ -991,7 +990,7 @@ int main( int argc, const char **argv)
             }
          printf( "Hi!  I've got process number %d,  PID %d,  parent's is %d\n",
                         process_number, getpid( ), getppid( ));
-         sprintf( outfile_name, "chunk%d.ugh", process_number);
+         snprintf_err( outfile_name, sizeof( outfile_name), "chunk%d.ugh", process_number);
          ofile = err_fopen( chunk_filename( outfile_name, process_number), "wb");
          ifile = err_fopen( argv[1], "rb");
          fseek( ifile, offset, SEEK_SET);

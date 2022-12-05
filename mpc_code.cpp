@@ -25,6 +25,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 #include "watdefs.h"
 #include "mpc_func.h"
 #include "lunar.h"
+#include "stringex.h"
 
 #define SUN_RADIUS          695700e+3
 #define MERCURY_MAJOR_AXIS  2440530.
@@ -561,7 +562,7 @@ int get_lat_lon_info( mpc_code_t *cinfo, const char *buff)
          cinfo->name = buff;
          cinfo->format = MPC_CODE_LAT_LON_ALT;
          cinfo->prec1 = cinfo->prec2 = 0;
-         strcpy( cinfo->code, "Rov");
+         strlcpy_error( cinfo->code, "Rov");
          rval = 0;
          }
       }
@@ -647,7 +648,7 @@ int get_xxx_location_info( mpc_code_t *cinfo, const char *buff)
             cinfo->prec1 = cinfo->prec2 = 0;
             cinfo->name = "Temporary MPC code";
             cinfo->planet = 3;
-            strcpy( cinfo->code, "XXX");
+            strlcpy_error( cinfo->code, "XXX");
             _set_parallax_constants( cinfo);
             }
          }
@@ -689,11 +690,12 @@ static FILE *fopen_ext( const char *exec_path, const char *filename, const char 
    size_t i;
    FILE *rval;
 
-   strcpy( obuff, exec_path);
+   strlcpy_error( obuff, exec_path);
    i = strlen( obuff);
    while( i && obuff[i - 1] != '/' && obuff[i - 1] != '\\')
       i--;
-   strcpy( obuff + i, filename);
+   obuff[i] = '\0';
+   strlcat_err( obuff + i, filename, sizeof( obuff));
    rval = fopen( obuff, permits);
 // if( !rval)
 //    rval = fopen( obuff + i, permits);
@@ -804,16 +806,19 @@ int main( const int argc, const char **argv)
                fclose( ifile);
                }
             }
-#ifdef BITS_32
-         sprintf( obuff,
-#else
-         snprintf( obuff, sizeof( obuff),
-#endif
+         else                             /* not on Earth */
+            snprintf_err( region, sizeof( region), "@%d", code.planet);
+         snprintf_err( obuff, sizeof( obuff),
                  "%2d %-4s %10.6f %+10.6f %10.3f %9.7f %+10.7f %-15.15s ",
-                  code.planet,
+                  code.planet % 100,
                   code.code, code.lon, code.lat,
                   code.alt, code.rho_cos_phi, code.rho_sin_phi,
                   region);
+         if( code.planet > 99)            /* Lagrange points */
+            obuff[0] = obuff[1] = '-';
+         if( 78 != strlen( obuff))
+            fprintf( stderr, "'%s', len %d\n", obuff, (int)strlen( obuff));
+         assert( 78 == strlen( obuff));
          if( code.prec1)         /* long. precision: blank unused digits */
             memset( obuff + 12 + code.prec1, ' ', 6 - code.prec1);
          if( code.prec2)         /* parallax data prec: blank unused */

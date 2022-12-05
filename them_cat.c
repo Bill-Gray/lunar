@@ -22,6 +22,7 @@ over to replace the old file.       */
 #endif
 #include <stdbool.h>
 #include <time.h>
+#include "stringex.h"
 
 static FILE *err_fopen( const char *filename, const char *permits)
 {
@@ -55,16 +56,16 @@ int main( const int argc, const char **argv)
    for( i = 0; i < 3; i++)       /* skip lines */
       if( !fgets( buff, sizeof( buff), new_file))
          perror( "Error reading 'new' file");
-   strcpy( new_end, buff);
+   strlcpy_error( new_end, buff);
 
    while( !found_end && fgets( buff, sizeof( buff), old_file))
       {
       if( !memcmp( buff, "# Ephem range:", 14))
-         sprintf( buff + 28, "%f %f\n", end_jd_new, 1.);
+         snprintf_err( buff + 28, sizeof( buff) - 28, "%f %f\n", end_jd_new, 1.);
       if( !memcmp( buff, "# Ephemeris end:", 16))
-         strcpy( buff, new_end);
+         strlcpy_error( buff, new_end);
       if( !memcmp( buff, "# Last updated with", 19))
-         strcpy( buff + 42, ctime( &t0));
+         strlcpy_err( buff + 42, ctime( &t0), sizeof( buff) - 42);
 
       fputs( buff,  temp_file);
       if( !memcmp( buff, "# MJD ", 6) && atof( buff + 6) == jd0_new - 1.)

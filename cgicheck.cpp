@@ -20,6 +20,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 #include <string.h>
 #include "cgi_func.h"
 #include "watdefs.h"
+#include "stringex.h"
 
 /* Code to invoke the 'astcheck' routine from an HTML form.
 You'll see a _lot_ of overlap between this and 'sat_id2.cpp',
@@ -119,7 +120,7 @@ int main( const int unused_argc, const char **unused_argv)
                      search_radius, (unsigned)bytes_written);
    argv[0] = "cgicheck";
    argv[1] = temp_obs_filename;
-   sprintf( field, "-r%.2f", search_radius * 3600.);  /* cvt degrees to arcsec */
+   snprintf_err( field, sizeof( field), "-r%.2f", search_radius * 3600.);  /* cvt degrees to arcsec */
    argv[argc++] = field;
    argv[argc] = NULL;
    astcheck_main( argc, argv);

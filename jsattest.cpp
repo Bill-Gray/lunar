@@ -46,15 +46,16 @@ int main( const int argc, const char **argv)
    char buff[100];
    FILE *ifile;
    time_t t0 = time( NULL);
+   const int sat_number = (argc == 2 ? atoi( argv[1]) : 0);
 
-   if( argc != 2)
+   if( sat_number < 1 || sat_number > 4)
       {
       printf( "'jsattest' needs a command-line argument from 1 to 4,\n");
       printf( "corresponding to the number of the Galilean satellite\n");
       printf( "that is being tested.\n");
       return( -1);
       }
-   sprintf( buff, "j%s.txt", argv[1]);
+   snprintf( buff, 7, "j%s.txt", argv[1]);
    ifile = fopen( buff, "rb");
    if( !ifile)
       {
@@ -69,7 +70,7 @@ int main( const int argc, const char **argv)
       if( strlen( buff) > 56 && !memcmp( buff + 37, "00:00:00.0000 (CT)", 18))
          {
          const double jd = atof( buff );
-         double loc[15], *tptr = loc + atoi( argv[1]) * 3 - 3;
+         double loc[15], *tptr = loc + (sat_number - 1) * 3;
          double precess_matrix[9];
          double j2000_loc[3], x, y, z, r;
 

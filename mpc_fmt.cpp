@@ -25,6 +25,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 #include "afuncs.h"
 #include "date.h"
 #include "mpc_func.h"
+#include "stringex.h"
 
 #if defined(_MSC_VER) && _MSC_VER < 1900
 int snprintf( char *string, const size_t max_len, const char *format, ...);
@@ -606,7 +607,10 @@ static int extract_roman_numeral( const char *str)
 }
 
 /* Packs desigs such as 'Uranus XXIV' or 'Earth I' or 'Saturn DCCXLVIII',
-or 'Uranus 24' or 'Earth 1' or 'Saturn 748'.  */
+or 'Uranus 24' or 'Earth 1' or 'Saturn 748'.  Packed designations are,
+including padding,  exactly twelve bytes long plus a null terminator. */
+
+#define PACKED_DESIG_LEN   13
 
 static int pack_permanent_natsat( char *packed, const char *fullname)
 {
@@ -626,7 +630,7 @@ static int pack_permanent_natsat( char *packed, const char *fullname)
             sat_number = extract_roman_numeral( fullname + len + 1);
          if( sat_number > 0 && sat_number < 1000)
             {
-            sprintf( packed, "%c%03dS       ", *fullname, sat_number);
+            snprintf_err( packed, PACKED_DESIG_LEN, "%c%03dS       ", *fullname, sat_number);
             return( (int)i);
             }
          }
@@ -647,7 +651,7 @@ static int pack_provisional_natsat( char *packed, const char *fullname)
 
       if( year > 1900 && year < 2100 && num > 0 && num < 620)
          {
-         sprintf( packed, "    S%c%02d%c%c%c0",
+         snprintf_err( packed, PACKED_DESIG_LEN, "    S%c%02d%c%c%c0",
                'A' + (year / 100) - 10, year % 100, fullname[7],
                      int_to_mutant_hex_char( num / 10),
                      '0' + num % 10);
@@ -796,7 +800,7 @@ int create_mpc_packed_desig( char *packed_desig, const char *obj_name)
       {           /* permanently numbered asteroid */
       rval = 0;
       if( number < 620000)
-         sprintf( packed_desig, "%c%04d       ",
+         snprintf_err( packed_desig, PACKED_DESIG_LEN, "%c%04d       ",
                int_to_mutant_hex_char( number / 10000),
                number % 10000);
       else
@@ -819,7 +823,7 @@ int create_mpc_packed_desig( char *packed_desig, const char *obj_name)
       if( i == len || n_fragment_letters)
          {
          rval = 0;
-         sprintf( packed_desig, "%04d%c       ", number, comet_desig);
+         snprintf_err( packed_desig, PACKED_DESIG_LEN, "%04d%c       ", number, comet_desig);
          if( n_fragment_letters == 1)
             packed_desig[11] = obj_name[i + 1] + 'a' - 'A';
          if( n_fragment_letters == 2)

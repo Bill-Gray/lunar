@@ -226,8 +226,8 @@ calendar$(EXE): calendar.o $(LIBLUNAR)
 cgicheck$(EXE): astcheck.cpp $(LIBLUNAR) cgicheck.o
 	$(CC) $(CFLAGS) -o cgicheck$(EXE) -DCGI_VERSION cgicheck.o astcheck.cpp $(LIBLUNAR) $(LIBSADDED)
 
-chinese$(EXE): chinese.cpp
-	$(CC) $(CFLAGS) -o chinese$(EXE) chinese.cpp
+chinese$(EXE): chinese.cpp snprintf.o
+	$(CC) $(CFLAGS) -o chinese$(EXE) chinese.cpp snprintf.o
 
 colors$(EXE): colors.cpp
 	$(CC) $(CFLAGS) -o colors$(EXE) colors.cpp -DSIMPLE_TEST_PROGRAM
@@ -277,8 +277,8 @@ jsattest$(EXE): jsattest.o $(LIBLUNAR)
 lun_test$(EXE): lun_test.o lun_tran.o riseset3.o $(LIBLUNAR)
 	$(CC) $(CFLAGS) -o lun_test$(EXE) lun_test.o lun_tran.o riseset3.o $(LIBLUNAR) $(LIBSADDED)
 
-marstime$(EXE): marstime.cpp
-	$(CC) $(CFLAGS) -o marstime$(EXE) marstime.cpp -DTEST_PROGRAM $(LIBSADDED)
+marstime$(EXE): marstime.cpp snprintf.o
+	$(CC) $(CFLAGS) -o marstime$(EXE) marstime.cpp snprintf.o -DTEST_PROGRAM $(LIBSADDED)
 
 mms$(EXE):                    mms.o $(LIBLUNAR)
 	$(CC) $(CFLAGS) -o mms$(EXE) mms.o $(LIBLUNAR) $(LIBSADDED)
@@ -290,7 +290,7 @@ mpc2sof$(EXE): mpc2sof.cpp mpcorb.o $(LIBLUNAR)
 	$(CC) $(CFLAGS) -o mpc2sof$(EXE) mpc2sof.cpp mpcorb.o $(LIBLUNAR) $(LIBSADDED)
 
 mpc_code$(EXE): mpc_code.cpp
-	$(CC) $(CFLAGS) -o mpc_code$(EXE) mpc_code.cpp -DTEST_CODE
+	$(CPP) $(CFLAGS) -o mpc_code$(EXE) mpc_code.cpp snprintf.o -DTEST_CODE
 
 oblitest$(EXE): oblitest.o obliqui2.o $(LIBLUNAR)
 	$(CC) $(CFLAGS) -o oblitest$(EXE) oblitest.o obliqui2.o $(LIBLUNAR) $(LIBSADDED)
@@ -343,8 +343,8 @@ testprec$(EXE):                    testprec.o $(LIBLUNAR)
 test_min$(EXE):                    test_min.o brentmin.o
 	$(CC) $(CFLAGS) -o test_min$(EXE) test_min.o brentmin.o $(LIBSADDED)
 
-them_cat$(EXE): them_cat.c
-	$(CC) $(CFLAGS) -o them_cat$(EXE) them_cat.c
+them_cat$(EXE): them_cat.c snprintf.o
+	$(CC) $(CFLAGS) -o them_cat$(EXE) them_cat.c snprintf.o
 
 mpc_time$(EXE):                    mpc_time.c $(LIBLUNAR)
 	$(CC) $(CFLAGS) -o mpc_time$(EXE) mpc_time.c $(LIBLUNAR) $(LIBSADDED)

@@ -27,6 +27,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 #include "date.h"
 #include "afuncs.h"
 #include "riseset3.h"
+#include "stringex.h"
 
 const static double pi =
      3.1415926535897932384626433832795028841971693993751058209749445923078;
@@ -172,7 +173,7 @@ void format_hh_mm( char *buff, const double time)
       {
       const int minutes = (int)( time * 24. * 60.);
 
-      sprintf( buff, "%02d:%02d", minutes / 60, minutes % 60);
+      snprintf_err( buff, 6, "%02d:%02d", minutes / 60, minutes % 60);
       }
 }
 
@@ -201,7 +202,7 @@ int get_zip_code_data( const int zip_code, double *latitude,
                place_name[i] = buff[i + 48];
             buff[8] = '\0';
                   /* Add on two-letter state abbr: */
-            sprintf( place_name + i, ", %s", buff + 6);
+            snprintf_err( place_name + i, 5, ", %s", buff + 6);
             }
          rval = 0;
          }

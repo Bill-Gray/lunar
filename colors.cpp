@@ -390,17 +390,17 @@ int main( const int argc, const char **argv)
                }
          if( bv_flag > 1 && b_minus_v < 98.)
             {
-            sprintf( buff + BV_OFFSET, "%5.2f", b_minus_v);
+            snprintf_err( buff + BV_OFFSET, 6, "%5.2f", b_minus_v);
             buff[BV_OFFSET + 6] = bv_flag;
             }
          if( vr_flag > 1 && v_minus_r < 98.)
             {
-            sprintf( buff + VR_OFFSET, "%5.2f", v_minus_r);
+            snprintf_err( buff + VR_OFFSET, 6, "%5.2f", v_minus_r);
             buff[VR_OFFSET + 6] = vr_flag;
             }
          if( vi_flag > 1 && v_minus_i < 98.)
             {
-            sprintf( buff + VI_OFFSET, "%5.2f", v_minus_i);
+            snprintf_err( buff + VI_OFFSET, 6, "%5.2f", v_minus_i);
             buff[VI_OFFSET + 6] = vi_flag;
             }
          for( i = 0; i < LINE_END; i++)

@@ -19,11 +19,13 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <assert.h>
 #include "watdefs.h"
 #include "mpc_func.h"
 #include "lunar.h"
 #include "afuncs.h"
 #include "date.h"
+#include "stringex.h"
 
 /* Examples for computing topocentric positions of the moon
 and planets,  using PS1996 and ELP-82.  For JD 2456789.0,
@@ -153,9 +155,10 @@ static double make_ra_dec_string( double *vect, char *buff)
       ra += 24.;
 
    units = (long)( ra * 3600. * 10000.);
-   sprintf( buff, "%02ldh %02ldm %02ld.%04lds   ",
+   snprintf_err( buff, 20, "%02ldh %02ldm %02ld.%04lds   ",
          units / 36000000L, (units / 600000L) % 60L,
          (units / 10000L) % 60L, units % 10000L);
+   assert( 19 == strlen( buff));
    buff += strlen( buff);
 
    if( dec < 0.)
@@ -167,9 +170,10 @@ static double make_ra_dec_string( double *vect, char *buff)
       *buff++ = '+';
 
    units = (long)( dec * 3600. * 1000.);
-   sprintf( buff, "%02ld %02ld' %02ld.%03ld\"   ",
+   snprintf_err( buff, 18, "%02ld %02ld' %02ld.%03ld\"   ",
          units / 3600000L, (units / 60000L) % 60L,
          (units / 1000L) % 60L, units % 1000L);
+   assert( 17 == strlen( buff));
    return( dist);
 }
 
@@ -290,7 +294,7 @@ int main( const int argc, const char **argv)
 
          p = load_ps1996_series( ifile, jd_td, planet_no);
          if( !p)
-            strcpy( buff, "No data for that time");
+            strlcpy_error( buff, "No data for that time");
          else
             {
             double dist = 0., state_vect[6], delta[3];

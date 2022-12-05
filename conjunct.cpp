@@ -203,7 +203,7 @@ static void search_conjunctions( void *jpleph,
                inner_margin /= AU_IN_KM;
                full_ctime( buff, jd, 0);
                dsquared[1] = sqrt( dsquared[1]);
-               sprintf( obuff, "%2d %2d%7.3lf  %s", i, j,
+               snprintf( obuff, sizeof( obuff), "%2d %2d%7.3lf  %s", i, j,
                               (180. / PI) * dsquared[1], buff);
                if( occult_margin > dsquared[1])
                   {

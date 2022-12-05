@@ -38,6 +38,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 #include <stdlib.h>
 #ifdef TEST_PROGRAM
 #include <stdio.h>
+#include <string.h>
+#include <assert.h>
+#include "stringex.h"
 #endif
 
 const double days_per_sol = 1.0274912517;
@@ -152,11 +155,12 @@ static void format_time( const double day, char *buff)
    const double time_of_day = day - floor( day);
    const int n_millisec = (int)( time_of_day * 24. * 60. * 60. * 1000. + .5);
 
-   sprintf( buff, "%02d:%02d:%02d.%03d",
+   snprintf_err( buff, 13, "%02d:%02d:%02d.%03d",
             n_millisec / (60 * 60 * 1000),      /* hour */
             (n_millisec / (60 * 1000)) % 60,    /* minutes */
             (n_millisec / 1000) % 60,           /* seconds */
             n_millisec % 1000);                 /* millisec */
+   assert( 12 == strlen( buff));
 }
 
 int main( const int argc, const char **argv)

@@ -35,6 +35,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 #include "comets.h"
 #include "afuncs.h"
 #include "mpc_func.h"
+#include "stringex.h"
 
 #define PI 3.1415926535897932384626433832795028841971693993751058209749445923
 #define LOG_10 2.3025850929940456840179914546843642076011014886287729760333279009675726
@@ -126,10 +127,10 @@ static FILE *get_file_from_path( const char *filename, const char *permits)
       {
       char buff[450];
 
-      strcpy( buff, data_path);
+      strlcpy_error( buff, data_path);
       if( buff[strlen( buff) - 1] != '/')
-         strcat( buff, "/");
-      strcat( buff, filename);
+         strlcat_error( buff, "/");
+      strlcat_error( buff, filename);
       fp = fopen( buff, permits);
       }
    if( !fp)
@@ -154,7 +155,7 @@ static FILE *get_sof_file( const char *filename)
          }
       record_length = (int)strlen( buff);
       assert( record_length < MAX_SOF_SIZE);
-      strcpy( sof_header, buff);
+      strlcpy_error( sof_header, buff);
       fseek( ifile, 0L, SEEK_END);
       filelen = ftell( ifile);
       if( filelen % record_length)
@@ -315,7 +316,7 @@ static AST_DATA *get_cached_day_data( const int ijd)
    full_ctime( filename, (double)ijd, FULL_CTIME_YMD | FULL_CTIME_NO_SPACES
                      | FULL_CTIME_DATE_ONLY | FULL_CTIME_MONTHS_AS_DIGITS
                      | FULL_CTIME_LEADING_ZEROES);
-   strcat( filename, ".chk");
+   strlcat_error( filename, ".chk");
    if( verbose > 2)
       printf( "Creating '%s'\n", filename);
    ifile = get_file_from_path( filename, "rb");
@@ -530,16 +531,16 @@ static char _dummy_filename[40];
 
 static void make_fake_file( const char **argv)
 {
-   char buff[181];
+   char buff[81];
    const double jd = get_time_from_string( 0., argv[2], 0, NULL);
    const double ra = atof( argv[3]);
    const double dec = atof( argv[4]);
    FILE *ofile = fopen( _dummy_filename, "wb");
 
-   strcpy( buff, "    dummy     C");
-   sprintf( buff + 15, "%16.8f %011.7f %+011.7f", jd, ra, dec);
-   strcat( buff, "                 Synth");
-   strcat( buff, argv[5]);          /* MPC code */
+   strlcpy_error( buff, "    dummy     C");
+   snprintf_append( buff, 56, "%16.8f %011.7f %+011.7f", jd, ra, dec);
+   strlcat_error( buff, "                 Synth");
+   strlcat_error( buff, argv[5]);          /* MPC code */
    fprintf( ofile, "%s\n", buff);
    fclose( ofile);
    assert( strlen( buff) == 80);
@@ -620,7 +621,7 @@ int main( const int argc, const char **argv)
       return( -1);
       }
 #ifdef _WIN32
-   strcpy( _dummy_filename, "astcheck.tmp");
+   strlcpy_error( _dummy_filename, "astcheck.tmp");
 #else
    snprintf( _dummy_filename, sizeof( _dummy_filename), "astcheck%d.tmp",
                         (int)getpid( ));
@@ -769,7 +770,7 @@ int main( const int argc, const char **argv)
             {
             int got_station_data = 0;
 
-            strcpy( curr_station, ilines[n] + 77);
+            strlcpy_error( curr_station, ilines[n] + 77);
             curr_station[3] = '\0';
             fseek( mpc_station_file, 0L, SEEK_SET);
             rho_sin_phi = rho_cos_phi = longitude = 0.;

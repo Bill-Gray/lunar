@@ -61,6 +61,7 @@ and saved the result.  Then :
 #include <string.h>
 #include <stdlib.h>
 #include <math.h>
+#include "stringex.h"
 
 #define YEAR_DATA struct year_data
 
@@ -117,7 +118,7 @@ static void dump_data( char *text[], const int n_found)
 
          if( n_found == 25 && !intercalary_month && text[i + 1][8] == ' ')
             {
-            sprintf( text[i] + 31, "%4di%5d\n", prev_month, prev_year);
+            snprintf_err( text[i] + 31, 12, "%4di%5d\n", prev_month, prev_year);
             intercalary_month = prev_month;
             if( prev_year >= year0 && prev_year < year0 + n_years)
                ydata[prev_year - year0].intercalary_month =
@@ -125,7 +126,7 @@ static void dump_data( char *text[], const int n_found)
             }
          else           /* it was just a normal month... move on by one */
             {
-            sprintf( text[i] + 31, "%4d%6d\n", month, year);
+            snprintf_err( text[i] + 31, 12, "%4d%6d\n", month, year);
             month++;
             if( month == 13)
                {

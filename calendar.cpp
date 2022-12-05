@@ -30,6 +30,7 @@ long integers;  replaced lots of "long"s with "int32_t"s. */
 #include "watdefs.h"
 #include "afuncs.h"
 #include "date.h"
+#include "stringex.h"
 
 #define LEGAL_SIZE (72 * 14)
 #define US_LETTER_SIZE (72 * 11)
@@ -77,15 +78,15 @@ static void show_month_text( const int month, const int year)
 {
    char buff[80];
 
-   sprintf( buff, "%s %d", months[month - 1], year);
+   snprintf_err( buff, sizeof( buff), "%s %d", months[month - 1], year);
    if( show_jd_values)
       {
       const long jd = dmy_to_day( 0, month, (long)year, CALENDAR_JULIAN_GREGORIAN) - 1;
 
       if( show_jd_values == SHOW_JD)
-         sprintf( buff + strlen( buff), " (JD %ld.5)", jd);
+         snprintf_append( buff, sizeof( buff), " (JD %ld.5)", jd);
       else
-         sprintf( buff + strlen( buff), " (MJD %ld)", jd - 2400000L);
+         snprintf_append( buff, sizeof( buff), " (MJD %ld)", jd - 2400000L);
       }
 
    fprintf( ofile, "%d %d moveto (%s) show\n",
@@ -163,7 +164,7 @@ static void show_small_month( int month, int year, const int x0, int y0)
    n_days = (int)( jd2 - jd1);
    starting_loc = (int)( (jd1 + 2L) % 7L);
    strcpy( buff, months[month - 1]);
-   sprintf( buff + strlen( buff), " %d", year);
+   snprintf_append( buff, sizeof( buff), " %d", year);
    y0 -= 12;
    if( get_phase_data( jd1 - 10, t_phases))
       for( i = 0; i < 12; i++)
@@ -240,7 +241,7 @@ static char **grab_dates( const int month, const int year)
 
    if( !rval)
       return( rval);
-   sprintf( file_for_year, "date%d.txt", year);
+   snprintf_err( file_for_year, sizeof( file_for_year), "date%d.txt", year);
    for( pass = 0; pass < (kate_style ? 1u : 2u); pass++)
       {
       const char *date_filename = (kate_style ? "katedate.txt" : "dates.txt");
@@ -383,8 +384,6 @@ static char **grab_dates( const int month, const int year)
                {
                *tptr++ = (char)day;
                strcpy( tptr, phasestr);
-//             sprintf( tptr + strlen( tptr), " (%ld:%02ld)",
-//                      (minutes / 60) % 24, minutes % 60);
                n_found++;
                }
             }
@@ -543,11 +542,11 @@ static int calendar( const int month, const int year)
       if( !wraparound_style && !ycell
                       && i + 7 <= n_days)     /* two days in one cell */
          {
-         sprintf( buff, "%d/%d", i, i + 7);
+         snprintf_err( buff, 6, "%d/%d", i, i + 7);
          double_cell = 1;
          }
       else
-         sprintf( buff, "%d", i);
+         snprintf_err( buff, 3, "%d", i);
       if( wraparound_style && ycell < 0)    /* this is a wraparound case */
          ycell = 4;
       x0 = X0 + xcell * xsize;

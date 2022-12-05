@@ -54,13 +54,13 @@ static double r0[10] = { 0., .25, .72, 1., 1.52, 5.2, 9.54, 19.2, 30.0, 40.0 };
 void lon_lat_diff( char *buff, double t, int planet1, int planet2,
                   double *d_lon, double *d_lat, double *elong)
 {
-   double t_c, t_c2;
-   double r1, r2, lat1, lat2, lon1, lon2;
+   double lat1, lat2, lon1, lon2;
 
-   t_c = (t - 2451545.) / 36525.;     /* cvt to julian centuries */
-   r1 = calc_vsop_loc( buff, planet1, 2, t_c, 0.);
-   r2 = calc_vsop_loc( buff, planet2, 2, t_c, 0.);
-   t_c2 = t_c - (r1 - r2) / (AU_PER_DAY * 36525.);
+   const double t_c = (t - 2451545.) / 36525.;     /* cvt to julian centuries */
+   const double r1 = calc_vsop_loc( buff, planet1, 2, t_c, 0.);
+   const double r2 = calc_vsop_loc( buff, planet2, 2, t_c, 0.);
+   const double t_c2 = t_c - (r1 - r2) / (AU_PER_DAY * 36525.);
+
    assert( d_lat || d_lon);
    if( d_lat)
       {
@@ -78,11 +78,11 @@ void lon_lat_diff( char *buff, double t, int planet1, int planet2,
       }
    if( elong && d_lat && d_lon)
       {
-      double dx = r1 * cos( lat1) * cos( lon1) - r2 * cos( lat2) * cos( lon2);
-      double dy = r1 * cos( lat1) * sin( lon1) - r2 * cos( lat2) * sin( lon2);
-      double dz = r1 * sin( lat1)              - r2 * sin( lat2);
-      double dist = sqrt( dx * dx + dy * dy + dz * dz);
-      double cos_elong = ( r1 * r1 + dist * dist - r2 * r2) / (2. * r1 * dist);
+      const double dx = r1 * cos( lat1) * cos( lon1) - r2 * cos( lat2) * cos( lon2);
+      const double dy = r1 * cos( lat1) * sin( lon1) - r2 * cos( lat2) * sin( lon2);
+      const double dz = r1 * sin( lat1)              - r2 * sin( lat2);
+      const double dist = sqrt( dx * dx + dy * dy + dz * dz);
+      const double cos_elong = ( r1 * r1 + dist * dist - r2 * r2) / (2. * r1 * dist);
 
       *elong = acos( cos_elong);
       }
@@ -198,7 +198,7 @@ int main( const int argc, const char **argv)
          double stepsize, elong[3], delta = 9999.;
          const char *text[4] = { "Inf Conj", "West Elo",
                                  "Sup Conj", "East Elo" };
-         char obuff[80];
+         char obuff[120];
 
          while( delta > .001 || delta < -.001)
             {
@@ -215,7 +215,9 @@ int main( const int argc, const char **argv)
             t += delta;
             }
          full_ctime( str, t, 0);
-         sprintf( obuff, "%s %s %5.2lf", text[loop_count & 3], str,
+         assert( strlen( str) < 40);
+         assert( elong[1] > 0. && elong[1] < PI);
+         snprintf( obuff, sizeof( obuff), "%s %s %5.2lf", text[loop_count & 3], str,
                                               elong[1] * 180. / PI);
          printf( "%s\n", obuff);
          if( logfile && for_etb)

@@ -203,7 +203,7 @@ int unpack_mpc_desig( char *obuff, const char *packed)
          {
          if( obuff)
             {
-            sprintf( obuff, "S/%d%c%c", 20 + packed[5] - 'K',
+            snprintf_err( obuff, 7, "S/%d%c%c", 20 + packed[5] - 'K',
                                      packed[6], packed[7]);
             obuff[6] = ' ';
             obuff[7] = packed[8];       /* planet identifier */
@@ -231,7 +231,7 @@ int unpack_mpc_desig( char *obuff, const char *packed)
       if( num >= 0)    /* yes,  it's a valid 'extended' numbered object */
          {
          if( obuff)
-            sprintf( obuff, "(%d)", num + 620000);
+            snprintf_err( obuff, 10, "(%d)", num + 620000);
          return( OBJ_DESIG_ASTEROID_NUMBERED);
          }
       }
@@ -253,12 +253,12 @@ int unpack_mpc_desig( char *obuff, const char *packed)
             rval = OBJ_DESIG_ASTEROID_NUMBERED;
             if( obuff)
                {
-               sprintf( obuff, "(%d)", number);
+               snprintf_err( obuff, 13, "(%d)", number);
                   /* Desig may be,  e.g., "U4330K06SL7X" : both the number */
                   /* and the provisional desig.  We'd like to decipher this */
                   /* as (for the example) "304330 = 2006 SX217".            */
                if( *provisional_desig)
-                  sprintf( obuff + strlen( obuff), " = %s", provisional_desig);
+                  snprintf_append( obuff, 23, " = %s", provisional_desig);
                }
             }
          }

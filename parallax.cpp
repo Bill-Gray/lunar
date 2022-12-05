@@ -6,6 +6,7 @@
 #include "watdefs.h"
 #include "afuncs.h"
 #include "mpc_func.h"
+#include "stringex.h"
 
 /* Test program I run when I encounter a latitude/altitude and want to turn
 it into parallax constants,  or vice versa.  See following 'error_exit'
@@ -33,7 +34,7 @@ static char *show_angle( char *buff, double angle)
    const long microarcsec = (long)( fabs( angle) * 3600e+5);
 
    *buff = (angle < 0 ? '-' : '+');
-   sprintf( buff + 1, "%02ld %02ld %02ld.%05ld",
+   snprintf_err( buff + 1, 16, "%02ld %02ld %02ld.%05ld",
                (microarcsec / 360000000L),         /* degrees */
                (microarcsec / 6000000L) % 60L,     /* arcminutes */
                (microarcsec / 100000L) % 60L,     /* arcseconds */
@@ -53,12 +54,12 @@ static int get_mpc_obscode_data( loc_t *loc, const char *mpc_code)
       mpc_code_t code_data;
 
 #ifdef CGI_VERSION
-      strcpy( buff, "/home/projectp/public_html/cgi_bin/fo/");
+      strlcpy_error( buff, "/home/projectp/public_html/cgi_bin/fo/");
 #else
-      strcpy( buff, getenv( "HOME"));
-      strcat( buff, "/.find_orb/");
+      strlcpy_error( buff, getenv( "HOME"));
+      strlcat_error( buff, "/.find_orb/");
 #endif
-      strcat( buff, ifilename);
+      strlcat_error( buff, ifilename);
       ifile = fopen( buff, "rb");
       if( !ifile)
          ifile = fopen( ifilename, "rb");
@@ -110,6 +111,14 @@ static void show_location( const loc_t *loc)
       {
       FILE *ifile = fopen( "geo_rect.txt", "rb");
 
+#ifndef CGI_VERSION
+      if( !ifile)
+         {
+         strlcpy_error( buff, getenv( "HOME"));
+         strlcat_error( buff, "/.find_orb/geo_rect.txt");
+         ifile = fopen( buff, "rb");
+         }
+#endif
       printf( "xyz in Earth radii %+.7f %+.7f %+.7f\n",
                   loc->x, loc->y, loc->rho_sin_phi);
       printf( "xyz in meters      %+.5f %+.5f %+.5f\n",
@@ -120,7 +129,7 @@ static void show_location( const loc_t *loc)
          {
          extract_region_data_for_lat_lon( ifile, buff, loc->lat, loc->lon);
          if( *buff)
-            printf( "This point is somewhere in %s\n", buff + 1);
+            printf( "This point is somewhere in %s\n", buff + 2);
          fclose( ifile);
          }
       }
