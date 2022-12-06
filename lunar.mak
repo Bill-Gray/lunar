@@ -194,8 +194,8 @@ test_des.exe: test_des.obj $(LIBNAME).lib
 test_ref.exe: test_ref.obj refract.obj refract4.obj
    $(LINK)    test_ref.obj refract.obj refract4.obj
 
-them_cat.exe: them_cat.cpp snprintf.obj
-   cl -DTEST_CODE $(BASE_FLAGS) them_cat.cpp snprintf.obj
+them_cat.exe: them_cat.c snprintf.obj
+   cl -DTEST_CODE $(BASE_FLAGS) them_cat.c snprintf.obj
 
 themis.exe:   themis.obj $(LIBNAME).lib
    $(LINK)    themis.obj $(LIBNAME).lib

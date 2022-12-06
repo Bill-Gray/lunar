@@ -79,7 +79,11 @@ int main( const int argc, const char **argv)
       fputs( buff, temp_file);
    fclose( temp_file);
    fclose( new_file);
+#ifdef _WIN32
+   _unlink( argv[1]);
+#else
    unlink( argv[1]);
+#endif
    rename( "ickywax.ugh", argv[1]);
    return( 0);
 }
