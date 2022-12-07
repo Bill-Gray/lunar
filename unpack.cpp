@@ -224,14 +224,18 @@ int unpack_mpc_desig( char *obuff, const char *packed)
 
             /* Check for numbered asteroids (620000) or greater.  See MPEC
             2019-O55 for explanation of this 'extended numbering scheme'. */
-   if( packed[0] == '~' && (space_mask & 0x3e0) == 0x3e0)
+   if( packed[0] == '~' && ((space_mask & 0x3e0) == 0x3e0 || !(space_mask & 0x3e0)))
       {
       const int num = get_mutant_hex_value( packed + 1, 4);
 
       if( num >= 0)    /* yes,  it's a valid 'extended' numbered object */
          {
          if( obuff)
-            snprintf_err( obuff, 10, "(%d)", num + 620000);
+            {
+            snprintf_err( obuff, 11, "(%d)", num + 620000);
+            if( *provisional_desig)
+               snprintf_append( obuff, 24, " %s", provisional_desig);
+            }
          return( OBJ_DESIG_ASTEROID_NUMBERED);
          }
       }
