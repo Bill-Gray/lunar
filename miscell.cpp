@@ -331,7 +331,11 @@ void DLL_FUNC full_ctimel( char *buff, long double t2k, const int format)
       {
       char tbuff[40];
 
+#ifdef _WIN32
+      snprintf( tbuff, sizeof( tbuff), "%21.16Lf", t2k / 365.25 + 2000.);
+#else
       snprintf_err( tbuff, sizeof( tbuff), "%21.16Lf", t2k / 365.25 + 2000.);
+#endif
       tbuff[precision + 5] = '\0';
       if( !precision)
          tbuff[4] = '\0';
