@@ -270,6 +270,7 @@ int process_file( const char *filename)
    int i, n_offsets = 0;
 
    assert( ifile);
+   printf( "COM add_off ver 2022 Dec 07,  run %s", ctime( &t0));
    while( fgets( buff, sizeof( buff), ifile))
       if( buff[14] == 'S' && (jd = get_sat_obs_jd( buff)) != 0.)
          {
@@ -300,24 +301,29 @@ int process_file( const char *filename)
          for( i = 0; idx < 0 && i < n_offsets; i++)
             if( !memcmp( buff + 77, offsets[i].mpc_code, 3)
                        && fabs( jd - offsets[i].jd) < tolerance)
-               {
-               printf( "COM Spacecraft vel %f %f %f km/s\n",
-                              offsets[i].vel[0], offsets[i].vel[1], offsets[i].vel[2]);
                idx = i;
-               }
-         printf( "%s", buff);
          if( idx >= 0)
             {
+            char vel_buff[80];
+
+            snprintf_err( vel_buff, sizeof( vel_buff),
+                     "COM vel (km/s) %.16s%+13.7f%+13.7f%+13.7f %.3s\n",
+                     buff + 15,
+                     offsets[idx].vel[0], offsets[idx].vel[1],
+                     offsets[idx].vel[2], offsets[idx].mpc_code);
+            printf( "%s", vel_buff);
+            printf( "%s", buff);
             set_mpc_style_offsets( buff, offsets[idx].xyz);
             printf( "%s", buff);
             }
+         else
+            printf( "%s", buff);
          }
    fclose( ifile);
    free( offsets);
    printf( "COM %d positions set by add_off; %d failed in %.2f seconds\n",
          n_positions_set, n_positions_failed,
          (double)clock( ) / (double)CLOCKS_PER_SEC);
-   printf( "COM add_off ver " __DATE__ " " __TIME__ " run at %s", ctime( &t0));
    return( 0);
 }
 
