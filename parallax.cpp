@@ -81,9 +81,9 @@ static int get_mpc_obscode_data( loc_t *loc, const char *mpc_code)
             loc->y = sin( loc->lon) * loc->rho_cos_phi;
             rval = 0;
             printf( "%s !%+014.9f  %+013.9f %9.3f   %s\n", mpc_code,
-                  loc->lon * 180. / PI - 0.000026364,
-                  loc->lat * 180. / PI + 0.000013133,
-                  loc->alt + 4.975, code_data.name);
+                  loc->lon * 180. / PI,
+                  loc->lat * 180. / PI,
+                  loc->alt, code_data.name);
             }
       fclose( ifile);
       }
