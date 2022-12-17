@@ -46,6 +46,16 @@ bool is_valid_mpc_code( const char *mpc_code)
    return( true);
 }
 
+double quick_atof( const char *ibuff);       /* mpc_func.cpp */
+
+static inline int quick_atoi( const char *iptr)
+{
+   int rval = 0;
+
+   while( *iptr >= '0' && *iptr <= '9')
+      rval = (rval * 10) + (*iptr++ - '0');
+   return( rval);
+}
 
 static inline int get_two_digits( const char *iptr)
 {
@@ -186,16 +196,16 @@ double extract_date_from_mpc_report( const char *buff, unsigned *format)
       if( (digits_mask & 0x3ff) == 0x36f    /* i.e.,  'dddd dd dd' */
                             && tbuff[7] == ' ' && tbuff[10] == '.')
          {
-         int divisor = 1;
+         int divisor = 1000000;
 
-         year = atoi( tbuff);
+         year = quick_atoi( tbuff);
          month = get_two_digits( tbuff + 5);
 //       rval = atof( tbuff + 8);
                      /* atof( ) is a little slow,  so we use a little more */
-         for( i = 11; i < 17 && tbuff[i] != ' '; i++)  /* code in exchange */
-            divisor *= 10;                             /* for better speed */
+         for( i = 16; i > 11 && tbuff[i] == ' '; i--)  /* code in exchange */
+            divisor /= 10;                             /* for better speed */
          rval = (double)get_two_digits( tbuff + 8) +
-                           (double)atoi( tbuff + 11) / (double)divisor;
+                           (double)quick_atoi( tbuff + 11) / (double)divisor;
          format_found = 0;
          start_of_decimals = 11;
          }
@@ -346,7 +356,7 @@ static double get_ra_dec( const char *ibuff, int *format, double *precision)
       ibuff++;
    memcpy( buff, ibuff, 12);
    buff[12] = '\0';
-   rval = atof( buff);
+   rval = quick_atof( buff);
    while( isdigit( buff[i]))
       i++;
    if( i > 7)        /* "packed" highly precise RA/decs described above */
@@ -386,10 +396,10 @@ static double get_ra_dec( const char *ibuff, int *format, double *precision)
       }
    else if( buff[2] == ' ' && i == 2)  /* zz mm(.mmm...) or zz mm ss(.sss...)  */
       {
-      rval += atof( buff + 3) / 60.;
+      rval += quick_atof( buff + 3) / 60.;
       if( buff[5] == ' ' && isdigit( buff[7]))  /* i.e., seconds are given */
          {
-         rval += atof( buff + 6) / 3600.;
+         rval += quick_atof( buff + 6) / 3600.;
          for( i = 9; i < 12 && isdigit( buff[i]); i++)
             n_digits++;
          *format = n_digits;
@@ -406,7 +416,7 @@ static double get_ra_dec( const char *ibuff, int *format, double *precision)
       {
       *precision = 1. / 15.;
       *format = 2;
-      rval += atof( buff + 4) / 60. + atof( buff + 7) / 3600.;
+      rval += quick_atof( buff + 4) / 60. + quick_atof( buff + 7) / 3600.;
       rval /= 15;
       for( i = 10; isdigit( buff[i]) && i < 12; i++)
          n_digits++;
@@ -686,7 +696,7 @@ int create_mpc_packed_desig( char *packed_desig, const char *obj_name)
    size_t i, j, len;
    int rval = -1;
    bool in_parentheses = false;
-   unsigned number;
+   unsigned number = 0;
    char comet_desig = 0;
    const unsigned max_number = 620000 + 62 * 62 * 62 * 62;
 
@@ -705,7 +715,7 @@ int create_mpc_packed_desig( char *packed_desig, const char *obj_name)
       }
                /* Check for comet-style desigs such as 'P/1995 O1' */
                /* and such.  Leading character can be P, C, X, D, or A. */
-   if( strchr( "PCXDA", *obj_name) && obj_name[1] == '/')
+   if( obj_name[1] == '/' && strchr( "PCXDA", *obj_name))
       {
       comet_desig = *obj_name;
       obj_name += 2;
@@ -713,10 +723,9 @@ int create_mpc_packed_desig( char *packed_desig, const char *obj_name)
 
    memset( packed_desig, ' ', 12);
    packed_desig[12] = '\0';
-   number = atoi( obj_name);
    i = 0;
    while( isdigit( obj_name[i]))
-      i++;
+      number = (number * 10) + (unsigned)( obj_name[i++] - '0');
    len = strlen( obj_name);
    if( in_parentheses)
       len--;
@@ -758,8 +767,7 @@ int create_mpc_packed_desig( char *packed_desig, const char *obj_name)
          }
 
       if( number < 6200)
-         snprintf( packed_desig + 5, 4, "%c%02d",
-                  int_to_mutant_hex_char( number / 100), number % 100);
+         packed_desig[5] = int_to_mutant_hex_char( number / 100);
       packed_desig[6] = obj_name[2];    /* decade */
       packed_desig[7] = obj_name[3];    /* year */
 
@@ -775,7 +783,7 @@ int create_mpc_packed_desig( char *packed_desig, const char *obj_name)
       else
          packed_desig[11] = '0';
 
-      sub_designator = atoi( obj_name + i);
+      sub_designator = quick_atoi( obj_name + i);
       if( sub_designator >= 0 && sub_designator < 620 && number < 6200)
          {
          packed_desig[10] = int_to_mutant_hex_char( sub_designator % 10);
