@@ -26,6 +26,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 #include "date.h"
 #include "comets.h"
 #include "afuncs.h"
+#include "stringex.h"
 
 /* ASTEPHEM.CPP
 
@@ -123,23 +124,23 @@ int main( const int argc, const char **argv)
       exit( -1);
       }
 
-   strcpy( object_name, "1");       /* default to Ceres */
+   strlcpy_error( object_name, "1");       /* default to Ceres */
    for( i = 1; i < argc; i++)
       if( argv[i][0] == '-')
          switch( argv[i][1])
             {
             case 'o':
-               strcpy( object_name, argv[i] + 2);
+               strlcpy_error( object_name, argv[i] + 2);
                break;
             case 't':
                {
                double t1;
 
-               strcpy( tbuff, argv[i] + 2);
+               strlcpy_error( tbuff, argv[i] + 2);
                for( j = i + 1; j < argc && argv[j][0] != '-'; j++)
                   {
-                  strcat( tbuff, " ");
-                  strcat( tbuff, argv[j]);
+                  strlcat_error( tbuff, " ");
+                  strlcat_error( tbuff, argv[j]);
                   }
                t1 = get_time_from_string( t, tbuff, 0, NULL);
                if( t1 == 0.)
@@ -224,7 +225,8 @@ int main( const int argc, const char **argv)
       dec = asin( z / dist) * 180. / PI;
       ra_sec_tenths = (long)(ra * 36000. / 15.);
                      /* ...and show me the data:  */
-      sprintf( tbuff, "%2d %s %4ld:  %2ldh%02ldm%02ld.%lds   %3d %5.2f'  %6.3f  %6.3f  %4.1f %4.1f\n",
+      snprintf_err( tbuff, sizeof( tbuff),
+              "%2d %s %4ld:  %2ldh%02ldm%02ld.%lds   %3d %5.2f'  %6.3f  %6.3f  %4.1f %4.1f\n",
               day, set_month_name( month, NULL), year,
               ra_sec_tenths / 36000L, (ra_sec_tenths / 600L) % 60L,
               (ra_sec_tenths / 10L) % 60L, ra_sec_tenths % 10L,
