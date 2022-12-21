@@ -174,7 +174,7 @@ static int set_offsets( offset_t *offsets, const int n_offsets)
       {
       printf( "ERROR! MPC code '%s' wasn't found.\n", offsets->mpc_code);
       printf( "Either it's not an MPC code,  or it's not one of the spacecraft\n");
-      printf( "that this software knows about.  Check the 'add_loc.c' source\n");
+      printf( "that this software knows about.  Check the 'add_off.c' source\n");
       printf( "code,  and/or contact the author.\n");
       for( i = 0; i < n_offsets; i++)
          if( !strcmp( offsets[i].mpc_code, offsets[0].mpc_code))
@@ -337,7 +337,7 @@ int main( const int argc, const char **argv)
 
    if( argc < 2)
       {
-      fprintf( stderr, "'add_loc' takes the name of an input file of astrometry\n"
+      fprintf( stderr, "'add_off' takes the name of an input file of astrometry\n"
                        "as a command-line argument.\n");
       return( -1);
       }
