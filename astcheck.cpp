@@ -777,9 +777,30 @@ int main( const int argc, const char **argv)
             while( !got_station_data &&
                            fgets( tbuff, sizeof( tbuff), mpc_station_file))
                got_station_data = !memcmp( tbuff, curr_station, 3);
+            if( !got_station_data)
+               {
+               FILE *rovers_file = get_file_from_path( "rovers.txt", "rb");
+
+               if( !rovers_file)
+                  {
+                  fprintf( stderr, "Couldn't open 'rovers.txt'\n");
+                  return( -1);
+                  }
+               while( !got_station_data &&
+                           fgets( tbuff, sizeof( tbuff), rovers_file))
+                  got_station_data = !memcmp( tbuff, curr_station, 3);
+               fclose( rovers_file);
+               }
             if( got_station_data)
-               sscanf( tbuff + 3, "%lf%lf%lf",
-                                     &longitude, &rho_cos_phi, &rho_sin_phi);
+               {
+               mpc_code_t code_info;
+               const int err_code = get_mpc_code_info( &code_info, tbuff);
+
+               assert( err_code >= 0);
+               longitude = code_info.lon * 180. / PI;
+               rho_cos_phi= code_info.rho_cos_phi;
+               rho_sin_phi= code_info.rho_sin_phi;
+               }
             if( !got_station_data)
                printf( "FAILED to find MPC code %s\n", curr_station);
             longitude *= PI / 180.;
