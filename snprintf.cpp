@@ -27,7 +27,7 @@ int snprintf( char *string, const size_t max_len, const char *format, ...)
    int rval;
 
    va_start( argptr, format);
-#if _MSC_VER <= 1100
+#if defined(_MSC_VER) && _MSC_VER <= 1100
    rval = vsprintf( string, format, argptr);
 #else
    rval = vsnprintf( string, max_len, format, argptr);
@@ -51,7 +51,7 @@ static int _sn_append( const bool no_truncation, char *string,
    const size_t ilen = strlen( string);
 
    assert( ilen <= max_len);
-#if _MSC_VER <= 1100
+#if defined(_MSC_VER) && _MSC_VER <= 1100
    rval = vsprintf( string + ilen, format, argptr);
 #else
    rval = vsnprintf( string + ilen, max_len - ilen, format, argptr);
@@ -190,8 +190,8 @@ size_t strlcpy_err( char *dst, const char *src, const size_t dsize)
 
    if( rval >= dsize)
       {
-      fprintf( stderr, "strlcpy overflow: dsize = %ld, rval %ld, '%s'\n",
-                     (long)dsize, (long)rval, src);
+      fprintf( stderr, "strlcpy overflow: dsize = %ld, rval %ld, '%s', '%s'\n",
+                     (long)dsize, (long)rval, dst, src);
       assert( rval >= dsize);
       exit( -1);
       }
@@ -204,8 +204,8 @@ size_t strlcat_err( char *dst, const char *src, const size_t dsize)
 
    if( rval >= dsize)
       {
-      fprintf( stderr, "strlcat overflow: dsize = %ld, rval %ld, '%s'\n",
-                     (long)dsize, (long)rval, src);
+      fprintf( stderr, "strlcat overflow: dsize = %ld, rval %ld, '%s', '%s'\n",
+                     (long)dsize, (long)rval, dst, src);
       assert( rval >= dsize);
       exit( -1);
       }
@@ -224,7 +224,7 @@ int snprintf_err( char *string, const size_t max_len,      /* miscell.cpp */
    int rval;
 
    va_start( argptr, format);
-#if _MSC_VER <= 1100
+#if defined(_MSC_VER) && _MSC_VER <= 1100
    rval = vsprintf( string, format, argptr);
 #else
    rval = vsnprintf( string, max_len, format, argptr);
