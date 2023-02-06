@@ -2,8 +2,12 @@
 astrometry,  using coordinates downloaded from JPL Horizons.  Can be
 compiled both as a standalone utility and as the code behind an
 on-line one;  see https://www.projectpluto.com/add_off.htm .
+For documentation of how satellite offsets are formatted,  see
 
-   Note that SOHO data,  at least,  is also available at
+https://minorplanetcenter.net/iau/info/SatelliteObs.html
+
+   and some of the comments below.  Note that SOHO data,  at least,
+is also available at
 
 https://sohowww.nascom.nasa.gov/data/ancillary/orbit/
 
@@ -91,45 +95,62 @@ static int get_horizons_idx( const char *mpc_code)
 }
 
 /* The following modifies an 'S' (satellite RA/dec line) into an 's' line
-(satellite offset from the center of the earth).  If the offset is large,
-it is stored in AU;  otherwise,  km.  MPC appears to be somewhat more
-forgiving of where the decimal place goes than their documentation states.
-We basically pick it to provide maximum precision.  */
+(satellite offset from the center of the earth).
+
+   The signs of the x, y, z offsets are stored in columns 35, 47,  and 59.
+|x| is stored in columns 36-45, |y| in 48-57, |z| in 60-69.
+
+   If the greatest offset is less than a million km,  the offsets are stored
+in units of km,  and column 33 contains a '1'.  Offsets over 100000 km (which
+happen for TESS) are stored with the decimal point in column 42, 54,  or 66.
+Smaller offsets have the decimal point in columns 41, 53, or 65.  This will
+cause a space to appear between the sign and the absolute value for offsets
+under 10000 km.
+
+   If the greatest offset is over a million km,  the offsets are stored in
+AUs,  and column 33 contains a '2'.  Offsets over 10 AUs are stored with the
+decimal point in columns 38,  50,  or 52 (this happens for _New Horizons_
+observations).  Smaller offsets have the decimal point in columns 37,
+49,  or 51.  This handles any offset up to 100 AU.
+
+   Examples of the possible formats :
+
+     LTMQ6Ga  s2019 06 26.2809121 -66851.9880 +403817.120 + 9373.8070   NEOCPC57
+     K20K42H  s2020 12 25.5287142 +14.3956075 -44.6290151 -17.5105651   ~5zHCC54
+    CK10Y100 Gs2010 12 18.42987 2 -1.01982175 -0.76936943 -0.33509167   84456C49
+*/
 
 static int set_mpc_style_offsets( char *buff, const double *xyz)
 {
-   double maxval = 0;
+   bool use_au = false;
    int i;
 
    for( i = 0; i < 3; i++)
-      if( maxval < fabs( xyz[i]))
-         maxval = fabs( xyz[i]);
+      if( xyz[i] > 999999.0 || xyz[i] < -999999.0)
+         use_au = true;
    memset( buff + 33, ' ', 39);
+   buff[32] = (use_au ? '2' : '1');
    buff[33] = ' ';
-   if( maxval > 9999999.0)     /* show in AU */
-      {
-      buff[32] = '2';         /* mark as units = AU */
-      for( i = 0; i < 3; i++)
-         snprintf_err( buff + 35 + i * 12, 12,
-                (maxval > 9.9 * AU_IN_KM ? "%11.8f" : "%11.9f"),
-                     fabs( xyz[i] / AU_IN_KM));
-      }
-   else
-      {
-      const char *format;
-
-      buff[32] = '1';         /* mark as units = km */
-      if( maxval > 999999.0)   /* Gaia,  perhaps SOHO eventually  */
-         format = "%11.3f";
-      else if( maxval > 99999.0)   /* TESS,  e.g.  */
-         format = "%11.4f";
-      else
-         format = "%11.5f";
-      for( i = 0; i < 3; i++)
-         snprintf_err( buff + 35 + i * 12, 12, format, fabs( xyz[i]));
-      }
    for( i = 0; i < 3; i++)
-      buff[34 + i * 12] = (xyz[i] > 0. ? '+' : '-');
+      {
+      char *optr = buff + 34 + i * 12;
+
+      *optr++ = (xyz[i] > 0. ? '+' : '-');
+      if( use_au)                 /* show in AU */
+         {
+         const double oval = fabs( xyz[i]) / AU_IN_KM;
+
+         snprintf_err( optr, 12,
+                (oval > 9.9 ? "%10.7f " : "%10.8f "), oval);
+         }
+      else           /* output in kilometers */
+         {
+         const double oval = fabs( xyz[i]);
+
+         snprintf_err( optr, 12,
+               (oval > 99999. ? "%10.3f " : "%10.4f "), oval);
+         }
+      }
    buff[14] = 's';
    buff[70] = ' ';
    return( 0);
