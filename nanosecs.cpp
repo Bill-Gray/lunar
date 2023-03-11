@@ -35,6 +35,10 @@ the computer's time is adjusted by NTP or the user,  the result may
 actually go backward.  If you want to know what time it is,  don't
 ask a computer.  */
 
+#ifdef _WIN32
+#include <windows.h>
+#endif
+
 #include <stdint.h>
 #include "watdefs.h"
 #include "afuncs.h"
@@ -42,7 +46,6 @@ ask a computer.  */
 int64_t DLL_FUNC nanoseconds_since_1970( void);                      /* afuncs.c */
 
 #ifdef _WIN32
-#include <windows.h>
 
 int64_t DLL_FUNC nanoseconds_since_1970( void)
 {
@@ -50,8 +53,7 @@ int64_t DLL_FUNC nanoseconds_since_1970( void)
    const uint64_t jd_1601 = 2305813;  /* actually 2305813.5 */
    const uint64_t jd_1970 = 2440587;  /* actually 2440587.5 */
    const uint64_t ten_million = 10000000;
-   const uint64_t seconds_per_day = 24 * 60 * 60;
-   const uint64_t diff = (jd_1970 - jd_1601) * ten_million * seconds_per_day;
+   const uint64_t diff = (jd_1970 - jd_1601) * ten_million * (uint64_t)seconds_per_day;
    uint64_t decimicroseconds_since_1970;   /* i.e.,  time in units of 1e-7 seconds */
 
    GetSystemTimeAsFileTime( &ft);
