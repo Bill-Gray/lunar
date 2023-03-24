@@ -118,7 +118,11 @@ int main( const int argc, const char **argv)
    char buff[800];
    int i, low_num = 1, high_num = 1000000;
 
-   assert( hdr_file);
+   if( !hdr_file)
+      {
+      perror( "Can't open 'gaia.hdr'");
+      return( -1);
+      }
    for( i = 1; i < argc; i++)
       if( argv[i][0] == '-')
          sscanf( argv[i] + 1, "%d,%d", &low_num, &high_num);
