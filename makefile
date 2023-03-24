@@ -19,8 +19,8 @@
 
 # As CC is an implicit variable, a simple CC?=gcc doesn't work.
 # We have to use this trick from https://stackoverflow.com/a/42958970
-ifeq ($(origin CPP),default)
-	CPP=g++
+ifeq ($(origin CXX),default)
+	CXX=g++
 endif
 ifeq ($(origin CC),default)
 	CC=gcc
@@ -28,23 +28,27 @@ endif
 
 ifeq ($(shell uname -s),FreeBSD)
 	CC=cc
-	CPP=c++
+	CXX=c++
 endif
 
 LIBSADDED=
 EXE=
 CFLAGS+=-Wextra -Wall -O3 -pedantic
+CXXFLAGS+=-Wextra -Wall -O3 -pedantic
 
 ifdef UCHAR
  CFLAGS += -funsigned-char
+ CXXFLAGS += -funsigned-char
 endif
 
 ifdef DEBUG
 	CFLAGS += -g
+	CXXFLAGS += -g
 endif
 
 ifdef ERRORS
 	CFLAGS += -Werror
+	CXXFLAGS += -Werror
 endif
 
 # You can have your include files in ~/include and libraries in
@@ -60,7 +64,7 @@ else
 endif
 
 ifdef CLANG
-	CPP=clang++
+	CXX=clang++
 	CC=clang
 endif
 
@@ -94,7 +98,7 @@ endif
 LIB_DIR=$(INSTALL_DIR)/lib
 
 ifdef W64
-   CPP=x86_64-w64-mingw32-g++
+   CXX=x86_64-w64-mingw32-g++
    CC=x86_64-w64-mingw32-gcc
    EXE=.exe
    LIB_DIR=$(INSTALL_DIR)/win_lib
@@ -102,7 +106,7 @@ ifdef W64
 endif
 
 ifdef W32
-   CPP=i686-w64-mingw32-g++
+   CXX=i686-w64-mingw32-g++
    CC=i686-w64-mingw32-gcc
    EXE=.exe
    LIB_DIR=$(INSTALL_DIR)/win_lib32
@@ -112,6 +116,7 @@ endif
 ifeq ($(SHARED),Y)
 	LIBEXE = $(CC)
 	CFLAGS += -fPIC
+	CXXFLAGS += -fPIC
 	LIBFLAGS = -shared -Wl,-soname,liblunar.so.1.0.1 -lc -o
 	LIBLUNAR = liblunar.so.1.0.1
 else
@@ -172,7 +177,7 @@ uninstall:
 	rm -f $(INSTALL_DIR)/bin/integrat$(EXE)
 
 .cpp.o:
-	$(CPP) $(CFLAGS) -c $<
+	$(CXX) $(CXXFLAGS) -c $<
 
 .c.o:
 	$(CC) $(CFLAGS) -c $<
@@ -295,7 +300,7 @@ mpc2sof$(EXE): mpc2sof.cpp mpcorb.o $(LIBLUNAR)
 	$(CC) $(CFLAGS) -o mpc2sof$(EXE) mpc2sof.cpp mpcorb.o $(LIBLUNAR) $(LIBSADDED)
 
 mpc_code$(EXE): mpc_code.cpp
-	$(CPP) $(CFLAGS) -o mpc_code$(EXE) mpc_code.cpp snprintf.o -DTEST_CODE
+	$(CXX) $(CXXFLAGS) -o mpc_code$(EXE) mpc_code.cpp snprintf.o -DTEST_CODE
 
 oblitest$(EXE): oblitest.o obliqui2.o $(LIBLUNAR)
 	$(CC) $(CFLAGS) -o oblitest$(EXE) oblitest.o obliqui2.o $(LIBLUNAR) $(LIBSADDED)
