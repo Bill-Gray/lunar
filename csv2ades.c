@@ -88,26 +88,26 @@ static void csv_to_ades( const char *ibuff, const char *header,
                            | FULL_CTIME_LEADING_ZEROES | FULL_CTIME_MONTHS_AS_DIGITS);
       tbuff[4] = tbuff[7] = '-';
       tbuff[10] = 'T';
-      printf( "    <obsTime>%s</obsTime>\n", tbuff);
+      printf( "    <obsTime>%sZ</obsTime>\n", tbuff);
       printf( "    <ra>%s</ra>\n",           get_csv( tbuff, ibuff, header, "ra,"));
       printf( "    <dec>%s</dec>\n",         get_csv( tbuff, ibuff, header, "dec,"));
       printf( "    <rmsRA>%f</rmsRA>\n",     atof( get_csv( tbuff, ibuff, header, "ra_error_random,")) / 1000.);
       printf( "    <rmsDec>%f</rmsDec>\n",   atof( get_csv( tbuff, ibuff, header, "dec_error_random,")) / 1000.);
       printf( "    <rmsCorr>%s</rmsCorr>\n", get_csv( tbuff, ibuff, header, "ra_dec_correlation_random,"));
+      printf( "    <astCat>Gaia3</astCat>\n");
       get_csv( tbuff, ibuff, header, "g_mag,");
-      if( *tbuff)
+      if( *tbuff >= '0' && *tbuff <= '9')
          {
          double g_flux, g_flux_sigma;
 
          printf( "    <mag>%s</mag>\n", tbuff);
          g_flux       = atof( get_csv( tbuff, ibuff, header, "g_flux"));
          g_flux_sigma = atof( get_csv( tbuff, ibuff, header, "g_flux_error"));
-         printf( "    <band>G</band>\n");
          printf( "    <rmsMag>%.3f</rmsMag>\n",
                            (g_flux_sigma / g_flux) / log( 2.512));
+         printf( "    <band>G</band>\n");
          printf( "    <photCat>Gaia2</photCat>\n");
          }
-      printf( "    <astCat>Gaia2</astCat>\n");
       printf( "   </optical>\n");
       }
 }
