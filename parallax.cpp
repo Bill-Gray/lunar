@@ -45,7 +45,10 @@ static char *show_angle( char *buff, double angle)
 static int get_mpc_obscode_data( loc_t *loc, const char *mpc_code)
 {
    int pass, rval = -1;
+   char end_char = mpc_code[3];
 
+   if( !end_char)
+      end_char = ' ';
    for( pass = 0; pass < 2 && rval; pass++)
       {
       const char *ifilename = (pass ? "ObsCodes.htm" : "rovers.txt");
@@ -67,7 +70,7 @@ static int get_mpc_obscode_data( loc_t *loc, const char *mpc_code)
          perror( buff);
       assert( ifile);
       while( rval && fgets( buff, sizeof( buff), ifile))
-         if( !memcmp( buff, mpc_code, 3) && buff[3] == ' '
+         if( !memcmp( buff, mpc_code, 3) && buff[3] == end_char
                && 3 == get_mpc_code_info( &code_data, buff))
             {
             loc->lat = code_data.lat;
@@ -86,6 +89,11 @@ static int get_mpc_obscode_data( loc_t *loc, const char *mpc_code)
                   loc->alt, code_data.name);
             }
       fclose( ifile);
+      }
+   if( rval)
+      {
+      printf( "Couldn't find observatory code (%s)\n", mpc_code);
+      exit( -1);
       }
    return( rval);
 }
