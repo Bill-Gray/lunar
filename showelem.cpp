@@ -36,8 +36,6 @@ for hyperbolic/parabolic orbits. */
 
 double DLL_FUNC decimal_day_to_dmy( double jd, long *year, int *month,
                               const int calendar);
-int DLL_FUNC elements_in_mpc_format( char *obuff, const ELEMENTS *elem,
-                const char *obj_id, const int is_cometary, const int format);
 
 static double zero_to_two_pi( double ang)
 {
@@ -147,8 +145,9 @@ static void add_pq_data( char *obuff, const size_t obuff_size,
 
 /* REMEMBER:  set 'central_obj', 'epoch', 'abs_mag', 'slope_param', 'gm' fields */
 
-int DLL_FUNC elements_in_mpc_format( char *obuff, const ELEMENTS *elem,
-                  const char *obj_id, const int is_cometary, const int format)
+int DLL_FUNC elements_in_mpc_format( char *obuff, const size_t obuff_size,
+                  const ELEMENTS *elem, const char *obj_id,
+                  const int is_cometary, const int format)
 {
    const char *nineteen_blank_spaces = "                   ";
    double p_vect[3], q_vect[3];
@@ -161,7 +160,6 @@ int DLL_FUNC elements_in_mpc_format( char *obuff, const ELEMENTS *elem,
    const int precision = (format & SHOWELEM_PRECISION_MASK);
    const int n_digits_to_show = (precision > 10 ? precision : 10);
    int n_lines = 0;
-   const size_t obuff_size = 500;
    char *tptr, *endptr = obuff + obuff_size;
 
    strlcpy_err( obuff, obj_id, endptr - obuff);

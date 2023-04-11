@@ -27,9 +27,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 extern "C" {
 #endif /* #ifdef __cplusplus */
 
-int DLL_FUNC elements_in_mpc_format( char *obuff, const ELEMENTS *elem,
-                const char *obj_id, const int is_cometary, const int format);
-
+int DLL_FUNC elements_in_mpc_format( char *obuff, const size_t obuff_size,
+                  const ELEMENTS *elem, const char *obj_id,
+                  const int is_cometary, const int format);
 #ifdef __cplusplus
 }
 #endif  /* #ifdef __cplusplus */
