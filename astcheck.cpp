@@ -796,10 +796,17 @@ int main( const int argc, const char **argv)
                mpc_code_t code_info;
                const int err_code = get_mpc_code_info( &code_info, tbuff);
 
-               assert( err_code >= 0);
-               longitude = code_info.lon * 180. / PI;
-               rho_cos_phi= code_info.rho_cos_phi;
-               rho_sin_phi= code_info.rho_sin_phi;
+               if( err_code < 0)
+                  {
+                  fprintf( stderr, "Code '%s' not found; error %d\n", tbuff, err_code);
+                  got_station_data = 0;
+                  }
+               else
+                  {
+                  longitude = code_info.lon * 180. / PI;
+                  rho_cos_phi= code_info.rho_cos_phi;
+                  rho_sin_phi= code_info.rho_sin_phi;
+                  }
                }
             if( !got_station_data)
                printf( "FAILED to find MPC code %s\n", curr_station);
