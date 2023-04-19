@@ -19,7 +19,10 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 
 /* Some test code I wrote a while back to compute dates/times for
 solstices and equinoxes.  I don't actually use it anywhere.  You
-can disregard it freely.   */
+can disregard it freely.  Compiles with
+
+g++ -Wall -Wextra -DTEST_CODE -pedantic -o solseqn solseqn.cpp liblunar.a
+*/
 
 #include <math.h>
 #include <stdio.h>

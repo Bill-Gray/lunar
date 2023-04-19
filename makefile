@@ -332,6 +332,9 @@ relativi$(EXE): relativi.cpp $(LIBLUNAR)
 sof$(EXE): sof.cpp $(LIBLUNAR)
 	$(CXX) $(CXXFLAGS) -DTEST_CODE -o sof$(EXE) sof.cpp -lm $(LIBLUNAR)
 
+solseqn$(EXE): solseqn.cpp $(LIBLUNAR)
+	$(CXX) $(CXXFLAGS) -DTEST_CODE -o solseqn$(EXE) solseqn.cpp -lm $(LIBLUNAR)
+
 spline$(EXE): spline.cpp
 	$(CXX) $(CXXFLAGS) -DTEST_CODE -o spline$(EXE) spline.cpp -lm
 
