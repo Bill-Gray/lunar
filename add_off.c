@@ -100,56 +100,61 @@ static int get_horizons_idx( const char *mpc_code)
    The signs of the x, y, z offsets are stored in columns 35, 47,  and 59.
 |x| is stored in columns 36-45, |y| in 48-57, |z| in 60-69.
 
-   If the greatest offset is less than a million km,  the offsets are stored
-in units of km,  and column 33 contains a '1'.  Offsets over 100000 km (which
-happen for TESS) are stored with the decimal point in column 42, 54,  or 66.
-Smaller offsets have the decimal point in columns 41, 53, or 65.  This will
-cause a space to appear between the sign and the absolute value for offsets
-under 10000 km.
+   If the greatest offset is less than ten million km,  the offsets are stored
+in units of km,  and column 33 contains a '1'.  Offsets under 100000 km are
+stored with the decimal point in column 41, 53,  or 65.  Those up to a million
+are stored with decimal points in columns 42, 54,  or 66;  those up to ten
+million shift the decimal point an additional column.  There will be a space
+between the sign and the absolute value for offsets under 10000 km.
 
-   If the greatest offset is over a million km,  the offsets are stored in
-AUs,  and column 33 contains a '2'.  Offsets over 10 AUs are stored with the
+   If the greatest offset is over ten million km,  the offsets are stored
+in AUs,  and column 33 contains a '2'.  (MPC sometimes uses this scheme
+for smaller offsets as well.)  Offsets over 10 AUs are stored with the
 decimal point in columns 38,  50,  or 52 (this happens for _New Horizons_
-observations).  Smaller offsets have the decimal point in columns 37,
-49,  or 51.  This handles any offset up to 100 AU.
+observations).  Smaller offsets have the decimal point in columns 37, 49,
+or 51.  This handles any offset up to 100 AU.
 
    Examples of the possible formats :
 
      LTMQ6Ga  s2019 06 26.2809121 -66851.9880 +403817.120 + 9373.8070   NEOCPC57
      K20K42H  s2020 12 25.5287142 +14.3956075 -44.6290151 -17.5105651   ~5zHCC54
     CK10Y100 Gs2010 12 18.42987 2 -1.01982175 -0.76936943 -0.33509167   84456C49
+z9987K06UJ8Y  s2019 07 26.2427421 + 551363.13 -1190783.85 - 650915.72   ~3GcZ258
 */
 
 static int set_mpc_style_offsets( char *buff, const double *xyz)
 {
-   bool use_au = false;
+   bool output_in_au = false;
    int i;
 
    for( i = 0; i < 3; i++)
-      if( xyz[i] > 999999.0 || xyz[i] < -999999.0)
-         use_au = true;
+      if( xyz[i] > 9999999.0 || xyz[i] < -9999999.0)
+         output_in_au = true;
    memset( buff + 33, ' ', 39);
-   buff[32] = (use_au ? '2' : '1');
+   buff[32] = (output_in_au ? '2' : '1');
    buff[33] = ' ';
    for( i = 0; i < 3; i++)
       {
       char *optr = buff + 34 + i * 12;
+      const char *format;
+      double oval = fabs( xyz[i]);
 
       *optr++ = (xyz[i] > 0. ? '+' : '-');
-      if( use_au)                 /* show in AU */
+      if( output_in_au)
          {
-         const double oval = fabs( xyz[i]) / AU_IN_KM;
-
-         snprintf_err( optr, 12,
-                (oval > 9.9 ? "%10.7f " : "%10.8f "), oval);
+         oval /= AU_IN_KM;
+         format = (oval > 9.9 ? "%10.7f " : "%10.8f ");
          }
       else           /* output in kilometers */
          {
-         const double oval = fabs( xyz[i]);
-
-         snprintf_err( optr, 12,
-               (oval > 99999. ? "%10.3f " : "%10.4f "), oval);
+         if( oval > 999999.)
+            format = "%10.2f ";
+         else if( oval > 99999.)
+            format = "%10.3f ";
+         else
+            format = "%10.4f ";
          }
+      snprintf_err( optr, 12, format, oval);
       }
    buff[14] = 's';
    buff[70] = ' ';
