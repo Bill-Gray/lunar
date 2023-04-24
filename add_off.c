@@ -38,16 +38,17 @@ int verbose = 0;
 int n_positions_set = 0, n_positions_failed = 0;
 
 /* If the observation is from a spacecraft,  return the JDE of the
-observation.  (Horizons expects times for vector ephems in JDE,  not
-UTC JDs.) */
+observation.  (Horizons expects times for vector ephems in JDE,  not UTC
+JDs.)  We expect the time to be,  at minimum,  after HST was launched. */
 
 static double get_sat_obs_jd( const char *buff)
 {
+   const double hst_launch_jd = 2448005.5;  /* 1990 April 24 */
    double jd = 0.;
 
    if( strlen( buff) > 80 && (buff[14] == 'S' || buff[14] == 's'))
       jd = extract_date_from_mpc_report( buff, NULL);
-   if( jd < 2450000.)
+   if( jd < hst_launch_jd)
       jd = 0.;
    else
       jd += td_minus_utc( jd) / seconds_per_day;
