@@ -25,6 +25,13 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 #include "watdefs.h"
 #include "lunar.h"
 
+/* Code to compute lunar positions using the ELP 2000-82B analytical
+theory.  Available from VizieR :
+
+https://cdsarc.cds.unistra.fr/viz-bin/cat/VI/79       */
+
+
+
 /* 12 Dec 1998:  Following an e-mail from Luc Desamore,  I 'offset' the */
 /* time used in the ELP function by: */
 
