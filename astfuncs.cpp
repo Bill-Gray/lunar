@@ -311,10 +311,13 @@ void comet_posn_part_ii( const ELEMENTS DLLPTR *elem, const double t,
    r = r0 / (1. + elem->ecc * cos( true_anom));
    x = r * cos( true_anom);
    y = r * sin( true_anom);
-   loc[0] = elem->perih_vec[0] * x + elem->sideways[0] * y;
-   loc[1] = elem->perih_vec[1] * x + elem->sideways[1] * y;
-   loc[2] = elem->perih_vec[2] * x + elem->sideways[2] * y;
-   loc[3] = r;
+   if( loc)
+      {
+      loc[0] = elem->perih_vec[0] * x + elem->sideways[0] * y;
+      loc[1] = elem->perih_vec[1] * x + elem->sideways[1] * y;
+      loc[2] = elem->perih_vec[2] * x + elem->sideways[2] * y;
+      loc[3] = r;
+      }
    if( vel && (elem->angular_momentum != 0.))
       {
       double angular_component = elem->angular_momentum / (r * r);
