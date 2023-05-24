@@ -526,7 +526,7 @@ static int calendar( const int month, const int year)
    for( i = 0; i <= 7; i++)       /* vertical lines */
       fprintf( ofile, "%d %d moveto %d %d lineto\n", X0 + i * xsize, Y0,
                                              X0 + i * xsize, YEND);
-   fprintf( ofile, "/defaultfontsize  { 12 scalefont } def\n");
+   fprintf( ofile, "/defaultfontsize  { 14 scalefont } def\n");
    fprintf( ofile, "/Times-Roman findfont defaultfontsize setfont\n");
    for( i = 0; i < 35; i++)
       lines_used[i] = phases_shown[i] = 0;
@@ -587,7 +587,7 @@ static int calendar( const int month, const int year)
                {
                curr_font = font_to_use;
                if( curr_font == FONT_ITALIC)
-                  fprintf( ofile, "/Times-Italic findfont 9 scalefont setfont\n");
+                  fprintf( ofile, "/Times-Italic findfont 14 scalefont setfont\n");
                if( curr_font == FONT_PLAIN)
                   fprintf( ofile, "/Times-Roman findfont 9 scalefont setfont\n");
                if( curr_font == FONT_BOLD)
