@@ -367,7 +367,7 @@ static const double planet_elem_rate[N_PLANET_RATES * 6] = {
    double elem_array[6];
    int i;
 
-   if( planet_idx >= N_PLANET_ELEMS || planet_idx < 0)
+   if( planet_idx > N_PLANET_ELEMS || planet_idx < 1)
       return( -1);
    for( i = 0; i < 6; i++)
       {
