@@ -23,6 +23,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 #include <limits.h>
 #include <assert.h>
 #include "watdefs.h"
+#include "get_bin.h"
 #include "date.h"
 
 /* General calendrical comments:
@@ -599,21 +600,22 @@ static int chinese_intercalary_month = 0;
 static int get_chinese_year_data( const long year, long *days,
                                    char *month_data)
 {
-   int32_t packed_val = 0;
+   int32_t packed_val;
+   char tbuff[4];
 
 #ifdef LOAD_CHINESE_CALENDAR_DATA_FROM_FILE
    if( !chinese_calendar_data)
       return( -1);
 #endif
 
-   int index = (int)year - *(const int16_t *)( chinese_calendar_data + 2);
-   const int n_years = *(const int16_t *)chinese_calendar_data;
-         /* Above lines should involve byte-swapping */
+   int index = (int)year - get16sbits( chinese_calendar_data + 2);
+   const int n_years = get16sbits( chinese_calendar_data);
 
    if( index < 0 || index >= n_years)
       return( -2);
-   memcpy( &packed_val, chinese_calendar_data + 4 + 3 * index, 3);
-         /* Swap 'packed_val' on non-Intel byte order machines */
+   memcpy( tbuff, chinese_calendar_data + 4 + 3 * index, 3);
+   tbuff[3] = 0;
+   packed_val = get32sbits( tbuff);
    for( int i = 0; i < 13; i++)
       month_data[i] = (char)(((packed_val >> i) & 1L) ? 30 : 29);
    chinese_intercalary_month = (int)( (packed_val >> 13) % 14L);
