@@ -287,7 +287,7 @@ spacecraft.  On a second pass,  it removes any existing 's' (spacecraft
 position) records and replaces them with 's' records created from
 the Horizons ephems.   */
 
-int process_file( const char *filename)
+int process_file( const char *filename, FILE *ofile)
 {
    FILE *ifile = fopen( filename, "rb");
    char buff[300];
@@ -297,7 +297,7 @@ int process_file( const char *filename)
    int i, n_offsets = 0;
 
    assert( ifile);
-   printf( "COM add_off ver 2022 Dec 07,  run %s", ctime( &t0));
+   fprintf( ofile, "COM add_off ver 2022 Dec 07,  run %s", ctime( &t0));
    while( fgets( buff, sizeof( buff), ifile))
       if( buff[14] == 'S' && (jd = get_sat_obs_jd( buff)) != 0.)
          {
@@ -320,7 +320,7 @@ int process_file( const char *filename)
    fseek( ifile, 0, SEEK_SET);
    while( fgets( buff, sizeof( buff), ifile))
       if( (jd = get_sat_obs_jd( buff)) <= 0.)    /* not an observation;  */
-         printf( "%s", buff);                    /* just pass it through */
+         fprintf( ofile, "%s", buff);            /* just pass it through */
       else if( buff[14] != 's')
          {
          int idx = -1;
@@ -338,19 +338,23 @@ int process_file( const char *filename)
                      buff + 15,
                      offsets[idx].vel[0], offsets[idx].vel[1],
                      offsets[idx].vel[2], offsets[idx].mpc_code);
-            printf( "%s", vel_buff);
-            printf( "%s", buff);
+            fprintf( ofile, "%s", vel_buff);
+            fprintf( ofile, "%s", buff);
             set_mpc_style_offsets( buff, offsets[idx].xyz);
-            printf( "%s", buff);
+            fprintf( ofile, "%s", buff);
             }
          else
-            printf( "%s", buff);
+            fprintf( ofile, "%s", buff);
          }
    fclose( ifile);
    free( offsets);
-   printf( "COM %d positions set by add_off; %d failed in %.2f seconds\n",
+   snprintf( buff, sizeof( buff),
+         "COM %d positions set by add_off; %d failed in %.2f seconds\n",
          n_positions_set, n_positions_failed,
          (double)clock( ) / (double)CLOCKS_PER_SEC);
+   fprintf( ofile, "%s", buff);
+   if( ofile != stdout)
+      printf( "%s", buff + 4);
    return( 0);
 }
 
@@ -361,13 +365,27 @@ int main( const int argc, const char **argv)
 #endif
 {
    int i;
+   FILE *ofile = stdout;
 
    if( argc < 2)
       {
-      fprintf( stderr, "'add_off' takes the name of an input file of astrometry\n"
-                       "as a command-line argument.\n");
+      fprintf( stderr,
+            "'add_off' takes the name of an input file of astrometry as a command-line\n"
+            "argument.  Optionally,  the name of the output file can be specified as\n"
+            "a second command-line argument (output goes to stdout by default).\n");
       return( -1);
       }
+   if( argc > 2 && argv[2][0] != '-')
+      {
+      ofile = fopen( argv[2], "wb");
+      if( !ofile)
+         {
+         fprintf( stderr, "'%s' not opened : ", argv[2]);
+         perror( NULL);
+         return( -1);
+         }
+      }
+
    for( i = 2; i < argc; i++)
       if( argv[i][0] == '-')
          switch( argv[i][1])
@@ -382,7 +400,7 @@ int main( const int argc, const char **argv)
                printf( "Option '%s' unrecognized\n", argv[i]);
                break;
             }
-   return( process_file( argv[1]));
+   return( process_file( argv[1], ofile));
 }
 
 #ifdef ON_LINE_VERSION
