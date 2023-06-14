@@ -46,7 +46,7 @@ ifdef DEBUG
 	CXXFLAGS += -g
 endif
 
-ifdef ERRORS
+ifndef NO_ERRORS
 	CFLAGS += -Werror
 	CXXFLAGS += -Werror
 endif
