@@ -175,25 +175,25 @@ of explanation) :
 
 https://ssd.jpl.nasa.gov/horizons_batch.cgi?batch=1&COMMAND='-163'
 &REF_PLANE='FRAME'&OBJ_DATA='NO'&TABLE_TYPE='V'&TLIST=
-'2458843.421181','2458843.486631','2458843.551951','2458843.616891',
+'58843.421181','58843.486631','58843.551951','58843.616891',
 &VEC_TABLE='2'&VEC_LABELS='N'
 
-This requests positions on the four JDEs given on the third line for
+This requests positions on the four MJDs (TDT) given on the third line for
 object -163 (which is Horizons' index for (C51) WISE.)  REF_PLANE='FRAME'
 specifies J2000 equatorial coordinates.  TABLE_TYPE='V' specifies
 vectors.  VEC_TABLE='2' specifies positions and velocities.
 
-   Each time adds 17 bytes to our URL.  I can send JPL an 8000-byte
+   Each time adds 15 bytes to our URL.  I can send JPL an 8000-byte
 URL,  but not much beyond that without getting errors.  After
-allowing for the header and trailer data,  we can request 458
+allowing for the header and trailer data,  we can request 520
 offsets without overflowing the 8000-byte URL.   So if we
-encounter an unset offset,  we look for up to 457 other instances
+encounter an unset offset,  we look for up to 519 other instances
 where that particular obscode was used,  form a query to ask for
-all of them, and then set up to ask for up to 458 offsets at a go.  */
+all of them, and then set up to ask for up to 520 offsets at a go.  */
 
 static int set_offsets( offset_t *offsets, const int n_offsets)
 {
-   char buff[8000];     /* supports 458 offsets at a go */
+   char buff[8000];     /* supports 520 offsets at a go */
    int i;
    const int horizons_idx = get_horizons_idx( offsets->mpc_code);
 
@@ -215,8 +215,8 @@ static int set_offsets( offset_t *offsets, const int n_offsets)
          {
          if( i)
             strlcat_err( buff, ",", sizeof( buff));
-         snprintf_err( buff + strlen( buff), 18, "'%.6f'", offsets[i].jd);
-         if( strlen( buff) + 60 > sizeof( buff))
+         snprintf_err( buff + strlen( buff), 18, "'%.6f'", offsets[i].jd - 2400000.5);
+         if( strlen( buff) + 60 > sizeof( buff))   /* allow room for 'cmd_end' */
             break;
          }
    strlcat_err( buff, cmd_end, sizeof( buff));
