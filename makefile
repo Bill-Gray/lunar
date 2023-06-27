@@ -103,6 +103,7 @@ ifdef W64
    EXE=.exe
    LIB_DIR=$(INSTALL_DIR)/win_lib
    LIBSADDED=-L $(LIB_DIR) -mwindows
+   LIBURLMON=-lurlmon
 endif
 
 ifdef W32
@@ -111,6 +112,7 @@ ifdef W32
    EXE=.exe
    LIB_DIR=$(INSTALL_DIR)/win_lib32
    LIBSADDED=-L $(LIB_DIR) -mwindows
+   LIBURLMON=-lurlmon
 endif
 
 ifeq ($(SHARED),Y)
@@ -216,10 +218,10 @@ clean:
 	$(RM) them_cat$(EXE) transit$(EXE) uranus1$(EXE) utc_test$(EXE) $(LIBLUNAR)
 
 add_off$(EXE): add_off.o $(LIBLUNAR)
-	$(CC) $(CFLAGS) -o add_off$(EXE) add_off.o $(LIBLUNAR) $(LIBSADDED)
+	$(CC) $(CFLAGS) -o add_off$(EXE) add_off.o $(LIBLUNAR) $(LIBSADDED) $(LIBURLMON)
 
 add_off.cgi: add_off.c $(LIBLUNAR)
-	$(CC) $(CFLAGS) -o add_off.cgi -DON_LINE_VERSION add_off.c $(LIBLUNAR) $(LIBSADDED)
+	$(CC) $(CFLAGS) -o add_off.cgi -DON_LINE_VERSION add_off.c $(LIBLUNAR) $(LIBSADDED) $(LIBURLMON)
 
 adestest$(EXE): adestest.o $(LIBLUNAR)
 	$(CXX) $(CFLAGS) -o adestest$(EXE) adestest.o $(LIBLUNAR) $(LIBSADDED)

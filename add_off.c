@@ -14,6 +14,9 @@ https://sohowww.nascom.nasa.gov/data/ancillary/orbit/
    Haven't checked that source out carefully,  since Horizons
 has worked well thus far,  but the above URL could come in handy. */
 
+#ifdef _WIN32
+   #include "windows.h"
+#endif
 #include <errno.h>
 #include <stdio.h>
 #include <stdbool.h>
@@ -41,9 +44,10 @@ int n_positions_set = 0, n_positions_failed = 0;
 observation.  (Horizons expects times for vector ephems in JDE,  not UTC
 JDs.)  We expect the time to be,  at minimum,  after HST was launched. */
 
+const double hst_launch_jd = 2448005.5;  /* 1990 April 24 */
+
 static double get_sat_obs_jd( const char *buff)
 {
-   const double hst_launch_jd = 2448005.5;  /* 1990 April 24 */
    double jd = 0.;
 
    if( strlen( buff) > 80 && (buff[14] == 'S' || buff[14] == 's'))
@@ -162,12 +166,19 @@ static int set_mpc_style_offsets( char *buff, const double *xyz)
    return( 0);
 }
 
-const char *cmd_start = "curl -s -o /tmp/locs %s"
-    "\"https://ssd.jpl.nasa.gov/horizons_batch.cgi?batch=1&COMMAND='%d'"
+const char *cmd_start =
+#ifndef _WIN32
+    "curl -s -o /tmp/add_off.txt %s\""
+#endif
+    "https://ssd.jpl.nasa.gov/horizons_batch.cgi?batch=1&COMMAND='%d'"
     "&REF_PLANE='FRAME'"
     "&OBJ_DATA='NO'&TABLE_TYPE='V'&TLIST=";
 
-const char *cmd_end = "&VEC_TABLE='2'&VEC_LABELS='N'\"";
+const char *cmd_end = "&VEC_TABLE='2'&VEC_LABELS='N'"
+#ifndef _WIN32
+            "\""
+#endif
+            ;
 
 /* To set the time offsets,  we send a query to JPL Horizons that will
 look something like the following (split here over four lines for ease
@@ -194,8 +205,13 @@ all of them, and then set up to ask for up to 520 offsets at a go.  */
 static int set_offsets( offset_t *offsets, const int n_offsets)
 {
    char buff[8000];     /* supports 520 offsets at a go */
-   int i;
+   int i, error_code;
    const int horizons_idx = get_horizons_idx( offsets->mpc_code);
+#ifdef _WIN32
+   const char *outfilename = "add_off.txt";
+#else
+   const char *outfilename = "/tmp/add_off.txt";
+#endif
 
    if( !horizons_idx)
       {
@@ -208,8 +224,13 @@ static int set_offsets( offset_t *offsets, const int n_offsets)
             offsets[i].xyz[0] = -0.1;     /* mark as "don't try again" */
       return( 0);
       }
+#ifndef _WIN32
    snprintf_err( buff, sizeof( buff), cmd_start,
             (verbose ? "" : "-q "), horizons_idx);
+#else
+   snprintf_err( buff, sizeof( buff), cmd_start,
+                                    horizons_idx);
+#endif
    for( i = 0; i < n_offsets; i++)
       if( !strcmp( offsets[i].mpc_code, offsets[0].mpc_code))
          {
@@ -222,20 +243,29 @@ static int set_offsets( offset_t *offsets, const int n_offsets)
    strlcat_err( buff, cmd_end, sizeof( buff));
    if( verbose)
       printf( "%s\n", buff);
-   if( !system( buff))
+#ifdef _WIN32
+   error_code = (URLDownloadToFile( NULL, buff, outfilename, 0, NULL) != S_OK);
+#else
+   error_code = system( buff);
+#endif
+   if( !error_code)
       {
-      FILE *ifile = fopen( "/tmp/locs", "rb");
+      FILE *ifile = fopen( outfilename, "rb");
 
       assert( ifile);
       while( fgets( buff, sizeof( buff), ifile))
          if( strstr( buff, " = A.D. ") && strstr( buff, " TDB"))
             {
             const double jd = atof( buff);
+            const double jd_for_year_2100 = 2451545.0 + 36525.;
+                     /* update the above before 2100 Jan 1 */
             double state[6];
             int j;
 
             if( verbose)
                printf( "Found locations\n%s", buff);
+            assert( jd > hst_launch_jd);
+            assert( jd < jd_for_year_2100);
             for( j = 0; j < 6; j += 3)
                {
                int n_found;
@@ -267,7 +297,11 @@ static int set_offsets( offset_t *offsets, const int n_offsets)
       }
    else
       {
+#ifdef _WIN32
+      printf( "Error from URLDownloadToFile : %d\n", error_code);
+#else
       printf( "Error with system() : '%s'\n", strerror( errno));
+#endif
       printf( "'%s'\n", buff);
       }
          /* If some or all obs weren't set,  zero their MPC codes.  That */
