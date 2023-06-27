@@ -3,6 +3,11 @@
 #include <assert.h>
 #include <stdlib.h>
 #include <string.h>
+
+#ifdef __WATCOMC__
+   #include <stdbool.h>
+#endif
+
 #include "stringex.h"
 
 #ifdef NO_BUILT_IN_SNPRINTF
