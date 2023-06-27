@@ -39,6 +39,10 @@ ask a computer.  */
 #include <windows.h>
 #endif
 
+#ifdef __WATCOMC__
+#include <sys/timeb.h>
+#endif
+
 #include <stdint.h>
 #include "watdefs.h"
 #include "afuncs.h"
@@ -63,8 +67,6 @@ int64_t DLL_FUNC nanoseconds_since_1970( void)
 }
 #else
 #ifdef __WATCOMC__
-#include <sys/timeb.h>
-
 int64_t DLL_FUNC nanoseconds_since_1970( void)
 {
    struct timeb t;
