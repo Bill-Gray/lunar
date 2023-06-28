@@ -26,7 +26,14 @@ SsoObservation_-4284857946_-4284702156.csv.gz      10935 - 26514
 SsoObservation_-4284702096_-4283326086.csv.gz      26520 - 164121
 
    The Gaia DR3 data are less obviously arranged and are larger.
-*/
+In what I assume is an effort to make the files of similar size,
+numbered object (N) is placed in the file
+
+SsoObservation_xx.csv
+
+   where xx = (N + 11) mod 20.  Thus,  for example,  the data for
+(118186) would be in the file SsoObservation_17.csv.  The reason
+for the offset by 11 eludes me.  */
 
 #include <stdio.h>
 #include <math.h>
