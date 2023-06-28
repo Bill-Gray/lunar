@@ -44,7 +44,7 @@ typedef struct
    char rms_ra[PIECE_SIZE], rms_dec[PIECE_SIZE], corr[PIECE_SIZE];
    char rms_mag[PIECE_SIZE], rms_time[PIECE_SIZE], center[PIECE_SIZE];
    char full_ra[PIECE_SIZE], full_dec[PIECE_SIZE];
-   char trk_sub[14], obs_id[PIECE_SIZE], trk_id[12];
+   char trk_sub[14], obs_id[PIECE_SIZE], trk_id[12], passband[4];
    long double full_t2k;
    int id_set, getting_lines;
    int prev_line_passed_through;
@@ -443,6 +443,11 @@ static int get_a_line( char *obuff, const size_t obuff_size, ades2mpc_t *cptr)
       snprintf_err( obuff, obuff_size, "COM Offset center %s", cptr->center);
       cptr->center[0] = '\0';
       }
+   else if( cptr->passband[1])
+      {
+      snprintf_err( obuff, obuff_size, "COM band:%s", cptr->passband);
+      cptr->passband[1] = '\0';
+      }
    else if( cptr->line[0])
       {
       strlcpy( obuff, cptr->line, obuff_size);
@@ -548,6 +553,8 @@ static int process_ades_tag( char *obuff, ades2mpc_t *cptr, const int itag,
             cptr->line[70] = tptr[1];     /* PanSTARRS,  Sloan,  or Gaia band */
          else
             cptr->line[70] = *tptr;
+         assert( len > 0 && len < 4);    /* three-byte passcodes are allowed */
+         strcpy( cptr->passband, name);
          break;
       case ADES_mode:
          if( len == 3)
