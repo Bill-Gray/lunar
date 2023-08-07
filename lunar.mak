@@ -49,6 +49,9 @@ COMMON_FLAGS = $(BASE_FLAGS)
 .cpp.obj:
    cl -c $(COMMON_FLAGS) $<
 
+.c.obj:
+   cl -c $(COMMON_FLAGS) $<
+
 $(LIBNAME).lib: $(LIB_OBJS)
    del $(LIBNAME).lib
 !ifdef DLL
@@ -78,7 +81,7 @@ clean:
    $(RM) $(LIBNAME).dll
 
 add_off.exe:  add_off.obj $(LIBNAME).lib
-   $(LINK)    add_off.obj $(LIBNAME).lib
+   $(LINK)    add_off.obj $(LIBNAME).lib urlmon.lib
 
 adestest.exe: adestest.obj $(LIBNAME).lib
    $(LINK)    adestest.obj $(LIBNAME).lib
