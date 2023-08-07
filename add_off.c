@@ -32,7 +32,7 @@ has worked well thus far,  but the above URL could come in handy. */
 
 typedef struct
 {
-   double jd, xyz[3], vel[3];
+   double jd, xyz[3], vel[3], orig_xyz[3];
    char mpc_code[4];
 } offset_t;
 
@@ -60,42 +60,58 @@ static double get_sat_obs_jd( const char *buff)
 }
 
 /* The following conversion table is going to need occasional fixes.
-Cas = Cassini,  SoO = Solar Orbiter,  and PSP = Parker Solar Probe
-are _not_ official MPC codes.  */
+Cas = Cassini,  SoO = Solar Orbiter,  etc. are _not_ official MPC codes.
+The table is also used in 'jpl2mpc.cpp' in the 'miscell' repository.
+It therefore contains objects and data not needed for add_off.c (i.e.,
+spacecraft that will never produce astrometry).  Changes made to the
+table in one file should be mirrored in the other. */
 
 typedef struct
 {
-   char mpc_code[4];
-   int jpl_desig;
-} xref_t;
+   const char mpc_code[4];
+   int jpl_desig, norad_number;
+   const char *intl_desig, *name;
+} jpl_xref_t;
+
+/* MPC code    JPL#   NORAD#  Intl desig    Common name */
+static const jpl_xref_t jpl_xrefs[] = {
+   { "249",      -21, 23726, "1995-065A",   "SOHO" },
+   { "Jui",      -28, 56176, "2023-053A",   "JUICE" },
+   { "Ha2",      -37, 40319, "2014-076A",   "Hayabusa 2" },
+   { "250",      -48, 20580, "1990-037B",   "Hubble Space Telescope" },
+   { "Luc",      -49, 49328, "2021-093A",   "Lucy" },
+   { "Cas",      -82, 25008, "1997-061A",   "Cassini" },
+   { "245",      -79, 27871, "2003-038A",   "Spitzer Space Telescope" },
+   { "C57",      -95, 43435, "2018-038A",   "TESS" },
+   { "PSP",      -96, 43592, "2018-065A",   "Parker Solar Probe" },
+   { "C54",      -98, 28928, "2006-001A",   "New Horizons" },
+   { "Equ",     -101, 79970, "2022-156ZZZ", "EQUULEUS" },
+   { "SoO",     -144, 45167, "2020-010A",   "Solar Orbiter" },
+   { "Cha",     -151, 25867, "1999-040B",   "Chandra X-ray Observatory" },
+   { "Cdr",     -158, 57320, "2023-098A",   "Chandrayaan-3" },
+   { "C51",     -163, 36119, "2009-071A",   "WISE" },
+   { "LFL",     -164, 54697, "2022-168B",   "Lunar Flashlight" },
+   { "274",     -170, 50463, "2021-130A",   "James Webb Space Telescope" },
+   { "C55",     -227, 34380, "2009-011A",   "Kepler" },
+   { "C49",     -234, 29510, "2006-047A",   "STEREO-A" },
+   { "C50",     -235, 29511, "2006-047B",   "STEREO-B" },
+   { "Euc",     -680, 57217, "2023-092A",   "Euclid" },
+   { "C52",  -128485, 28485, "2004-047A",   "Swift" },
+   { "C53",  -139089, 39089, "2013-009D",   "NEOSSat" },
+   { "258",  -139479, 39479, "2013-074A",   "Gaia" },
+   { "C56",  -141043, 41043, "2015-070A",   "LISA Pathfinder" },
+   { "C59",  -148840, 48841, "2021-050B",   "Yangwang 1" },
+   { "Tia", -9901491, 45935, "2020-049A",   "Tianwen-1" } };
+/* MPC code    JPL#   NORAD#  Intl desig    Common name */
 
 static int get_horizons_idx( const char *mpc_code)
 {
-   static const xref_t xrefs[] = {
-          {"245",     -79 },   /* Spitzer            */
-          {"249",     -21 },   /* SOHO               */
-          {"250",     -48 },   /* Hubble             */
-          {"258", -139479 },   /* Gaia               */
-          {"Cas",     -82 },   /* Cassini            */
-          {"C49",    -234 },   /* STEREO-A           */
-          {"C50",    -235 },   /* STEREO-B           */
-          {"C51",    -163 },   /* WISE               */
-          {"C52", -128485 },   /* Swift              */
-          {"C53", -139089 },   /* NEOSSAT            */
-          {"C54",     -98 },   /* New Horizons       */
-          {"C55",    -227 },   /* Kepler             */
-          {"C56", -141043 },   /* LISA Pathfinder    */
-          {"C57",     -95 },   /* TESS               */
-          {"C59", -148840 },   /* Yangwang-1         */
-          {"PSP",     -96 },   /* Parker Solar Probe */
-          {"274",    -170 },   /* James Webb (Space) Telescope */
-          {"SoO",    -144 }};  /* Solar Orbiter      */
    size_t i;
-   const size_t n_xrefs = sizeof( xrefs) / sizeof( xrefs[0]);
+   const size_t n_xrefs = sizeof( jpl_xrefs) / sizeof( jpl_xrefs[0]);
 
    for( i = 0; i < n_xrefs; i++)
-      if( !memcmp( mpc_code, xrefs[i].mpc_code, 3))
-         return( xrefs[i].jpl_desig);
+      if( !memcmp( mpc_code, jpl_xrefs[i].mpc_code, 3))
+         return( jpl_xrefs[i].jpl_desig);
    return( 0);
 }
 
@@ -316,6 +332,8 @@ static int set_offsets( offset_t *offsets, const int n_offsets)
    return( 0);
 }
 
+bool show_offsets_from_original = false;
+
 /* The following reads the input file and looks for 80-column obs from
 spacecraft.  On a second pass,  it removes any existing 's' (spacecraft
 position) records and replaces them with 's' records created from
@@ -333,16 +351,32 @@ int process_file( const char *filename, FILE *ofile)
    assert( ifile);
    fprintf( ofile, "COM add_off ver 2022 Dec 07,  run %s", ctime( &t0));
    while( fgets( buff, sizeof( buff), ifile))
-      if( buff[14] == 'S' && (jd = get_sat_obs_jd( buff)) != 0.)
+      if( (jd = get_sat_obs_jd( buff)) != 0.)
          {
-         if( verbose)
-            printf( "Sat obs: %.5f\n%s", jd, buff);
-         n_offsets++;
-         offsets = (offset_t *)realloc( offsets,
-                              n_offsets * sizeof( offset_t));
-         memset( offsets + n_offsets - 1, 0, sizeof( offset_t));
-         offsets[n_offsets - 1].jd = jd;
-         memcpy( offsets[n_offsets - 1].mpc_code, buff + 77, 3);
+         if( buff[14] == 'S')
+            {
+            if( verbose)
+               printf( "Sat obs: %.5f\n%s", jd, buff);
+            n_offsets++;
+            offsets = (offset_t *)realloc( offsets,
+                                 n_offsets * sizeof( offset_t));
+            memset( offsets + n_offsets - 1, 0, sizeof( offset_t));
+            offsets[n_offsets - 1].jd = jd;
+            memcpy( offsets[n_offsets - 1].mpc_code, buff + 77, 3);
+            }
+         else if( buff[14] == 's' && n_offsets && jd == offsets[n_offsets - 1].jd)
+            {
+            for( i = 0; i < 3; i++)
+               {
+               double ival = atof( buff + 35 + i * 12);
+
+               if( buff[34 + i * 12] == '-')
+                  ival = -ival;
+               if( buff[32] == '2')
+                  ival *= AU_IN_KM;
+               offsets[n_offsets - 1].orig_xyz[i] = ival;
+               }
+            }
          }
    for( i = 0; i < n_offsets; i++)
       {
@@ -373,6 +407,14 @@ int process_file( const char *filename, FILE *ofile)
                      offsets[idx].vel[0], offsets[idx].vel[1],
                      offsets[idx].vel[2], offsets[idx].mpc_code);
             fprintf( ofile, "%s", vel_buff);
+            if( show_offsets_from_original && offsets[idx].orig_xyz[0])
+               {
+               strlcpy_error( vel_buff, "COM delta from orig offsets (km)");
+               for( i = 0; i < 3; i++)
+                  snprintf_append( vel_buff, sizeof( vel_buff), " %.3f",
+                        offsets[idx].xyz[i] - offsets[idx].orig_xyz[i]);
+               fprintf( ofile, "%s\n", vel_buff);
+               }
             fprintf( ofile, "%s", buff);
             set_mpc_style_offsets( buff, offsets[idx].xyz);
             fprintf( ofile, "%s", buff);
@@ -429,6 +471,9 @@ int main( const int argc, const char **argv)
                if( atoi( argv[i] + 2))
                   verbose = atoi( argv[i] + 2);
                printf( "Verbose = %d\n", verbose);
+               break;
+            case 'd':
+               show_offsets_from_original = true;
                break;
             default:
                printf( "Option '%s' unrecognized\n", argv[i]);
