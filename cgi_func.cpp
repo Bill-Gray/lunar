@@ -277,7 +277,7 @@ int initialize_cgi_reading( void)
 int get_cgi_data( char *field, char *data, char *filename, const size_t max_data)
 {
    int rval;
-   const size_t max_field = 20;
+   const size_t max_field = 30;
 
    switch( method)
       {
