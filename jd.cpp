@@ -205,22 +205,28 @@ int main( int argc, char **argv)
    double jd;
    char buff[90];
 
-   if( argc < 2)
-      strcpy( buff, "+0");          /* show current time */
-   else
-      {
-      strcpy( buff, argv[1]);
-      for( i = 2; i < argc; i++)
-         if( !memcmp( argv[i], "-c", 2))
-            calendar = atoi( argv[i] + 2);
-         else if( !memcmp( argv[i], "-e", 2))
-            load_earth_orientation_params( argv[i] + 2, NULL);
+   *buff = '\0';
+   for( i = 1; i < argc; i++)
+      if( !memcmp( argv[i], "-c", 2))
+         calendar = atoi( argv[i] + 2);
+      else if( !memcmp( argv[i], "-e", 2))
+         {
+         const int max_mjd = load_earth_orientation_params( argv[i] + 2, NULL);
+
+         if( max_mjd < 0)
+            printf( "Error %d loading EOPs\n", max_mjd);
          else
-            {
+            printf( "EOPs run to MJD %d\n", max_mjd);
+         }
+      else
+         {
+         if( *buff)
             strcat( buff, " ");
-            strcat( buff, argv[i]);
-            }
-      }
+         strcat( buff, argv[i]);
+         }
+
+   if( !*buff)
+      strcpy( buff, "+0");          /* show current time */
 
    t2k = get_time_from_stringl( t2k, buff,
         calendar | FULL_CTIME_YMD | FULL_CTIME_TWO_DIGIT_YEAR, &is_ut);
