@@ -70,23 +70,29 @@ static int get_mpc_obscode_data( loc_t *loc, const char *mpc_code)
          perror( buff);
       assert( ifile);
       while( rval && fgets( buff, sizeof( buff), ifile))
-         if( !memcmp( buff, mpc_code, 3) && buff[3] == end_char
-               && 3 == get_mpc_code_info( &code_data, buff))
+         if( !memcmp( buff, mpc_code, 3) && buff[3] == end_char)
             {
-            loc->lat = code_data.lat;
-            loc->lon = code_data.lon;
-            if( loc->lon > PI)
-               loc->lon -= PI + PI;
-            loc->alt = code_data.alt;
-            loc->rho_sin_phi = code_data.rho_sin_phi;
-            loc->rho_cos_phi = code_data.rho_cos_phi;
-            loc->x = cos( loc->lon) * loc->rho_cos_phi;
-            loc->y = sin( loc->lon) * loc->rho_cos_phi;
+            const int err_code = get_mpc_code_info( &code_data, buff);
+
+            if( 3 == err_code)
+               {
+               loc->lat = code_data.lat;
+               loc->lon = code_data.lon;
+               if( loc->lon > PI)
+                  loc->lon -= PI + PI;
+               loc->alt = code_data.alt;
+               loc->rho_sin_phi = code_data.rho_sin_phi;
+               loc->rho_cos_phi = code_data.rho_cos_phi;
+               loc->x = cos( loc->lon) * loc->rho_cos_phi;
+               loc->y = sin( loc->lon) * loc->rho_cos_phi;
+               printf( "%s !%+014.9f  %+013.9f %9.3f   %s\n", mpc_code,
+                     loc->lon * 180. / PI,
+                     loc->lat * 180. / PI,
+                     loc->alt, code_data.name);
+               }
+            else if( -1 != err_code)
+               printf( "%s\n", code_data.name);
             rval = 0;
-            printf( "%s !%+014.9f  %+013.9f %9.3f   %s\n", mpc_code,
-                  loc->lon * 180. / PI,
-                  loc->lat * 180. / PI,
-                  loc->alt, code_data.name);
             }
       fclose( ifile);
       }
