@@ -61,10 +61,10 @@ static double get_sat_obs_jd( const char *buff)
 
 /* The following conversion table is going to need occasional fixes.
 Cas = Cassini,  SoO = Solar Orbiter,  etc. are _not_ official MPC codes.
-The table is also used in 'jpl2mpc.cpp' in the 'miscell' repository.
-It therefore contains objects and data not needed for add_off.c (i.e.,
-spacecraft that will never produce astrometry).  Changes made to the
-table in one file should be mirrored in the other. */
+The table is also used in 'jpl2mpc.cpp' and 'jpl2sof.c' in the 'miscell'
+repository. It therefore contains objects and data not needed for
+add_off.c (i.e., spacecraft that will never produce astrometry). Changes
+made to the table in one file should be mirrored in the others. */
 
 typedef struct
 {
@@ -80,6 +80,7 @@ static const jpl_xref_t jpl_xrefs[] = {
    { "Ha2",      -37, 40319, "2014-076A",   "Hayabusa 2" },
    { "250",      -48, 20580, "1990-037B",   "Hubble Space Telescope" },
    { "Luc",      -49, 49328, "2021-093A",   "Lucy" },
+   { "OsR",      -64, 41757, "2016-055A",   "OSIRIS-REx" },
    { "Cas",      -82, 25008, "1997-061A",   "Cassini" },
    { "245",      -79, 27871, "2003-038A",   "Spitzer Space Telescope" },
    { "C57",      -95, 43435, "2018-038A",   "TESS" },
@@ -95,6 +96,7 @@ static const jpl_xref_t jpl_xrefs[] = {
    { "C55",     -227, 34380, "2009-011A",   "Kepler" },
    { "C49",     -234, 29510, "2006-047A",   "STEREO-A" },
    { "C50",     -235, 29511, "2006-047B",   "STEREO-B" },
+   { "Sli",     -240, 57801, "2023-137B",   "SLIM" },
    { "Euc",     -680, 57217, "2023-092A",   "Euclid" },
    { "C52",  -128485, 28485, "2004-047A",   "Swift" },
    { "C53",  -139089, 39089, "2013-009D",   "NEOSSat" },
