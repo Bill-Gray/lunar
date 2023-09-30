@@ -177,9 +177,60 @@ static unsigned find_events( unsigned sat_no, double t1, double t2, int viewpoin
    return( rval);
 }
 
+/* see 'shellsor.cpp' in the 'find_orb' repository
+for comments on this ShellSort implementation */
+
+static void _sort_events( EVENT *e, const size_t n_events)
+{
+   size_t gap = 250104703;
+
+   while( gap < n_events)
+      gap = gap * 8 / 3 + 1;
+   while( (gap = gap * 3 / 8) != 0)
+      {
+      size_t i, j;
+
+      for( i = 0; i < gap; i++)
+         for( j = i; j + gap < n_events; j += gap)
+            if( e[j].t > e[j + gap].t)
+               {
+               EVENT temp;
+
+               memcpy( &temp, e + j + gap, sizeof( EVENT));
+               memcpy( e + j + gap, e + j, sizeof( EVENT));
+               memcpy( e + j, &temp, sizeof( EVENT));
+               if( j >= gap)
+                  j -= gap + gap;
+               }
+      }
+}
+
+/* Sort events by date,  then look for the start of an eclipse or
+occultation.  Anything from then to the end of that eclipse or
+occultation is "unseen" (occurs while the satellite is behind
+Jupiter or in eclipse). */
+
+static void _mark_hidden_events( EVENT *e, const int n_events)
+{
+   int i;
+
+   _sort_events( e, n_events);
+   for( i = 0; i < n_events - 1; i++)
+      if( !(e[i].event_type & IN_FRONT) && (e[i].event_type & EVENT_START))
+         {
+         int j = i + 1;
+
+         while( j < n_events && ((e[j].event_type ^ e[i].event_type) & 7) != EVENT_START)
+            {
+            e[j].event_type |= EVENT_UNSEEN;
+            j++;
+            }
+         }
+}
+
 int main( int argc, char **argv)
 {
-   unsigned i, j, k, julian = 0, gap;
+   unsigned i, julian = 0;
    unsigned n_days = 30, sat_no = 15;
    unsigned max_events;
    unsigned n_events = 0, n_sun, n_earth;
@@ -270,45 +321,11 @@ int main( int argc, char **argv)
          printf( "Sat %u from earth\n", i + 1);
          n_earth = find_events( i + 1, t1 - 1., t2 + 1., 1, e + n_events + n_sun);
          printf( "Finding hidden events\n");
-         k = n_events + n_sun;
-         for( j = n_events; j < n_events + n_sun; j++)
-            while( k < n_events + n_sun + n_earth && e[k].t < e[j].t)
-               {
-               if( e[k + 1].t > e[j].t)
-                  if( !(e[j].event_type & IN_FRONT))
-                     e[j].event_type |= EVENT_UNSEEN;
-               k += 2;
-               }
-         k = n_events;
-         for( j = n_events + n_sun; j < n_events + n_sun + n_earth; j++)
-            while( k < n_events + n_sun && e[k].t < e[j].t)
-               {
-               if( e[k + 1].t > e[j].t)
-                  if( !(e[j].event_type & IN_FRONT))
-                     e[j].event_type |= EVENT_UNSEEN;
-               k += 2;
-               }
+         _mark_hidden_events( e + n_events, n_sun + n_earth);
          n_events += n_earth + n_sun;
          }
    printf( "Sorting %u events\n", n_events);
-   for( gap = 1; gap < n_events / 3; gap = gap * 3 + 1)
-      ;
-   while( gap)
-      {
-      for( i = 0; i < gap; i++)
-         for( j = i; j + gap < n_events; j += gap)
-            if( e[j].t > e[j + gap].t)
-               {
-               EVENT temp;
-
-               memcpy( &temp, e + j + gap, sizeof( EVENT));
-               memcpy( e + j + gap, e + j, sizeof( EVENT));
-               memcpy( e + j, &temp, sizeof( EVENT));
-               if( j >= gap)
-                  j -= gap + gap;
-               }
-      gap /= 3;
-      }
+   _sort_events( e, n_events);
 
    if( !quiet)
       {
