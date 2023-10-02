@@ -784,10 +784,29 @@ int create_mpc_packed_desig( char *packed_desig, const char *obj_name)
          packed_desig[11] = '0';
 
       sub_designator = quick_atoi( obj_name + i);
-      if( sub_designator >= 0 && sub_designator < 620 && number < 6200)
+      if( sub_designator >= 0 && number < 6200)
          {
-         packed_desig[10] = int_to_mutant_hex_char( sub_designator % 10);
-         packed_desig[9] = int_to_mutant_hex_char( sub_designator / 10);
+         if( sub_designator < 620)
+            {
+            packed_desig[10] = int_to_mutant_hex_char( sub_designator % 10);
+            packed_desig[9] = int_to_mutant_hex_char( sub_designator / 10);
+            }
+         else if( number >= 2000 && number < 2062)
+            {
+            int n = (sub_designator - 620) * 25 + packed_desig[11] - 'A';
+
+            if( packed_desig[11] > 'I')
+               n--;
+            if( n >= 62 * 62 * 62 * 62)
+               mangled_designation = true;
+            else
+               {
+               packed_desig[5] = '_';
+               packed_desig[6] = int_to_mutant_hex_char( number - 2000);
+               packed_desig[7] = packed_desig[8];    /* move half-month specifier */
+               encode_value_in_mutant_hex( packed_desig + 8, 4, n);
+               }
+            }
          while( isdigit( obj_name[i]))
             i++;
          if( comet_desig)
