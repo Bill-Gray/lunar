@@ -27,7 +27,7 @@ int main( void)
          for( i = 0; buff[i] >= ' '; i++)
             ;
          buff[i] = '\0';
-         if( testing & 2)
+         if( testing & 1)
             {
             if( strcmp( buff + 16, tbuff) || rval != atoi( buff + 13))
                {

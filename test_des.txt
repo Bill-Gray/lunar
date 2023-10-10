@@ -1,8 +1,10 @@
 #  Test input for 'test_des'.  See 'test_des.cpp'.
 # 'Test 1' = test packing;  'Test 2' = test unpacking;  'Test 3' = test both
-# (we do have cases where the test goes one way.  For example,
-# 'Neptune 210' will be packed to N210S;  on unpacking,  it becomes
-# 'Neptune CCX'.  But almost all the tests are bidirectional.)
+# At present,  we have one one-way test.  'Neptune 210' will be packed to
+# N210S;  on unpacking,  it becomes 'Neptune CCX'.
+# Test 2
+N210S         5 Neptune 210
+# All the other tests are bidirectional :
 # Test 3
 # Packed      Typ  Fullname
      J95X00A  0 1995 XA
@@ -17,6 +19,7 @@
      PLS2040  0 2040 P-L
      T3S3141  0 3141 T-3
 00433         1 (433)
+G4060         1 (164060)
 n1415         1 (491415)
 ~0000         1 (620000)
 ~000a         1 (620036)
@@ -25,9 +28,6 @@ n1415         1 (491415)
 ~zzzz         1 (15396335)
 U024S         5 Uranus XXIV
 N924S         5 Neptune CMXXIV
-# Test 1
-N210S         5 Neptune 210
-# Test 3
 N089S         5 Neptune LXXXIX
 U410S         5 Uranus CDX
 1992-044A     6 1992-044A
@@ -35,7 +35,21 @@ U410S         5 Uranus CDX
      WT1190F -1 WT1190F
      ZTF0Ep4 -1 ZTF0Ep4
      C12J001 -1 C12J001
-     G4060e  -1 G4060e
      9496058 -1 9496058
-     164060  -1 164060
+     G4060e  -1 G4060e
      1762B11 -1 1762B11
+     _QC0000  0 2026 CA620
+     _QC0aEM  0 2026 CZ6190
+     _QCzzzz  0 2026 CL591673
+     _AH9fZ7  0 2010 HJ92809
+    C_3MDZ3v  2 C/2003 MX129941
+    P_WY0Mpc  2 P/2032 YT4130
+# MPC optimistically states (see
+# https://minorplanetcenter.net/media/newsletters/MPC_Newsletter_Oct2023.pdf
+# ) that the extension allowing packed provisional designations past cycle 620
+# = 15500th object in a half-month will not be used after the end of 2035,
+# and that therefore the year will be designated by an uppercase letter.  I am
+# less sanguine and am allowing lowercase letters (hence base-62) to allow the
+# scheme to work to the end of 2061.  With any luck,  I'll be dead by then.
+     _cRAZaz  0 2038 RO101424
+     _xMDZ3v  0 2059 MX129941

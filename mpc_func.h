@@ -69,6 +69,7 @@ char int_to_mutant_hex_char( const int ival);
 int get_mutant_hex_value( const char *buff, size_t n_digits);
 int encode_value_in_mutant_hex( char *buff, size_t n_digits, int value);
 int unpack_mpc_desig( char *obuff, const char *packed);
+int unpack_unaligned_mpc_desig( char *obuff, const char *packed);
 
 #define OBJ_DESIG_ASTEROID_PROVISIONAL   0
 #define OBJ_DESIG_ASTEROID_NUMBERED      1
