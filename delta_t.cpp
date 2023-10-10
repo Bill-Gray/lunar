@@ -97,7 +97,8 @@ static const short delta_t_table[] =
   6810,    /* 2016  1 1:   68.1024                              */
   6897,    /* 2018  1 1:   68.9677                              */
   6936,    /* 2020  1 1:   UT1 - UTC = -0.1772554               */
-  6930 };  /* 2022  1 1:   UT1 - UTC = -0.1175024 (prediction 2021 feb 10)  */
+  6929,    /* 2022  1 1:   UT1 - UTC = -0.1104988               */
+  6919 };  /* 2024  1 1:   UT1 - UTC = -0.0051796 (predicted 2023 Oct 09) */
 
 /* 8 Aug 2000:  Some people have expressed an interest in being able to
    insert their own formulae for Delta-T while running Guide.  I've
@@ -259,7 +260,7 @@ double DLL_FUNC td_minus_ut( const double jd)
 /* Some notes for other time systems that I may,  someday,  get around
 to implementing:
 
-TDT = TAI + 32.184 seconds
+TDT = TAI + 32.184 seconds = TAI + 0.0003725 days,  exactly
 
 TAI & UTC differ by an integer number of seconds;  after 2012 Jul 1,
 for example,  TAI-UTC = 35 seconds,  TDT-UTC = 67.184 seconds.
