@@ -14,7 +14,11 @@ https://iopscience.iop.org/article/10.1086/132034/pdf
 in epoch B1875.  That's emphasized in the '*_degrees_1875' names of the
 parameters passed to constell_from_ra_dec( ).
 
-   Compile with -DTEST_MAIN for a program-let to test this function.
+   Compile with
+
+gcc -Wall -Wextra -pedantic -Werror -DTEST_MAIN -o conbound conbound.c
+
+   for a small program to test/demonstrate this function.
 
    Three-letter abbreviations for 88 constellations = 264-byte string : */
 const char *constell_names =
