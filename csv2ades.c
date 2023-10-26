@@ -6,13 +6,18 @@ _or_ Gaia-DR3 observations from somewhat differently formatted files at
 
 http://cdn.gea.esac.esa.int/Gaia/gdr3/Solar_system/sso_observation/
 
+_or_ Gaia-FPR (Focussed Product Release) files at
+
+https://cdn.gea.esac.esa.int/Gaia/gfpr/Solar_system/sso_observation/
+
    into the ADES format.  Run as,  for example,
 
 ./csv2ades input_file.csv > output.ades
-./csv2ades -4179 input_file.csv > output.ades
+./csv2ades -4179,101955 input_file.csv > output.ades
 
-   The second example would output only observations for object (4179)
-Toutatis.  The first would output all of the observations.
+   The first example would output all the observations from
+'input_file.csv'. The second example would output only observations
+for objects (4179) Toutatis to (101955) Bennu.
 
    Further notes : there are four GZIPped files in the above directory
 for DR2, ranging from about 50 to 78 MBytes compressed and expanding
@@ -25,7 +30,7 @@ SsoObservation_-4284922936_-4284857966.csv.gz       4436 - 10933
 SsoObservation_-4284857946_-4284702156.csv.gz      10935 - 26514
 SsoObservation_-4284702096_-4283326086.csv.gz      26520 - 164121
 
-   The Gaia DR3 data are less obviously arranged and are larger.
+   The Gaia DR3 and FPR data are less obviously arranged and are larger.
 In what I assume is an effort to make the files of similar size,
 numbered object (N) is placed in the file
 
@@ -50,6 +55,8 @@ static char *get_csv( char *obuff, const char *ibuff,
    unsigned nval = 0;
    const char *found = strstr( header, tag);
 
+   if( !found)
+      fprintf( stderr, "Couldn't find '%s'\n", tag);
    assert( found);
    assert( found >= header);
    for( i = 0; i < (size_t)(found - header); i++)
@@ -102,18 +109,21 @@ static void csv_to_ades( const char *ibuff, const char *header,
       printf( "    <rmsDec>%f</rmsDec>\n",   atof( get_csv( tbuff, ibuff, header, "dec_error_random,")) / 1000.);
       printf( "    <rmsCorr>%s</rmsCorr>\n", get_csv( tbuff, ibuff, header, "ra_dec_correlation_random,"));
       printf( "    <astCat>Gaia3</astCat>\n");
-      get_csv( tbuff, ibuff, header, "g_mag,");
-      if( *tbuff >= '0' && *tbuff <= '9')
+      if( strstr( header, "g_mag,"))   /* FPR doesn't have magnitude data */
          {
-         double g_flux, g_flux_sigma;
+         get_csv( tbuff, ibuff, header, "g_mag,");
+         if( *tbuff >= '0' && *tbuff <= '9')
+            {
+            double g_flux, g_flux_sigma;
 
-         printf( "    <mag>%s</mag>\n", tbuff);
-         g_flux       = atof( get_csv( tbuff, ibuff, header, "g_flux"));
-         g_flux_sigma = atof( get_csv( tbuff, ibuff, header, "g_flux_error"));
-         printf( "    <rmsMag>%.3f</rmsMag>\n",
-                           (g_flux_sigma / g_flux) / log( 2.512));
-         printf( "    <band>G</band>\n");
-         printf( "    <photCat>Gaia2</photCat>\n");
+            printf( "    <mag>%s</mag>\n", tbuff);
+            g_flux       = atof( get_csv( tbuff, ibuff, header, "g_flux"));
+            g_flux_sigma = atof( get_csv( tbuff, ibuff, header, "g_flux_error"));
+            printf( "    <rmsMag>%.3f</rmsMag>\n",
+                              (g_flux_sigma / g_flux) / log( 2.512));
+            printf( "    <band>G</band>\n");
+            printf( "    <photCat>Gaia2</photCat>\n");
+            }
          }
       printf( "   </optical>\n");
       }
