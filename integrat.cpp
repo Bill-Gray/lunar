@@ -537,24 +537,20 @@ int integrate_orbit( ELEMENTS *elem, const double jd_from, const double jd_to,
    for( i = 0; i < n_steps; i++)
       {
       double new_delta[6];
-      int chickened_out;
 
-      chickened_out = full_rk_step( elem, delta, new_delta, curr_jd,
+      full_rk_step( elem, delta, new_delta, curr_jd,
                                          curr_jd + stepsize, max_err);
       memcpy( delta, new_delta, 6 * sizeof( double));
       curr_jd += stepsize;
-      if( i && (i % resync_freq == 0 || chickened_out))
+      comet_posn_and_vel( elem, curr_jd, posnvel, posnvel + 3);
+      for( j = 0; j < 6; j++)
          {
-         comet_posn_and_vel( elem, curr_jd, posnvel, posnvel + 3);
-         for( j = 0; j < 6; j++)
-            {
-            posnvel[j] += delta[j];
-            delta[j] = 0.;
-            }
-         elem->epoch = curr_jd;
-         elem->gm = SOLAR_GM;
-         calc_classical_elements( elem, posnvel, curr_jd, 1);
+         posnvel[j] += delta[j];
+         delta[j] = 0.;
          }
+      elem->epoch = curr_jd;
+      elem->gm = SOLAR_GM;
+      calc_classical_elements( elem, posnvel, curr_jd, 1);
       }
    comet_posn_and_vel( elem, jd_to, posnvel, posnvel + 3);
    for( i = 0; i < 6; i++)
