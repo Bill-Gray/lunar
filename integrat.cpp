@@ -97,8 +97,8 @@ static int position_cache_size = 0;
 static unsigned long perturber_mask = PERTURBERS_MERCURY_TO_NEPTUNE;
       /*  PERTURBERS_MERCURY_TO_NEPTUNE | PERTURBERS_CERES_PALLAS_VESTA; */
 
-int integrate_orbit( ELEMENTS *elem, const double jd_from, const double jd_to,
-                              const double max_err, const int n_steps);
+int integrate_orbit( ELEMENTS *elem, double jd, const double jd_end,
+                              const double max_err, const double stepsize);
 
 /* 28 Feb 2003:  modified heavily after getting an e-mail from Werner
 Huget. See his e-mail and page 281 of the _Explanatory Supplement to the
@@ -229,14 +229,29 @@ static void compute_perturber( int perturber_no, double jd,
       }
 }
 
-static double *make_position_cache( double jd0, const double stepsize,
-                     const int n_steps)
+static double *make_position_cache( double jd0, double jd_end,
+                                 const double stepsize)
 {
-   double *rval = (double *)calloc( 2 + (size_t)n_steps * N_PERTURBERS * 6 * 3,
-                                           sizeof( double));
-   double *tptr = rval + 2;
-   int i, j, step;
+   double *rval, *tptr;
+   int i, j, n_steps, step;
+   const double max_jd = 2451545.0;    /* 2000 jan 1.5 */
 
+   if( jd0 > jd_end)
+      {
+      const double tval = jd0;
+
+      jd0 = jd_end;
+      jd_end = tval;
+      }
+   if( jd0 > max_jd)    /* make sure cache goes back to at least 2000 */
+      jd0 = max_jd;
+   jd0 = floor( (jd0 - .5) / stepsize) * stepsize + 0.5;
+         /* Make a few extra steps before & after the planned time range */
+   n_steps = floor( (jd_end - jd0) / stepsize) + 5;
+   jd0 -= stepsize * 2.;
+   rval = (double *)calloc( 2 + (size_t)n_steps * N_PERTURBERS * 6 * 3,
+                                           sizeof( double));
+   tptr = rval + 2;
    if( !rval)
       {
       printf( "Ran out of memory!\n");
@@ -244,6 +259,7 @@ static double *make_position_cache( double jd0, const double stepsize,
       }
    rval[0] = jd0;
    rval[1] = stepsize;
+   position_cache_size = n_steps;
    for( step = 0; step < n_steps; step++)
       {
       for( j = 0; j < 6; j++)
@@ -525,39 +541,49 @@ static int full_rk_step( ELEMENTS *elems, double *ivals, double *ovals,
    would work just fine.  I _do_ have a better scheme in mind,  and it's
    implemented in my Find_Orb software... but not here (yet).   */
 
-int integrate_orbit( ELEMENTS *elem, const double jd_from, const double jd_to,
-                              const double max_err, const int n_steps)
+int integrate_orbit( ELEMENTS *elem, double jd, const double jd_end,
+                              const double max_err, const double stepsize)
 {
-   double delta[6],  posnvel[6], stepsize = (jd_to - jd_from) / (double)n_steps;
-   double curr_jd = jd_from;
+   double delta[6],  posnvel[6];
    int i, j;
 
    for( i = 0; i < 6; i++)
       delta[i] = 0.;
-   for( i = 0; i < n_steps; i++)
+   while( jd != jd_end)
       {
-      double new_delta[6];
+      double new_delta[6], jd2;
 
-      full_rk_step( elem, delta, new_delta, curr_jd,
-                                         curr_jd + stepsize, max_err);
+      jd2 = floor( (jd - 0.5) / stepsize + 0.5) * stepsize + 0.5;
+      if( jd < jd_end)    /* integrating forward */
+         {
+         jd2 += stepsize;
+         if( jd2 > jd_end)       /* going past the end;  truncate step */
+            jd2 = jd_end;
+         }
+      else                /* integrating backward */
+         {
+         if( jd2 < jd_end)
+            jd2 = jd_end;
+         }
+      full_rk_step( elem, delta, new_delta, jd, jd2, max_err);
       memcpy( delta, new_delta, 6 * sizeof( double));
-      curr_jd += stepsize;
-      comet_posn_and_vel( elem, curr_jd, posnvel, posnvel + 3);
+      jd = jd2;
+      comet_posn_and_vel( elem, jd, posnvel, posnvel + 3);
       for( j = 0; j < 6; j++)
          {
          posnvel[j] += delta[j];
          delta[j] = 0.;
          }
-      elem->epoch = curr_jd;
+      elem->epoch = jd;
       elem->gm = SOLAR_GM;
-      calc_classical_elements( elem, posnvel, curr_jd, 1);
+      calc_classical_elements( elem, posnvel, jd, 1);
       }
-   comet_posn_and_vel( elem, jd_to, posnvel, posnvel + 3);
+   comet_posn_and_vel( elem, jd_end, posnvel, posnvel + 3);
    for( i = 0; i < 6; i++)
       posnvel[i] += delta[i];
-   elem->epoch = jd_to;
+   elem->epoch = jd_end;
    elem->gm = SOLAR_GM;
-   calc_classical_elements( elem, posnvel, jd_to, 1);
+   calc_classical_elements( elem, posnvel, jd_end, 1);
    return( 0);
 }
 
@@ -662,20 +688,12 @@ static double try_to_integrate( const char *header, char *buff, const double des
 
    if( got_it && dest_jd != 0. && elem.epoch != 0.)
       {
-      int n_steps;
-
-      n_steps = (int)fabs( (dest_jd - elem.epoch) / stepsize) + 2;
       elem.angular_momentum = sqrt( SOLAR_GM * elem.q);
       elem.angular_momentum *= sqrt( 1. + elem.ecc);
 
       if( !position_cache)       /* gotta initialize it: */
-         {
-         position_cache_size = n_steps;
-         position_cache = make_position_cache( elem.epoch,
-                     (dest_jd - elem.epoch) / (double)n_steps, n_steps);
-         }
-
-      integrate_orbit( &elem, elem.epoch, dest_jd, max_err, n_steps);
+         position_cache = make_position_cache( elem.epoch, dest_jd, stepsize);
+      integrate_orbit( &elem, elem.epoch, dest_jd, max_err, stepsize);
       put_elem_into_sof( header, buff, &elem);
       }
 
