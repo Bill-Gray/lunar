@@ -1049,12 +1049,19 @@ int main( int argc, const char **argv)
             }
          else if( elapsed_time > t_last_printout + 1.)
             {
+            int divisor = 1;
+            double t_remains;
+
             t_last_printout = elapsed_time;
+#ifdef FORKING
+            if( forking_has_happened)
+               divisor = n_processes;
+#endif
+            t_remains = (double)(total_asteroids_in_file / divisor - n_integrated)
+                           * elapsed_time / (double)n_integrated;
             printf( "%.0f seconds elapsed;  %.0f seconds remain; %d done %d    \r",
-                        elapsed_time,
-                       (double)(total_asteroids_in_file - n_integrated)
-                       * elapsed_time / (double)n_integrated,
-                       n_integrated,
+                        elapsed_time, t_remains,
+                       n_integrated * divisor,
                        n_found_from_update);
             }
 #ifdef _MSC_VER
