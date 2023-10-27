@@ -688,9 +688,6 @@ static double try_to_integrate( const char *header, char *buff, const double des
 
    if( got_it && dest_jd != 0. && elem.epoch != 0.)
       {
-      elem.angular_momentum = sqrt( SOLAR_GM * elem.q);
-      elem.angular_momentum *= sqrt( 1. + elem.ecc);
-
       if( !position_cache)       /* gotta initialize it: */
          position_cache = make_position_cache( elem.epoch, dest_jd, stepsize);
       integrate_orbit( &elem, elem.epoch, dest_jd, max_err, stepsize);
