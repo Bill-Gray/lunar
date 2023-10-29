@@ -562,9 +562,12 @@ int integrate_orbit( ELEMENTS *elem, double jd, const double jd_end,
          }
       else                /* integrating backward */
          {
+         jd2 -= stepsize;
          if( jd2 < jd_end)
             jd2 = jd_end;
          }
+      assert( jd != jd2);
+      assert( fabs( jd - jd2) < stepsize * 2.);
       full_rk_step( elem, delta, new_delta, jd, jd2, max_err);
       memcpy( delta, new_delta, 6 * sizeof( double));
       jd = jd2;
@@ -679,6 +682,7 @@ static double try_to_integrate( const char *header, char *buff, const double des
          return( 0.);
       }
    got_it = !extract_sof_data_ex( &elem, buff, header, NULL);
+   assert( got_it);
    if( !memcmp( buff, "      134340 ", 13))   /* don't let (134340) Pluto */
       if( perturber_mask & PERTURBERS_PLUTO)    /* perturb itself! */
          {
@@ -1124,9 +1128,12 @@ int main( int argc, const char **argv)
             fclose( ifiles[i]);
             unlink( chunk_filename( buff, i));
             }
+         free( ifiles);
          fclose( ofile);
          }
       }
 #endif
+   assert( position_cache);
+   free( position_cache);
    return( 0);
 }
