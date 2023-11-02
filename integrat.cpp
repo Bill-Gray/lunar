@@ -770,6 +770,7 @@ int main( int argc, const char **argv)
 {
    FILE *ifile, *ofile, *update_file = NULL;
    const char *temp_file_name = "ickywax.ugh";
+   const char *output_filename = argv[2];
    long *hashes, *file_offsets, hash_val;
    const char *ephem_filename = NULL;
    double dest_jd, max_err = 1.e-12, stepsize = 2., t_last_printout = 0.;
@@ -809,7 +810,7 @@ int main( int argc, const char **argv)
       error_exit( );
       return( -1);
       }
-   if( update_existing_file && !rename( argv[2], temp_file_name))
+   if( update_existing_file && !rename( output_filename, temp_file_name))
       {
       int n_hashes = 0;
 
@@ -840,7 +841,7 @@ int main( int argc, const char **argv)
                    "Integrat version %s %s\nIntegrating to %s = JD %.5f\n",
                     __DATE__, __TIME__, time_buff, dest_jd);
    printf( "%s", buff);
-   ofile = err_fopen( argv[2], "wb");
+   ofile = err_fopen( output_filename, "wb");
    setvbuf( ofile, NULL, _IONBF, 0);
    if( dest_jd != floor( dest_jd) + .5)
       {
@@ -1116,7 +1117,7 @@ int main( int argc, const char **argv)
 
          for( i = 0; i < n_processes; i++)
             ifiles[i] = err_fopen( chunk_filename( buff, i), "rb");
-         ofile = err_fopen( argv[2], "ab");
+         ofile = err_fopen( output_filename, "ab");
          i = 0;
          while( fgets( buff, sizeof( buff), ifiles[i]))
             {
