@@ -321,30 +321,28 @@ int DLL_FUNC elements_in_mpc_format( char *obuff, const size_t obuff_size,
       if( elem->central_obj <= 0 || t0 > 1.)         /* helio or barycentric */
          {
          if( t0 > 1e+8 - 1.)        /* too big to fit in buffer */
-            snprintf_err( obuff, endptr - obuff, "P!!!!!!!");
+            snprintf_err( obuff, endptr - obuff, "P!!!!!!! ");
          else if( t0 > 9999.)
-            snprintf_err( obuff, endptr - obuff, "P%7ld", (long)t0);
+            snprintf_err( obuff, endptr - obuff, "P%7ld ", (long)t0);
+         else if( t0_in_days > 999.9)
+            snprintf_err( obuff, endptr - obuff, "P%10.5f       ", t0);
          else
-            snprintf_err( obuff, endptr - obuff, "P%7.2f", t0);
-         if( t0_in_days < 999.9)
-            snprintf_append( obuff, endptr - obuff, "/%6.2fd ", t0_in_days);
-         else
-            snprintf_append( obuff, endptr - obuff, "         ");
+            snprintf_err( obuff, endptr - obuff, "P%8.3f/%7.3fd", t0, t0_in_days);
          }
       else
          {
          if( t0_in_days * minutes_per_day < 9999.)  /* about 6.944 days */
-            snprintf_err( obuff, endptr - obuff, "P%7.2fm/%5.3fd ",
+            snprintf_err( obuff, endptr - obuff, "P%8.3fm/%5.3fd ",
                               t0_in_days * minutes_per_day,
                               t0_in_days);
          else
-            snprintf_err( obuff, endptr - obuff, "P%7.2fd        ", t0_in_days);
+            snprintf_err( obuff, endptr - obuff, "P%9.4fd       ", t0_in_days);
          }
       if( elem->abs_mag != 0.)
          {
          obuff += strlen( obuff);
-         snprintf_err( obuff, endptr - obuff, (elem->is_asteroid ? "  H%8.2f    G %6.2f" :
-                                              "  M(T)%5.1f    K %5.1f"),
+         snprintf_err( obuff, endptr - obuff, (elem->is_asteroid ? " H%8.2f    G %6.2f" :
+                                              " M(T)%5.1f    K %5.1f"),
                                               elem->abs_mag,
                                               elem->slope_param);
          if( !elem->is_asteroid)
