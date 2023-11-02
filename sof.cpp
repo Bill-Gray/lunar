@@ -69,6 +69,8 @@ double extract_yyyymmdd_to_jd( const char *buff)
 }
 
 #define PI 3.1415926535897932384626433832795028841971693993751058209749445923
+#define MASS_EARTH    3.003489614792921e-06
+         /* above is in solar masses,  from DE-432 */
 
 int extract_sof_data_ex( ELEMENTS *elem, const char *buff, const char *header,
                         double *extra_info)
@@ -128,6 +130,8 @@ int extract_sof_data_ex( ELEMENTS *elem, const char *buff, const char *header,
                break;
             case 'C':
                elem->central_obj = atoi( tbuff);
+               if( 3 == elem->central_obj)
+                  elem->gm *= MASS_EARTH;
                break;
             }
          }
