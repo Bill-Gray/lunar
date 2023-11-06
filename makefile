@@ -138,7 +138,7 @@ all: add_off$(EXE) adestest$(EXE) astcheck$(EXE) astephem$(EXE) \
    tables$(EXE) test_des$(EXE) test_ref$(EXE) testprec$(EXE) \
    themis$(EXE) them_cat$(EXE) uranus1$(EXE) utc_test$(EXE)
 
-install:
+install: $(LIBLUNAR)
 	$(MKDIR) $(INSTALL_DIR)/include
 	$(CP) afuncs.h   $(INSTALL_DIR)/include
 	$(CP) brentmin.h $(INSTALL_DIR)/include
@@ -146,6 +146,7 @@ install:
 	$(CP) comets.h   $(INSTALL_DIR)/include
 	$(CP) date.h     $(INSTALL_DIR)/include
 	$(CP) get_bin.h  $(INSTALL_DIR)/include
+	$(CP) jpl_xref.h $(INSTALL_DIR)/include
 	$(CP) lunar.h    $(INSTALL_DIR)/include
 	$(CP) mpc_func.h $(INSTALL_DIR)/include
 	$(CP) showelem.h $(INSTALL_DIR)/include
@@ -156,10 +157,10 @@ install:
 	$(CP) $(LIBLUNAR) $(LIB_DIR)
 	$(MKDIR) $(INSTALL_DIR)/bin
 
-install_astcheck:
+install_astcheck: astcheck$(EXE)
 	$(CP) astcheck$(EXE) $(INSTALL_DIR)/bin
 
-install_integrat:
+install_integrat: integrat
 	$(CP) integrat $(INSTALL_DIR)/bin
 
 uninstall:
@@ -168,6 +169,7 @@ uninstall:
 	rm -f $(INSTALL_DIR)/include/comets.h
 	rm -f $(INSTALL_DIR)/include/date.h
 	rm -f $(INSTALL_DIR)/include/get_bin.h
+	rm -f $(INSTALL_DIR)/include/jpl_xref.h
 	rm -f $(INSTALL_DIR)/include/lunar.h
 	rm -f $(INSTALL_DIR)/include/mpc_func.h
 	rm -f $(INSTALL_DIR)/include/showelem.h
