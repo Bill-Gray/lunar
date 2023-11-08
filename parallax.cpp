@@ -203,7 +203,8 @@ static void error_exit( void)
            "and they will be converted to parallax constants.  Run with two arguments\n"
            "(rho_cos_phi, rho_sin_phi) and the corresponding latitude and altitude\n"
            "will be computed and shown.  Run with one argument (MPC obscode) and\n"
-           "all the location data for it wiss be shown.\n");
+           "all the location data for it will be shown.  Run with two MPC codes as\n"
+           "command-line arguments,  and the distance between them will be shown.\n");
    exit( -1);
 }
 
