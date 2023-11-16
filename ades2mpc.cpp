@@ -44,6 +44,7 @@ typedef struct
    char rms_ra[PIECE_SIZE], rms_dec[PIECE_SIZE], corr[PIECE_SIZE];
    char rms_mag[PIECE_SIZE], rms_time[PIECE_SIZE], center[PIECE_SIZE];
    char full_ra[PIECE_SIZE], full_dec[PIECE_SIZE];
+   char notes[7], program_code[3];
    char trk_sub[14], obs_id[PIECE_SIZE], trk_id[12], passband[4];
    long double full_t2k;
    int id_set, getting_lines;
@@ -443,10 +444,16 @@ static int get_a_line( char *obuff, const size_t obuff_size, ades2mpc_t *cptr)
       snprintf_err( obuff, obuff_size, "COM Offset center %s", cptr->center);
       cptr->center[0] = '\0';
       }
-   else if( cptr->passband[1])
+   else if( cptr->passband[1] || cptr->notes[0] > ' ' || cptr->program_code[0] >= ' ')
       {
-      snprintf_err( obuff, obuff_size, "COM band:%s", cptr->passband);
-      cptr->passband[1] = '\0';
+      snprintf_err( obuff, obuff_size, "COM ADES tags");
+      if( cptr->passband[1])
+         snprintf_append( obuff, obuff_size, " band:%s", cptr->passband);
+      if( cptr->notes[0] >= ' ')
+         snprintf_append( obuff, obuff_size, " notes:%s", cptr->notes);
+      if( cptr->program_code[0] >= ' ')
+         snprintf_append( obuff, obuff_size, " progcode:%s", cptr->program_code);
+      cptr->passband[1] = cptr->notes[0] = cptr->program_code[0] = '\0';
       }
    else if( cptr->line[0])
       {
@@ -582,6 +589,8 @@ static int process_ades_tag( char *obuff, ades2mpc_t *cptr, const int itag,
 
          if( idx >=0 && idx <= 34)
             cptr->line[13] = programs[idx];
+         assert( len < sizeof( cptr->program_code));
+         strlcpy_err( cptr->program_code, name, sizeof( cptr->program_code));
          }
          break;
       case ADES_sys:
@@ -710,6 +719,8 @@ static int process_ades_tag( char *obuff, ades2mpc_t *cptr, const int itag,
          break;
       case ADES_notes:
          cptr->line[13] = name[0];
+         assert( len < sizeof( cptr->notes));
+         strlcpy_err( cptr->notes, name, sizeof( cptr->notes));
          break;
       case ADES_rmsDec:
          assert( len < sizeof( cptr->rms_dec));
@@ -782,9 +793,10 @@ static int process_ades_tag( char *obuff, ades2mpc_t *cptr, const int itag,
       case ADES_mag:
          memcpy( cptr->line + 65, tptr, (len < 5) ? len : 5);
          break;
+      case ADES_trkMPC:    /* trkSub if it's deprecated;  */
+         break;            /* currently ignored           */
       default:
-         strlcpy_err( obuff, "COM Unhandled ", obuff_size);
-         strlcat_err( obuff, tptr, obuff_size);
+         snprintf_err( obuff, obuff_size, "COM Unhandled ADES tag %d", itag);
          break;
       }
    return( rval);
