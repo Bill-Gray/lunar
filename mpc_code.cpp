@@ -27,6 +27,11 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 #include "lunar.h"
 #include "stringex.h"
 
+#ifdef _MSC_VER
+     /* Microsoft Visual C/C++ has no strncasecmp.  strncmp will do.  */
+#define strncasecmp strncmp
+#endif
+
 #define SUN_RADIUS          695700e+3
 #define MERCURY_MAJOR_AXIS  2440530.
 #define MERCURY_MINOR_AXIS  2438260.
