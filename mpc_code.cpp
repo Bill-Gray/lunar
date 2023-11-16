@@ -461,6 +461,12 @@ static int extract_lat_lon( const char *buff, size_t *bytes_read, double *value)
       tptr++;
    if( strchr( compass, *tptr))
       compass_byte = *tptr++;
+   if( !strncasecmp( tptr, "alt", 3))
+      {
+      tptr += 3;
+      if( *tptr == '.')
+         tptr++;
+      }
    *value = _get_angle( tptr, &nbytes, &n_fields);
    tptr += nbytes;
    if( !compass_byte && n_fields == 1)        /* possible height */
@@ -514,7 +520,7 @@ static int extract_lat_lon( const char *buff, size_t *bytes_read, double *value)
 
 n44.01, W69.9
 N44 01 13.2 W69 54 1.7
-E223.456,s56 20 23.3, 1700m
+E223.456,s56 20 23.3, Alt. 1700m
 w 69.91, n 44.012, 1700ft
 
    etc.,  i.e.,  a lat/lon that would be readable by a human,
@@ -528,41 +534,48 @@ an altitude in feet.       */
 
 int get_lat_lon_info( mpc_code_t *cinfo, const char *buff)
 {
-   double value;
+   double second_value, first_value, alt_value;
    size_t n_bytes;
-   int piece_type = extract_lat_lon( buff, &n_bytes, &value);
+   const int piece_type = extract_lat_lon( buff, &n_bytes, &first_value);
    int rval = -1;
-   const char *tptr = buff;
 
    if( piece_type == GOT_LAT || piece_type == GOT_LON)
       {
-      if( piece_type == GOT_LAT)
-         cinfo->lat = value * PI / 180.;
-      else
-         cinfo->lon = value * PI / 180.;
-      tptr += n_bytes;
-      if( extract_lat_lon( tptr, &n_bytes, &value) ==
+      const char *tptr = buff + n_bytes;
+
+      if( extract_lat_lon( tptr, &n_bytes, &second_value) ==
                                          GOT_LAT + GOT_LON - piece_type)
          {
-         if( piece_type == GOT_LAT)
-            cinfo->lon = value * PI / 180.;
-         else
-            cinfo->lat = value * PI / 180.;
-         tptr += n_bytes;
-         if( extract_lat_lon( tptr, &n_bytes, &value) == GOT_ALT)
-            cinfo->alt = value;
-         else              /* use a default 100m altitude if none specified */
-            cinfo->alt = 100.;
-         lat_alt_to_parallax( cinfo->lat, cinfo->alt,
+         if( cinfo)
+            {
+            tptr += n_bytes;
+            first_value *= PI / 180.;
+            second_value *= PI / 180.;
+            if( piece_type == GOT_LON)
+               {
+               cinfo->lon = first_value;
+               cinfo->lat = second_value;
+               }
+            else
+               {
+               cinfo->lat = first_value;
+               cinfo->lon = second_value;
+               }
+            if( extract_lat_lon( tptr, &n_bytes, &alt_value) == GOT_ALT)
+               cinfo->alt = alt_value;
+            else              /* use a default 100m altitude if none specified */
+               cinfo->alt = 100.;
+            lat_alt_to_parallax( cinfo->lat, cinfo->alt,
                         &cinfo->rho_cos_phi, &cinfo->rho_sin_phi,
                         EARTH_MAJOR_AXIS, EARTH_MINOR_AXIS);
-         if( cinfo->lon < 0.)
-            cinfo->lon += PI + PI;
-         cinfo->planet = 3;
-         cinfo->name = buff;
-         cinfo->format = MPC_CODE_LAT_LON_ALT;
-         cinfo->prec1 = cinfo->prec2 = 0;
-         strlcpy_error( cinfo->code, "Rov");
+            if( cinfo->lon < 0.)
+               cinfo->lon += PI + PI;
+            cinfo->planet = 3;
+            cinfo->name = buff;
+            cinfo->format = MPC_CODE_LAT_LON_ALT;
+            cinfo->prec1 = cinfo->prec2 = 0;
+            strlcpy_error( cinfo->code, "Rov");
+            }
          rval = 0;
          }
       }
