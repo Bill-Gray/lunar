@@ -9,7 +9,6 @@ the lat/lon parsing code in 'mpc_code.cpp.'  Compile with
 
 gcc -Wall -Wextra -pedantic -o ll_test ll_test.c liblunar.a -lm      */
 
-
 #define PI 3.1415926535897932384626433832795028841971693993751058209749445923
 
 int main( const int argc, const char **argv)
@@ -17,10 +16,15 @@ int main( const int argc, const char **argv)
    if( argc > 1)
       {
       mpc_code_t cinfo;
-      const int rval = get_lat_lon_info( &cinfo, argv[1]);
+      int rval;
+
+      if( !memcmp( argv[1], "COM Long.", 9))
+         rval = get_xxx_location_info( &cinfo, argv[1]);
+      else
+         rval = get_lat_lon_info( &cinfo, argv[1]);
 
       if( rval)
-         printf( "Failed\n");
+         printf( "Failed %d\n", rval);
       else
          {
          printf( "Lat %lf\nLon %lf\n", cinfo.lat * 180. / PI, cinfo.lon * 180. / PI);
