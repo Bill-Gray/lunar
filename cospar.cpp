@@ -297,12 +297,19 @@ double DLL_FUNC planet_rotation_rate( const int planet_no, const int system_no)
 {
    const double dummy_tdt = 2451545.;     /* not really used */
    bool is_retrograde;
-   double omega;
-   const int rval = get_cospar_data_from_text_file( planet_no, system_no,
+   static int prev_planet_no = -99, prev_system_no;
+   static double omega;
+
+   if( planet_no != prev_planet_no || system_no != prev_system_no)
+      {
+      const int rval = get_cospar_data_from_text_file( planet_no, system_no,
               dummy_tdt, NULL, NULL, &omega, NULL, &is_retrograde);
 
-   if( rval)
-      omega = 0.;
+      if( rval)
+         omega = 0.;
+      prev_planet_no = planet_no;
+      prev_system_no = system_no;
+      }
    return( omega);
 }
 
