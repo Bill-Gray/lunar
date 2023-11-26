@@ -416,34 +416,73 @@ int extract_region_data_for_lat_lon( FILE *ifile, char *buff,
    return( *buff ? 0 : -2);
 }
 
-/* Return value is GOT_LAT if we got a latitude, GOT_LON if a longitude,
-GOT_ALT if it was an altitude,  and GOT_NOTHING otherwise.     */
+static double _get_number_for_angle( const char *buff, int *nbytes, int *is_integer)
+{
+   double rval;
+   const char *tptr = buff, *endptr;
 
-#define GOT_LON            0
-#define GOT_LAT            1
-#define GOT_ALT            2
-#define GOT_NOTHING       -1
+   while( *tptr == ' ')
+      tptr++;
+   if( !isdigit( *tptr))
+      {
+      *nbytes = 0;
+      *is_integer = -1;
+      return( 0.);
+      }
+   while( isdigit( *tptr))
+      tptr++;
+   rval = quick_strtod( buff, &endptr);
+   *nbytes = (int)( endptr - buff);
+   if( !*nbytes || rval < 0.)
+      {
+      *is_integer = -1;
+      return( 0.);
+      }
+   *is_integer = (*tptr != '.');
+   return( rval);
+}
 
 static double _get_angle( const char *buff, int *nbytes, int *n_fields)
 {
-   double rval = 0., fraction;
+   double rval;
    const char *tptr = buff;
+   int is_integer;
 
    *n_fields = 0;
-   if( sscanf( tptr, "%lf%n", &rval, nbytes) == 1)
+   rval = _get_number_for_angle( buff, nbytes, &is_integer);
+   if( is_integer != -1)
       {
       tptr += *nbytes;
       *n_fields = 1;
-      if( sscanf( tptr, "%lf%n", &fraction, nbytes) == 1)
+      if( is_integer)
          {
-         tptr += *nbytes;
-         rval += fraction / 60.;
-         *n_fields = 2;
-         if( sscanf( tptr, "%lf%n", &fraction, nbytes) == 1)
+         double fraction = _get_number_for_angle( tptr, nbytes, &is_integer);
+
+         if( fraction > 60.)
+            {
+            *n_fields = 0;
+            return( 0.);
+            }
+         if( is_integer != -1)
             {
             tptr += *nbytes;
-            rval += fraction / 3600.;
-            *n_fields = 3;
+            rval += fraction / 60.;
+            *n_fields = 2;
+            if( is_integer)
+               {
+               fraction = _get_number_for_angle( tptr, nbytes, &is_integer);
+               if( fraction > 60.)
+                  {
+                  *n_fields = 0;
+                  return( 0.);
+                  }
+               if( is_integer != -1)
+                  {
+                  tptr += *nbytes;
+                  rval += fraction / 3600.;
+                  *n_fields = 3;
+                  }
+               }
             }
          }
       }
@@ -453,6 +492,14 @@ static double _get_angle( const char *buff, int *nbytes, int *n_fields)
    *nbytes = (int)( tptr - buff);
    return( rval);
 }
+
+/* Return value is GOT_LAT if we got a latitude, GOT_LON if a longitude,
+GOT_ALT if it was an altitude,  and GOT_NOTHING otherwise.     */
+
+#define GOT_LON            0
+#define GOT_LAT            1
+#define GOT_ALT            2
+#define GOT_NOTHING       -1
 
 static int extract_lat_lon( const char *buff, size_t *bytes_read, double *value)
 {
@@ -476,6 +523,8 @@ static int extract_lat_lon( const char *buff, size_t *bytes_read, double *value)
    tptr += nbytes;
    if( !compass_byte && n_fields == 1)        /* possible height */
       {
+      if( *tptr == ' ')
+         tptr++;
       if( *tptr == 'm')
          {
          tptr++;
@@ -510,27 +559,33 @@ static int extract_lat_lon( const char *buff, size_t *bytes_read, double *value)
          rval = GOT_LON;
          }
       }
-   if( *tptr == ',')
-      tptr++;
-   if( rval == GOT_NOTHING)
-      *bytes_read = 0;
-   else
-      *bytes_read = tptr - buff;
    if( is_negative)
       *value = -*value;
+   if( bytes_read)
+      {
+      if( *tptr == ',')
+         tptr++;
+      if( rval == GOT_NOTHING)
+         *bytes_read = 0;
+      else
+         *bytes_read = tptr - buff;
+      }
    return( rval);
 }
 
 /* Given text of the forms...
 
 n44.01, W69.9
-N44 01 13.2 W69 54 1.7
+44 01 13.2 N 69 54 1.7W
 E223.456,s56 20 23.3, Alt. 1700m
 w 69.91, n 44.012, 1700ft
 
    etc.,  i.e.,  a lat/lon that would be readable by a human,
 plus an optional altitude,  this function will puzzle it out.
-Returns 0 on success,  -1 if it couldn't parse it.
+Returns 0 on success,  -1 if it couldn't parse it.  As the above
+shows,  the compass sign can be at the start or end of the text,
+and one can use decimal degrees,  or degrees/decimal minutes,  or
+degrees/minutes/decimal seconds.
 
    Feet are assumed to be US survey feet.  I think at this point,
 only my fellow Americans are daft enough to use 'feet',  so
@@ -566,6 +621,11 @@ int get_lat_lon_info( mpc_code_t *cinfo, const char *buff)
                cinfo->lat = first_value;
                cinfo->lon = second_value;
                }
+            if( cinfo->lon < 0.)
+               cinfo->lon += PI + PI;
+            if( cinfo->lat > PI / 2. || cinfo->lat < -PI / 2.
+                     || cinfo->lon < 0. || cinfo->lon > PI + PI)
+               return( -1);
             if( extract_lat_lon( tptr, &n_bytes, &alt_value) == GOT_ALT)
                cinfo->alt = alt_value;
             else              /* use a default 100m altitude if none specified */
@@ -573,8 +633,6 @@ int get_lat_lon_info( mpc_code_t *cinfo, const char *buff)
             lat_alt_to_parallax( cinfo->lat, cinfo->alt,
                         &cinfo->rho_cos_phi, &cinfo->rho_sin_phi,
                         EARTH_MAJOR_AXIS, EARTH_MINOR_AXIS);
-            if( cinfo->lon < 0.)
-               cinfo->lon += PI + PI;
             cinfo->planet = 3;
             cinfo->name = buff;
             cinfo->format = MPC_CODE_LAT_LON_ALT;
@@ -593,43 +651,10 @@ including a comment such as
 
 COM Long. 239 18 45 E, Lat. 33 54 11 N, Alt. 100m, Google Earth
 
-   Here,  that concept is extended to allow the degrees or minutes to
-expressed as decimals,  so the above example could be either of
-
-COM Long. 239.31250 E, Lat. 33.90306 N, Alt. 100m, Google Earth
-COM Long. 239 18.75 E, Lat. 33 54.1833 N, Alt. 100m, Google Earth
-
-   MPC insists on east latitudes only.  However,  this code
-accepts west longitudes;  you can specify the above location as
-
-COM Long. 120 41 15 E, Lat. 33 54 11 N, Alt. 100m, Google Earth
-COM Long. 120.68750 E, Lat. 33.90306 N, Alt. 100m, Google Earth
-COM Long. 129 41.25 E, Lat. 33 54.1833 N, Alt. 100m, Google Earth
-
-*/
-
-static double get_xxx_lat_or_lon( const char *ibuff, char *compass)
-{
-   double deg = 0., min = 0., sec = 0.;
-   int bytes_read;
-
-   *compass = '\0';
-   if( sscanf( ibuff, "%lf%n", &deg, &bytes_read) == 1)
-      {
-      ibuff += bytes_read;
-      if( sscanf( ibuff, "%lf%n", &min, &bytes_read) == 1)
-         {
-         ibuff += bytes_read;
-         if( sscanf( ibuff, "%lf%n", &sec, &bytes_read) == 1)
-            ibuff += bytes_read;
-         }
-      deg += min / 60. + sec / 3600.;
-      while( *ibuff == ' ')
-         ibuff++;
-      *compass = *ibuff;
-      }
-   return( deg);
-}
+   Here,  the lat/lon are extracted using the above functions,  so the
+formatting can be considerably more flexible (decimal degrees or
+degrees/decimal minutes,  compass sign at start or end).  But don't
+send such locations to MPC.               */
 
 #define MALFORMED_XXX_LINE    (-2)
 
@@ -641,34 +666,28 @@ int get_xxx_location_info( mpc_code_t *cinfo, const char *buff)
       rval = -1;
    else
       {
-      char compass;
       const char *lat_ptr = strstr( buff, "Lat.");
       const char *alt_ptr = strstr( buff, "Alt.");
 
-      cinfo->lon = get_xxx_lat_or_lon( buff + 9, &compass);
-      if( (compass == 'W' || compass == 'E') && lat_ptr && alt_ptr)
+      if( !lat_ptr)
+         rval = -4;
+      if( !alt_ptr)
+         rval -= 8;
+      if( lat_ptr && alt_ptr
+            && GOT_LON == extract_lat_lon( buff + 9, NULL, &cinfo->lon)
+            && GOT_LAT == extract_lat_lon( lat_ptr + 4, NULL, &cinfo->lat))
          {
-         if( compass == 'W')
-            cinfo->lon = -cinfo->lon;
          if( cinfo->lon < 0.)
             cinfo->lon += 360.;
-         cinfo->lat = get_xxx_lat_or_lon( lat_ptr + 4, &compass);
-         if( compass == 'S')
-            cinfo->lat = -cinfo->lat;
-         else if( compass != 'N')
-            rval = MALFORMED_XXX_LINE;
-         if( !rval)
-            {
-            cinfo->lon *= PI / 180.;
-            cinfo->lat *= PI / 180.;
-            cinfo->alt = atof( alt_ptr + 4);
-            cinfo->format = MPC_CODE_LAT_LON_ALT;
-            cinfo->prec1 = cinfo->prec2 = 0;
-            cinfo->name = "Temporary MPC code";
-            cinfo->planet = 3;
-            strlcpy_error( cinfo->code, "XXX");
-            _set_parallax_constants( cinfo);
-            }
+         cinfo->lon *= PI / 180.;
+         cinfo->lat *= PI / 180.;
+         cinfo->alt = atof( alt_ptr + 4);
+         cinfo->format = MPC_CODE_LAT_LON_ALT;
+         cinfo->prec1 = cinfo->prec2 = 0;
+         cinfo->name = "Temporary MPC code";
+         cinfo->planet = 3;
+         strlcpy_error( cinfo->code, "XXX");
+         _set_parallax_constants( cinfo);
          }
       else
          rval = MALFORMED_XXX_LINE;
