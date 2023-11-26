@@ -1,0 +1,15 @@
+# Lines starting with '#' are comments.  These are test
+# cases for 'll_test.c' (q.v.)
+#rval long.   lat.   alt.
+ 0    290.1    44.02  18.       n44 01 12.0, 69.9W, alt. 18m
+ 0    221.04  -71.1   100.      221 2.4e, 71.1s
+ 0    277.3   -55.45  217.      w82.7 55.45s  217m
+ 0    267.3    15.45  4080.0    w92.7 15.45N  alt. 13385.8 ft
+ 0    182.765  66.63625  3141.  COM Long. 177 14 6W, Lat. 66 38 10.5 n, Alt. 3141m
+ 0    177.663  -31.4159  2718.  COM Long. 177.663E, Lat. s 31.4159, Alt. 2718m
+# Next line should fail;  lat. minutes are > 60
+-2      0.  0.  0.              COM Long. 177 14 6W, Lat. 66 61 10.5 n, Alt. 3141m
+# Next two lines should fail;  compass direction are both for latitude or both for longit
+-2      0.  0.  0.              COM Long. 177 14 6W, Lat. 66 21 10.5 E, Alt. 3141m
+-1      0.  0.  0.              69 53 49.2N   n22 10 4.8, 98.425ft
+ 0    290.103  22.168 30.0      69 53 49.2W   n22 10 4.8, 98.425ft
