@@ -627,10 +627,19 @@ static int process_ades_tag( char *obuff, ades2mpc_t *cptr, const int itag,
          assert( cptr->line[14] == 'S' || cptr->line[14] == 'V');
          if( cptr->line[14] == 'S')    /* satellite offset */
             {
-            int dec_loc = 40 + (itag - ADES_pos1) * 12;
-            int nlen = (int)len;
+            const int sign_loc = 34 + (itag - ADES_pos1) * 12;
+            int nlen = (int)len, decimal_loc = 0;
             char *tptr2;
 
+            if( cptr->line2[32] == '2')
+               decimal_loc = sign_loc + 6;
+            else if( cptr->line2[32] == '1')
+               decimal_loc = sign_loc + 2;
+            else
+               {
+               strlcpy_err( obuff, "Bad posn data\n", obuff_size);
+               rval = 1;
+               }
                      /* cvt scientific notation,  if any : */
             if( strchr( name, 'e') || strchr( name, 'E'))
                {
@@ -643,19 +652,34 @@ static int process_ades_tag( char *obuff, ades2mpc_t *cptr, const int itag,
                memmove( name + 1, name, nlen);
                *name = '+';
                }
-            cptr->line2[dec_loc - 6] = *name;
+            cptr->line2[sign_loc] = *name;
             tptr2 = strchr( name, '.');
             assert( tptr2);
-            dec_loc -= (int)(tptr2 - name);
-            if( cptr->line2[32] == '2')
-               dec_loc -= 4;
-            else if( cptr->line2[32] != '1')
+            if( cptr->line2[32] == '1')
+               {
+               decimal_loc = sign_loc + 6;
+               if( tptr2 - name == 7)     /* beyond 100000 km */
+                  decimal_loc++;
+               assert( tptr2 - name < 8);
+               }
+            else if( cptr->line2[32] == '2')
+               {
+               decimal_loc = sign_loc + 2;
+               if( tptr2 - name == 3)     /* beyond 10 AU */
+                  decimal_loc++;
+               assert( tptr2 - name < 4);
+               }
+            else
                {
                strlcpy_err( obuff, "Bad posn data\n", obuff_size);
                rval = 1;
                }
-            memcpy( &cptr->line2[dec_loc + 1], name + 1,
+            if( decimal_loc)
+               {
+               decimal_loc -= (int)(tptr2 - name);
+               memcpy( &cptr->line2[decimal_loc + 1], name + 1,
                                            (nlen > 12 ? 11 : nlen - 1));
+               }
             }
          else               /* roving observer */
             {
