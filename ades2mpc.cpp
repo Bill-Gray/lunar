@@ -742,9 +742,9 @@ static int process_ades_tag( char *obuff, ades2mpc_t *cptr, const int itag,
          strlcpy_err( cptr->rms_ra, name, sizeof( cptr->rms_ra));
          break;
       case ADES_notes:
-         cptr->line[13] = name[0];
          assert( len < sizeof( cptr->notes));
          strlcpy_err( cptr->notes, name, sizeof( cptr->notes));
+         cptr->line[13] = name[0];
          break;
       case ADES_rmsDec:
          assert( len < sizeof( cptr->rms_dec));
