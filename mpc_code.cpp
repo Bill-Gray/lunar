@@ -446,8 +446,11 @@ static double _get_angle( const char *buff, int *nbytes, int *n_fields)
 {
    double rval;
    const char *tptr = buff;
-   int is_integer;
+   int is_integer, dummy_nbytes;
 
+   assert( n_fields);
+   if( !nbytes)
+      nbytes = &dummy_nbytes;
    *n_fields = 0;
    rval = _get_number_for_angle( buff, nbytes, &is_integer);
    if( is_integer != -1)
@@ -643,6 +646,40 @@ int get_lat_lon_info( mpc_code_t *cinfo, const char *buff)
          }
       }
    return( rval);
+}
+
+double get_ra_from_string( const char *buff, int *bytes_read)
+{
+   int n_fields;
+   double rval = _get_angle( buff, bytes_read, &n_fields);
+
+   if( n_fields > 2)     /* assume HH MM.mm or HH MM SS.sss */
+      rval *= 15.;
+   if( !n_fields || rval > 360.)
+      *bytes_read = 0;
+   return( rval * PI / 180.);
+}
+
+double get_dec_from_string( const char *buff, int *bytes_read)
+{
+   if( *buff != '+' && *buff != '-')
+      {
+      *bytes_read = 0;
+      return( 0.);
+      }
+   else
+      {
+      int n_fields;
+      double rval = _get_angle( buff + 1, bytes_read, &n_fields);
+
+      if( !n_fields || rval > 90.)
+         *bytes_read = 0;
+      if( *buff == '-')
+         rval = -rval;
+      if( n_fields)
+         (*bytes_read)++;
+      return( rval * PI / 180.);
+      }
 }
 
 /* https://www.minorplanetcenter.net/iau/info/Astrometry.html#HowObsCode
