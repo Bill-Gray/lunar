@@ -596,7 +596,7 @@ int main( const int argc, const char **argv)
    double jd, ra, dec;
    FILE *ifile;
    const char *sof_filename = "mpcorb.sof";
-   char buff[90];
+   char buff[400];
    char **ilines = NULL;
    int show_lov = 0;
    int i, n_ilines = 0, n, max_results = 100;
@@ -614,6 +614,7 @@ int main( const int argc, const char **argv)
    bool is_list_file = false;
    bool show_header = true;
    const char *mpcorb_extracts = "";
+   void *ades_context = init_ades2mpc( );
 
    if( argc < 2)
       {
@@ -723,7 +724,7 @@ int main( const int argc, const char **argv)
                /* Read astrometry lines and allocate memory for them : */
    ilines = (char **)malloc( (n_ilines + 1) * sizeof( char *));
    n_ilines = 0;
-   while( fgets( buff, sizeof( buff), ifile))
+   while( fgets_with_ades_xlation( buff, sizeof( buff), ades_context, ifile))
       if( !get_mpc_data( buff, &jd, &ra, &dec))
          {
          n_ilines++;
@@ -733,6 +734,7 @@ int main( const int argc, const char **argv)
          strcpy( ilines[n_ilines - 1], buff);
          }
    fclose( ifile);
+   free_ades2mpc_context( ades_context);
    if( is_list_file)
 #ifdef _WIN32                /* MS is different. */
       _unlink( _dummy_filename);
