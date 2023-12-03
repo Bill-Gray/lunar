@@ -303,7 +303,7 @@ moidtest$(EXE): moidtest.o $(LIBLUNAR)
 mpc2sof$(EXE): mpc2sof.cpp mpcorb.o $(LIBLUNAR)
 	$(CXX) $(CXXFLAGS) -o mpc2sof$(EXE) mpc2sof.cpp mpcorb.o $(LIBLUNAR) $(LIBSADDED)
 
-mpc_code$(EXE): mpc_code.cpp
+mpc_code$(EXE): mpc_code.cpp snprintf.o
 	$(CXX) $(CXXFLAGS) -o mpc_code$(EXE) mpc_code.cpp snprintf.o -DTEST_CODE
 
 oblitest$(EXE): oblitest.o obliqui2.o $(LIBLUNAR)
