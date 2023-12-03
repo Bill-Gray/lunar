@@ -143,10 +143,12 @@ static FILE *err_fopen( const char *filename, const char *permits)
 }
 
 #ifdef FORKING
-static char *chunk_filename( char *filename, const int chunk_number)
+static char *chunk_filename( char *filename, const int chunk_number, const int type)
 {
+   const char *format = (type ? "ephem%d.ugh" : "chunk%d.ugh");
+
    assert( chunk_number >= 0 && chunk_number <= 99);
-   snprintf_err( filename, 12, "chunk%d.ugh", chunk_number);
+   snprintf_err( filename, 12, format, chunk_number);
    return( filename);
 }
 #endif
@@ -522,6 +524,17 @@ static int full_rk_step( ELEMENTS *elems, double *ivals, double *ovals,
    return( n_chickens);
 }
 
+/* Used for caching integrated positions (if n_xyzs is set to zero).
+The cached positions are written to a file;  the file can then be
+interpolated within to look for mutual close approaches.  This can
+be done for asteroid mass measurements ("asteroid A came close to
+more massive asteroid B;  measurements of how much A was perturbed
+can determine B's mass") and to see what asteroids a spacecraft
+might approach.         */
+
+static int n_xyzs = -1;
+static double *xyzs = NULL, ephem_start = 0., ephem_stepsize;
+
 /* 'integrate_orbit' integrates the elements over the desired time span to
    the desired maximum error,  using the number of steps requested.  The
    orbit is broken up into that many steps,  and 'full_rk_step' is then
@@ -545,10 +558,16 @@ int integrate_orbit( ELEMENTS *elem, double jd, const double jd_end,
                               const double max_err, const double stepsize)
 {
    double delta[6],  posnvel[6];
-   int i, j;
+   int i, j, n_steps = 0;
 
    for( i = 0; i < 6; i++)
       delta[i] = 0.;
+   if( !n_xyzs)
+      {
+      ephem_stepsize = ( jd_end > jd ? stepsize : -stepsize);
+      xyzs = (double *)calloc( 3 * ((size_t)( fabs( jd - jd_end) / stepsize) + 2),
+                                 sizeof( double));
+      }
    while( jd != jd_end)
       {
       double new_delta[6], jd2;
@@ -580,7 +599,17 @@ int integrate_orbit( ELEMENTS *elem, double jd, const double jd_end,
       elem->epoch = jd;
       elem->gm = SOLAR_GM;
       calc_classical_elements( elem, posnvel, jd, 1);
+      if( !ephem_start)
+         {
+         ephem_start = jd;    /* we start on an even 'stepsize' boundary */
+         printf( "ephem start %f\n", ephem_start);
+         }
+      if( n_xyzs >= 0)
+         memcpy( xyzs + n_steps * 3, posnvel, 3 * sizeof( double));
+      n_steps++;
       }
+   if( !n_xyzs)
+      n_xyzs = n_steps;
    comet_posn_and_vel( elem, jd_end, posnvel, posnvel + 3);
    for( i = 0; i < 6; i++)
       posnvel[i] += delta[i];
@@ -768,7 +797,7 @@ static void error_exit( void)
 
 int main( int argc, const char **argv)
 {
-   FILE *ifile, *ofile, *update_file = NULL;
+   FILE *ifile, *ofile, *update_file = NULL, *ephem_file = NULL;
    const char *temp_file_name = "ickywax.ugh";
    const char *output_filename = argv[2];
    long *hashes, *file_offsets, hash_val;
@@ -858,6 +887,10 @@ int main( int argc, const char **argv)
       if( argv[i][0] == '-')
          switch( argv[i][1])
             {
+            case 'c':
+               n_xyzs = 0;
+               printf( "Creating 'ephem.dat' file\n");
+               break;
             case 'f':
                ephem_filename = argv[i] + 2;
                if( !*ephem_filename && i < argc - 1)
@@ -1006,8 +1039,13 @@ int main( int argc, const char **argv)
             }
          printf( "Hi!  I've got process number %d,  PID %d,  parent's is %d\n",
                         process_number, getpid( ), getppid( ));
-         snprintf_err( outfile_name, sizeof( outfile_name), "chunk%d.ugh", process_number);
-         ofile = err_fopen( chunk_filename( outfile_name, process_number), "wb");
+         chunk_filename( outfile_name, process_number, 0);
+         ofile = err_fopen( outfile_name, "wb");
+         if( n_xyzs > 0)
+            {
+            chunk_filename( outfile_name, process_number, 1);
+            ephem_file = err_fopen( outfile_name, "wb");
+            }
          ifile = err_fopen( argv[1], "rb");
          fseek( ifile, offset, SEEK_SET);
          if( jpl_ephemeris)
@@ -1091,6 +1129,12 @@ int main( int argc, const char **argv)
 #endif
          }
       fputs( buff, ofile);
+      if( ephem_file)
+         {
+         const size_t n_written = fwrite( xyzs, 3 * sizeof( double), n_xyzs, ephem_file);
+
+         assert( n_written == (size_t)n_xyzs);
+         }
 #ifdef FORKING
       if( forking_has_happened)
          {
@@ -1105,6 +1149,8 @@ int main( int argc, const char **argv)
       jpl_close_ephemeris( jpl_ephemeris);
    fclose( ifile);
    fclose( ofile);
+   if( ephem_file)
+      fclose( ephem_file);
 #ifdef FORKING
    if( forking_has_happened)
       {
@@ -1116,7 +1162,7 @@ int main( int argc, const char **argv)
          FILE **ifiles = (FILE **)calloc( n_processes, sizeof( FILE *));
 
          for( i = 0; i < n_processes; i++)
-            ifiles[i] = err_fopen( chunk_filename( buff, i), "rb");
+            ifiles[i] = err_fopen( chunk_filename( buff, i, 0), "rb");
          ofile = err_fopen( output_filename, "ab");
          i = 0;
          while( fgets( buff, sizeof( buff), ifiles[i]))
@@ -1127,10 +1173,32 @@ int main( int argc, const char **argv)
          for( i = 0; i < n_processes; i++)
             {
             fclose( ifiles[i]);
-            unlink( chunk_filename( buff, i));
+            unlink( chunk_filename( buff, i, 0));
+            }
+         fclose( ofile);
+
+         if( ephem_file)
+            {
+            for( i = 0; i < n_processes; i++)
+               ifiles[i] = err_fopen( chunk_filename( buff, i, 1), "rb");
+            ofile = err_fopen( "ephem.dat", "wb");
+            fprintf( ofile, "%f %f %d\n", ephem_start, ephem_stepsize, n_xyzs);
+            i = 0;
+            while( fread( xyzs, 3 * sizeof( double), n_xyzs, ifiles[i]) == (size_t)n_xyzs)
+               {
+               size_t n_written = fwrite( xyzs, 3 * sizeof( double), n_xyzs, ofile);
+
+               assert( n_written = n_xyzs);
+               i = (i + 1) % n_processes;
+               }
+            for( i = 0; i < n_processes; i++)
+               {
+               fclose( ifiles[i]);
+               unlink( chunk_filename( buff, i, 1));
+               }
+            fclose( ofile);
             }
          free( ifiles);
-         fclose( ofile);
          }
       }
 #endif
