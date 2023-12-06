@@ -314,7 +314,7 @@ int main( void)
          loc.alt = atof( buff) / EARTH_MAJOR_AXIS_IN_METERS;
       else if( !memcmp( field, "xyz", 3) && field[3] >= '0' && field[3] <= '2')
          xyz[field[3] - '0'] = atof( buff);
-      else if( !strcmp( field, "mpc_code"))
+      else if( !strcmp( field, "mpc_code") && 3 == strlen( buff))
          get_mpc_obscode_data( &loc, buff);
       }
    if( xyz[0] || xyz[1] || xyz[2])
