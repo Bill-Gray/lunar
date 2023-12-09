@@ -127,7 +127,7 @@ else
 	LIBLUNAR = liblunar.a
 endif
 
-all: add_off$(EXE) adestest$(EXE) astcheck$(EXE) astephem$(EXE) \
+all: add_off$(EXE) add_off.cgi adestest$(EXE) astcheck$(EXE) astephem$(EXE) \
    calendar$(EXE) cgicheck$(EXE) chinese$(EXE) colors$(EXE) \
    colors2$(EXE) cosptest$(EXE) csv2ades$(EXE) dist$(EXE) \
    easter$(EXE) get_test$(EXE) gtest$(EXE) htc20b$(EXE) jd$(EXE)\
@@ -219,10 +219,10 @@ clean:
 	$(RM) test_des$(EXE) test_ref$(EXE) testprec$(EXE) themis$(EXE)
 	$(RM) them_cat$(EXE) transit$(EXE) uranus1$(EXE) utc_test$(EXE) $(LIBLUNAR)
 
-add_off$(EXE): add_off.o $(LIBLUNAR)
-	$(CC) $(CFLAGS) -o add_off$(EXE) add_off.o $(LIBLUNAR) $(LIBSADDED) $(LIBURLMON)
+add_off$(EXE): add_off.c $(LIBLUNAR) jpl_xref.h mpc_func.h
+	$(CC) $(CFLAGS) -o add_off$(EXE) add_off.c $(LIBLUNAR) $(LIBSADDED) $(LIBURLMON)
 
-add_off.cgi: add_off.c $(LIBLUNAR)
+add_off.cgi: add_off.c $(LIBLUNAR) jpl_xref.h mpc_func.h
 	$(CC) $(CFLAGS) -o add_off.cgi -DON_LINE_VERSION add_off.c $(LIBLUNAR) $(LIBSADDED) $(LIBURLMON)
 
 adestest$(EXE): adestest.o $(LIBLUNAR)
@@ -300,19 +300,19 @@ mms$(EXE):                    mms.o $(LIBLUNAR)
 moidtest$(EXE): moidtest.o $(LIBLUNAR)
 	$(CC) $(CFLAGS) -o moidtest$(EXE) moidtest.o $(LIBLUNAR) $(LIBSADDED)
 
-mpc2sof$(EXE): mpc2sof.cpp mpcorb.o $(LIBLUNAR)
+mpc2sof$(EXE): mpc2sof.cpp mpcorb.o $(LIBLUNAR) watdefs.h date.h comets.h stringex.h
 	$(CXX) $(CXXFLAGS) -o mpc2sof$(EXE) mpc2sof.cpp mpcorb.o $(LIBLUNAR) $(LIBSADDED)
 
-mpc_code$(EXE): mpc_code.cpp snprintf.o
+mpc_code$(EXE): mpc_code.cpp snprintf.o mpc_func.h watdefs.h mpc_func.h lunar.h stringex.h
 	$(CXX) $(CXXFLAGS) -o mpc_code$(EXE) mpc_code.cpp snprintf.o -DTEST_CODE
 
 oblitest$(EXE): oblitest.o obliqui2.o $(LIBLUNAR)
 	$(CC) $(CFLAGS) -o oblitest$(EXE) oblitest.o obliqui2.o $(LIBLUNAR) $(LIBSADDED)
 
-parallax.cgi: parallax.cpp $(LIBLUNAR)
+parallax.cgi: parallax.cpp $(LIBLUNAR) watdefs.h afuncs.h mpc_func.h stringex.h
 	$(CXX) $(CXXFLAGS) -o parallax.cgi parallax.cpp $(LIBLUNAR) $(LIBSADDED) -DCGI_VERSION
 
-parallax$(EXE): parallax.cpp $(LIBLUNAR)
+parallax$(EXE): parallax.cpp $(LIBLUNAR) watdefs.h afuncs.h mpc_func.h stringex.h
 	$(CXX) $(CXXFLAGS) -o parallax$(EXE) parallax.cpp $(LIBLUNAR) $(LIBSADDED)
 
 persian$(EXE): persian.o solseqn.o $(LIBLUNAR)
@@ -327,8 +327,8 @@ prectest$(EXE): prectest.o $(LIBLUNAR)
 prectes2$(EXE): prectes2.o $(LIBLUNAR)
 	$(CC) $(CFLAGS) -o prectes2$(EXE) prectes2.o $(LIBLUNAR) $(LIBSADDED)
 
-ps_1996$(EXE): ps_1996.o $(LIBLUNAR)
-	$(CC) $(CFLAGS) -o ps_1996$(EXE)   ps_1996.o   $(LIBLUNAR) $(LIBSADDED)
+ps_1996$(EXE): ps_1996.cpp $(LIBLUNAR) watdefs.h mpc_func.h lunar.h afuncs.h date.h stringex.h
+	$(CC) $(CFLAGS) -o ps_1996$(EXE) ps_1996.cpp $(LIBLUNAR) $(LIBSADDED)
 
 relativi$(EXE): relativi.cpp $(LIBLUNAR)
 	$(CXX) $(CXXFLAGS) -o relativi$(EXE) -DTEST_CODE relativi.cpp $(LIBLUNAR) $(LIBSADDED)
