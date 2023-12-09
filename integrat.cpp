@@ -1186,9 +1186,9 @@ int main( int argc, const char **argv)
             i = 0;
             while( fread( xyzs, 3 * sizeof( double), n_xyzs, ifiles[i]) == (size_t)n_xyzs)
                {
-               size_t n_written = fwrite( xyzs, 3 * sizeof( double), n_xyzs, ofile);
+               const size_t n_written = fwrite( xyzs, 3 * sizeof( double), n_xyzs, ofile);
 
-               assert( n_written = n_xyzs);
+               assert( n_written == (size_t)n_xyzs);
                i = (i + 1) % n_processes;
                }
             for( i = 0; i < n_processes; i++)
