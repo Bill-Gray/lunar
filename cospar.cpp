@@ -21,6 +21,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 #include <string.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include <assert.h>
 #include <math.h>
 #include "watdefs.h"
 #include "afuncs.h"
@@ -192,11 +193,9 @@ static int get_cospar_data_from_text_file( int object_number,
                   tptr++;        /* just skip on over... */
                else
                   {
-                  double coeff;
-                  int number_length;
+                  double coeff = strtod( tptr, &tptr);
 
-                  sscanf( tptr, "%lf%n", &coeff, &number_length);
-                  tptr += number_length;
+                  assert( tptr);
                   if( *tptr == 'd')
                      {
                      if( tptr[1] == '2')
@@ -234,11 +233,17 @@ static int get_cospar_data_from_text_file( int object_number,
                         if( tptr[4] != planet)
                            err = -4;
                         }
+                     assert( angular_coeffs_line);
                      ang_ptr = cospar_text[angular_coeffs_line + idx] + 1;
                      while( ang_ptr[-1] != '=')
                         ang_ptr++;
 
-                     sscanf( ang_ptr, "%lf%lf%c", &constant_term, &linear, &d_or_T);
+                     constant_term = strtod( ang_ptr, &ang_ptr);
+                     assert( ang_ptr);
+                     linear = strtod( ang_ptr, &ang_ptr);
+                     assert( ang_ptr);
+                     d_or_T = *ang_ptr++;
+                     assert( d_or_T == 'd' || d_or_T == 'T');
                      angle = constant_term + linear *
                                    (d_or_T == 'd' ? d : t_cen);
 
