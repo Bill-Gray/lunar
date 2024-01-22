@@ -53,3 +53,14 @@ U410S         5 Uranus CDX
 # scheme to work to the end of 2061.  With any luck,  I'll be dead by then.
      _cRAZaz  0 2038 RO101424
      _xMDZ3v  0 2059 MX129941
+# MPC provides a few examples at
+# https://minorplanetcenter.net/mpcops/documentation/provisional-designation-definition/#extended_packed_provid
+# so let's test 'em out :
+     K23B00A  0 2023 BA
+     K24C03Z  0 2024 CZ3
+     K25Dz9Z  0 2025 DZ619
+     _PD0000  0 2025 DA620
+     _QD000N  0 2026 DY620
+     _RD0aEM  0 2027 DZ6190
+     _SEZZZZ  0 2028 EA339749
+     _TFzzzz  0 2029 FL591673
