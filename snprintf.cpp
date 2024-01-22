@@ -65,9 +65,9 @@ static int _sn_append( const bool no_truncation, char *string,
    if( rval < 0 || rval + ilen >= max_len)
       if( no_truncation)
          {
-         fprintf( stderr, "snprintf_append: %ld/%ld/%ld\n%s\n",
-                     (long)ilen, (long)rval, (long)max_len, string);
-         exit( -1);
+         fprintf( stderr, "snprintf_append: %ld/%ld/%ld\n%s\n%s\n",
+                     (long)ilen, (long)rval, (long)max_len, string, format);
+         assert( 0);
          }
    return( rval + (int)ilen);
 }
