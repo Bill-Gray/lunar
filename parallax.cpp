@@ -117,7 +117,7 @@ static void show_location( const loc_t *loc)
          printf( "Longitude %14.9f = %s\n", loc->lon - 360., show_angle( buff, loc->lon - 360.));
       }
    printf( "Latitude  %11.9f = %s\n", loc->lat, show_angle( buff, loc->lat));
-   printf( "Altitude %.5f meters\n", loc->alt);
+   printf( "Altitude %.5f meters above the WGS84 geoid (_not_ above sea level)\n", loc->alt);
    printf( "Parallax constants %.11f %+.11f\n", loc->rho_cos_phi, loc->rho_sin_phi);
    printf( "In meters: %.5f %+.5f\n", loc->rho_cos_phi * EARTH_MAJOR_AXIS_IN_METERS,
                                       loc->rho_sin_phi * EARTH_MAJOR_AXIS_IN_METERS);
