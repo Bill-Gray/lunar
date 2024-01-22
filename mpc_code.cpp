@@ -329,7 +329,11 @@ int get_mpc_code_info( mpc_code_t *cinfo, const char *buff)
             cinfo->name = buff + 47;
             cinfo->format = MPC_CODE_LAT_LON_ALT;
             if( tptr)                     /* non-earth location */
+               {
                rval = atoi( tptr + 1);
+               if( rval > 9000)        /* dynamical point */
+                  cinfo->lat = cinfo->lon = cinfo->alt = 0.;
+               }
             cinfo->planet = rval;
             if( cinfo->lat && cinfo->lon)   /* i.e.,  topocentric */
                _set_parallax_constants( cinfo);
