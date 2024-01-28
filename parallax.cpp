@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
+#include <ctype.h>
 #include <math.h>
 #include "watdefs.h"
 #include "afuncs.h"
@@ -42,14 +43,14 @@ static char *show_angle( char *buff, double angle)
    return( buff);
 }
 
-static int get_mpc_obscode_data( loc_t *loc, const char *mpc_code)
+static int get_mpc_obscode_data( loc_t *loc, const char *mpc_code, int pass)
 {
-   int pass, rval = -1;
+   int rval = -1;
    char end_char = mpc_code[3];
 
    if( !end_char)
       end_char = ' ';
-   for( pass = 0; pass < 2 && rval; pass++)
+   while( rval && pass < 2)
       {
       const char *ifilename = (pass ? "ObsCodes.htm" : "rovers.txt");
       FILE *ifile;
@@ -95,6 +96,7 @@ static int get_mpc_obscode_data( loc_t *loc, const char *mpc_code)
             rval = 0;
             }
       fclose( ifile);
+      pass++;
       }
    if( rval)
       {
@@ -208,21 +210,39 @@ static void error_exit( void)
    exit( -1);
 }
 
-int main( const int argc, const char **argv)
+int main( int argc, const char **argv)
 {
    loc_t loc;
+   int i, use_only_obscodes_dot_html = 0;
+
+   for( i = 1; i < argc; i++)
+      if( argv[i][0] == '-' && !isdigit( argv[i][1]))
+         {                    /* handle a command line option,  then remove it */
+         switch( argv[i][1])
+            {
+            case 'f':
+               use_only_obscodes_dot_html = 1;
+               break;
+            default:
+               fprintf( stderr, "Unrecognized option '%s'\n", argv[i]);
+               error_exit( );
+            }
+         argc--;
+         memmove( argv + i, argv + i + 1, (argc - i) * sizeof( char *));
+         i--;
+         }
 
    if( argc < 2 || argc > 4)
       error_exit( );
    else if( argc == 2)          /* MPC code provided */
-      get_mpc_obscode_data( &loc, argv[1]);
+      get_mpc_obscode_data( &loc, argv[1], use_only_obscodes_dot_html);
    else if( argc == 3 && 3 == strlen( argv[1]) && 3 == strlen( argv[2]))
       {           /* two MPC codes provided */
       loc_t loc2;
       double dist, posn_ang, p1[2], p2[2];
 
-      get_mpc_obscode_data( &loc, argv[1]);
-      get_mpc_obscode_data( &loc2, argv[2]);
+      get_mpc_obscode_data( &loc, argv[1], use_only_obscodes_dot_html);
+      get_mpc_obscode_data( &loc2, argv[2], use_only_obscodes_dot_html);
       p1[0] = loc.lon;
       p1[1] = loc.lat;
       p2[0] = loc2.lon;
@@ -315,7 +335,7 @@ int main( void)
       else if( !memcmp( field, "xyz", 3) && field[3] >= '0' && field[3] <= '2')
          xyz[field[3] - '0'] = atof( buff);
       else if( !strcmp( field, "mpc_code") && 3 == strlen( buff))
-         get_mpc_obscode_data( &loc, buff);
+         get_mpc_obscode_data( &loc, buff, 0);
       }
    if( xyz[0] || xyz[1] || xyz[2])
       {
