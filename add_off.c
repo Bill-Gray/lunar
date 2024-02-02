@@ -291,9 +291,41 @@ static int set_offsets( offset_t *offsets, const int n_offsets)
 bool show_offsets_from_original = false;
 
 /* The following reads the input file and looks for 80-column obs from
-spacecraft.  On a second pass,  it removes any existing 's' (spacecraft
+spacecraft.  It then finds out where the spacecraft in question (there
+may be zero,  one,  or many) were at the various times of the observations.
+
+   On a second pass,  it removes any existing 's' (spacecraft
 position) records and replaces them with 's' records created from
-the Horizons ephems.   */
+the Horizons ephems.
+
+   For XML ADES,  the process (not yet implemented) will be similar.
+On the first pass,  the code will need to look for the <optical> tag,
+then for a <stn> tag.  If it sees,  for example,  <stn>C51</stn>
+(WISE),  it will look that code up and say "aha,  a spacecraft-based
+observation".  It will then look for an <obsTime>;  upon seeing,
+for example,  <obsTime>2024-01-15T02:41:38.400Z</obsTime>,  it
+would know that we need to know where WISE was at that time.
+
+   As before,  after the first pass,  it would reach out to Horizons
+to find the corresponding spacecraft offsets for those dates/times.
+On the second pass,  upon reaching the <obsTime> line,  it would insert
+the ADES-formatted spacecraft offset,  which would look like
+
+<sys>ICRF_KM</sys>
+<ctr>399</ctr>
+<pos1>-3498.8267</pos1>
+<pos2>-4916.8885</pos2>
+<pos3>3113.8738</pos3>
+
+   and might also include <vel1>,  <vel2>,  <vel3> (a proposal that may
+get pulled into the ADES standard,  I hope;  see
+https://github.com/IAU-ADES/ADES-Master/issues/11.)  The offset and/or
+velocity might be more sensibly expressed in AU and from a different
+<ctr> for some spacecraft;  this would be relatively trivial to arrange.
+
+   Ideally,  the covariance matrix would also be requested from Horizons
+and output in ADES.  I don't think Horizons current provides covariances,
+but they'd probably be added if they became significant to somebody. */
 
 int process_file( const char *filename, FILE *ofile)
 {
