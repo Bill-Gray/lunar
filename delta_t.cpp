@@ -96,9 +96,9 @@ static const short delta_t_table[] =
   6728,    /* 2014  1 1:   67.2810                              */
   6810,    /* 2016  1 1:   68.1024                              */
   6897,    /* 2018  1 1:   68.9677                              */
-  6936,    /* 2020  1 1:   UT1 - UTC = -0.1772554               */
-  6929,    /* 2022  1 1:   UT1 - UTC = -0.1104988               */
-  6919 };  /* 2024  1 1:   UT1 - UTC = -0.0051796 (predicted 2023 Oct 09) */
+  6936,    /* 2020  1 1:   UT1 - UTC = -0.1772554; 69.3612554   */
+  6929,    /* 2022  1 1:   UT1 - UTC = -0.1104988; 69.2944988   */
+  6918 };  /* 2024  1 1:   UT1 - UTC =  0.0087688; 69.1752068   */
 
 /* 8 Aug 2000:  Some people have expressed an interest in being able to
    insert their own formulae for Delta-T while running Guide.  I've
