@@ -539,11 +539,11 @@ static int extract_lat_lon( const char *buff, size_t *bytes_read, double *value)
          }
       else if( *tptr == 'f' && tptr[1] == 't')
          {
-         const double us_survey_feet_to_meters = 1200. / 3937.;
+         const double intl_feet_to_meters = 0.3048;
 
          tptr += 2;               /* alt given in feet (shudder) */
          rval = GOT_ALT;
-         *value *= us_survey_feet_to_meters;
+         *value *= intl_feet_to_meters;
          }
       }
 /* printf( "From '%s',  got %d, value %f\n", buff, (int)( tptr - buff), *value); */
@@ -594,10 +594,8 @@ shows,  the compass sign can be at the start or end of the text,
 and one can use decimal degrees,  or degrees/decimal minutes,  or
 degrees/minutes/decimal seconds.
 
-   Feet are assumed to be US survey feet.  I think at this point,
-only my fellow Americans are daft enough to use 'feet',  so
-that's most likely to be what is meant if somebody enters
-an altitude in feet.       */
+   Feet are assumed to be 'international' feet,  1 foot = 30.48 cm,
+not US survey feet.  (The difference is two parts per million.) */
 
 int get_lat_lon_info( mpc_code_t *cinfo, const char *buff)
 {
