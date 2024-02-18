@@ -483,7 +483,7 @@ int main( void)
    extern char **environ;
    int cgi_status;
    const char *temp_filename = "/tmp/add_off.txt";
-   size_t bytes_written = 0;
+   size_t i, bytes_written = 0;
 
    avoid_runaway_process( 15);
    printf( "Content-type: text/html\n\n");
@@ -496,7 +496,7 @@ int main( void)
       }
    setbuf( lock_file, NULL);
    fprintf( lock_file, "'add_off' : We're in\n");
-   for( size_t i = 0; environ[i]; i++)
+   for( i = 0; environ[i]; i++)
       fprintf( lock_file, "%s\n", environ[i]);
    cgi_status = initialize_cgi_reading( );
    fprintf( lock_file, "CGI status %d\n", cgi_status);
