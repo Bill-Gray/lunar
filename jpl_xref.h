@@ -22,6 +22,7 @@ static const jpl_xref_t jpl_xrefs[] = {
    { "258",  -139479, 39479, "2013-074A",   "Gaia" },
    { "Ha2",      -37, 40319, "2014-076A",   "Hayabusa 2" },
    { "250",      -48, 20580, "1990-037B",   "Hubble Space Telescope" },
+   { "IM1",     -229, 58963, "2024-030A",   "IM-1 (Odysseus)" },
    { "274",     -170, 50463, "2021-130A",   "James Webb Space Telescope" },
    { "Jui",      -28, 56176, "2023-053A",   "JUICE" },
    { "C55",     -227, 34380, "2009-011A",   "Kepler" },
