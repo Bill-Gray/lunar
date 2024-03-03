@@ -90,3 +90,8 @@ format 6       (day/month/year: 0009-aug-07)
 ; Added 2019 Jul 21 :
 unix3141592653
 gps20633+13h+14.2m
+; Added 2024 Mar 01 : the following should cause errores to be returned
+z28
+3Ock2021 17:00
+2022 Maz 21
+Jan 15 z 3:17
