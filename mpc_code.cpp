@@ -216,10 +216,12 @@ robust solution.        */
 
 double quick_strtod( const char *ibuff, const char **endptr)
 {
-   bool is_negative = false;
+   bool is_negative = false, got_a_digit = false;
    int integer_part = 0;
    double rval;
 
+   if( endptr)
+      *endptr = ibuff;
    while( *ibuff == ' ')
       ibuff++;
    if( *ibuff == '-')
@@ -229,6 +231,8 @@ double quick_strtod( const char *ibuff, const char **endptr)
       }
    else if( *ibuff == '+')
       ibuff++;
+   if( *ibuff >= '0' && *ibuff <= '9')
+      got_a_digit = true;
    while( *ibuff >= '0' && *ibuff <= '9')
       integer_part = integer_part * 10 + (*ibuff++ - '0');
    if( *ibuff != '.')
@@ -238,6 +242,9 @@ double quick_strtod( const char *ibuff, const char **endptr)
       int frac_part = 0, divisor = 1;
 
       ibuff++;
+      if( *ibuff < '0' || *ibuff > '9')
+         if( !got_a_digit)       /* it's not a number */
+            return( 0.);
       while( *ibuff >= '0' && *ibuff <= '9')
          {
          frac_part = frac_part * 10 + (*ibuff++ - '0');
