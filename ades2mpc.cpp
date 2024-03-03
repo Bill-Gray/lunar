@@ -556,7 +556,8 @@ static int process_ades_tag( char *obuff, ades2mpc_t *cptr, const int itag,
          }
          break;
       case ADES_band:
-         if( (*tptr == 'P' || *tptr == 'S'  || *tptr == 'G') && strchr( "grizwy", tptr[1]))
+         if( (*tptr == 'P' || *tptr == 'S'  || *tptr == 'G')
+                           && strchr( "grizwy", tptr[1]) && tptr[1])
             cptr->line[70] = tptr[1];     /* PanSTARRS,  Sloan,  or Gaia band */
          else
             cptr->line[70] = *tptr;
