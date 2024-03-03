@@ -616,7 +616,7 @@ long double DLL_FUNC get_time_from_stringl( long double initial_t2k,
          {
          unsigned month_found = 0, n_fields_found = 2;
          unsigned year_found = 0, day_found = 0;
-         char tstr[80];
+         char tstr[80], *end_ptr;
          long double ivals[3];
 
          memcpy( tstr, str, (size_t)i);
@@ -630,9 +630,11 @@ long double DLL_FUNC get_time_from_stringl( long double initial_t2k,
             }
          else
             {
-            ivals[0] = strtold( tstr, NULL);
+            ivals[0] = strtold( tstr, &end_ptr);
             if( strchr( tstr, '.'))   /* decimal day given */
                day_found = 1;
+            if( end_ptr == tstr && is_ut)
+               *is_ut = -4;
             }
          str += i + 1;
          for( i = 0; str[i] && str[i] != symbol && str[i] != ' '; i++)
@@ -648,15 +650,18 @@ long double DLL_FUNC get_time_from_stringl( long double initial_t2k,
             }
          else
             {
-            ivals[1] = strtold( tstr, NULL);
+            ivals[1] = strtold( tstr, &end_ptr);
             if( strchr( tstr, '.'))   /* decimal day given */
                day_found = 2;
+            if( end_ptr == tstr && is_ut)
+               *is_ut = -5;
             }
 
          if( *str == symbol)     /* maybe a third field was entered, but */
             {                       /* could be a time;  check for a ':' */
             str++;
             if( sscanf( str, "%79s", tstr) == 1)
+               {
                if( (ival = month_name_to_index( tstr)) != 0)
                   {
                   month_found = 3;
@@ -664,6 +669,13 @@ long double DLL_FUNC get_time_from_stringl( long double initial_t2k,
                   ivals[2] = (long double)ival;
                   str += strlen( tstr);
                   }
+               else        /* check to make sure it's a number */
+                  {
+                  strtold( str, &end_ptr);
+                  if( end_ptr == str && is_ut)
+                     *is_ut = -6;
+                  }
+               }
             if( n_fields_found == 2)
                if( sscanf( str, "%Lf%n", &ivals[2], &n_bytes) == 1)
                   if( str[n_bytes] != ':')
