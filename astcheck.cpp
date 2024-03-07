@@ -187,7 +187,7 @@ static double compute_asteroid_loc( const double *earth_loc,
             ELEMENTS *elem, const double jd, double *ra, double *dec)
 {
    double r1 = 0., dist, asteroid_loc[4];
-   int i;
+   int i, n_iterations = 0;
 
    do             /* light-time lag:  should converge _very_ fast       */
       {           /* it'll almost always require exactly two iterations */
@@ -196,6 +196,9 @@ static double compute_asteroid_loc( const double *earth_loc,
       for( i = 0; i < 3; i++)
          asteroid_loc[i] -= earth_loc[i];
       r1 = vector3_length( asteroid_loc);
+      if( n_iterations >= 15)
+         fprintf( stderr, "? e=%f, q=%f, jd=%f; diff %f/%f\n", elem->ecc, elem->q, jd, dist - r1, r1);
+      assert( n_iterations++ < 20);
       }
       while( fabs( dist - r1) > .001);
    ecliptic_to_equatorial( asteroid_loc);
@@ -306,11 +309,11 @@ file size.         */
 
 static AST_DATA *get_cached_day_data( const int ijd)
 {
+   AST_DATA *rval = NULL;
    char filename[20];
    FILE *ifile, *ofile;
    int32_t header[HEADER_SIZE];
    const int32_t magic_version_number = 1314159266;
-   AST_DATA *rval;
 
                   /* Create a filename in 'YYYYMMDD.chk' form: */
    full_ctime( filename, (double)ijd, FULL_CTIME_YMD | FULL_CTIME_NO_SPACES
@@ -327,19 +330,18 @@ static AST_DATA *get_cached_day_data( const int ijd)
          printf( "Error reading header data in '%s'\n", filename);
          exit( -2);
          }
-      if( header[0] != magic_version_number
-                   || header[1] != sof_checksum || header[2] != n_asteroids)
-         fclose( ifile);
-      else   /* appears to be legitimate cached data */
+      if( header[0] == magic_version_number &&
+                      header[1] == sof_checksum && header[2] == n_asteroids)
+         {
+         fseek( ifile, 0L, SEEK_END);
+         if( ftell( ifile) == (n_asteroids + HEADER_SIZE) * 4L)
+            rval = (AST_DATA *)malloc( n_asteroids * sizeof( AST_DATA));
+         fseek( ifile, (long)sizeof( header), SEEK_SET);
+         }
+      if( rval)   /* appears to be legitimate cached data */
          {
          int n_read = 0, n_iterations = 0;
 
-         rval = (AST_DATA *)malloc( n_asteroids * sizeof( AST_DATA));
-         if( !rval)
-            {
-            printf( "Ran out of memory\n");
-            exit( -4);
-            }
          while( n_read != n_asteroids)
             {
             n_read += (int)fread( rval + n_read, sizeof( AST_DATA),
@@ -371,6 +373,7 @@ static AST_DATA *get_cached_day_data( const int ijd)
          fclose( ifile);
          return( rval);
          }
+      fclose( ifile);
       }
    header[0] = magic_version_number;
    header[1] = sof_checksum;
