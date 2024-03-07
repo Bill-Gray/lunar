@@ -190,7 +190,7 @@ OBJS= alt_az.o ades2mpc.o astfuncs.o big_vsop.o  \
    brentmin.o cgi_func.o classel.o conbound.o cospar.o date.o  \
    delta_t.o de_plan.o dist_pa.o eart2000.o elp82dat.o \
    eop_prec.o getplane.o get_time.o jsats.o lunar2.o miscell.o moid.o \
-   mpc_code.o mpc_fmt.o nanosecs.o nutation.o \
+   mpc_code.o mpc_fmt.o mpc_fmt2.o nanosecs.o nutation.o \
    obliquit.o pluto.o precess.o showelem.o \
    snprintf.o sof.o spline.o ssats.o triton.o unpack.o vislimit.o vsopson.o
 

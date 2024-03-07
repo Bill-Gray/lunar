@@ -47,11 +47,17 @@ typedef struct
 #define MPC_CODE_LAT_LON_ALT        2
 #define MPC_CODE_SATELLITE          3
 
+int text_search_and_replace( char *str, const char *oldstr,
+                                     const char *newstr);
 int get_mpc_code_info( mpc_code_t *cinfo, const char *buff);
 int get_xxx_location_info( mpc_code_t *cinfo, const char *buff);
 int get_lat_lon_info( mpc_code_t *cinfo, const char *buff);
 double get_ra_from_string( const char *buff, int *bytes_read);
 double get_dec_from_string( const char *buff, int *bytes_read);
+void output_angle_to_buff( char *obuff, double angle, int precision);
+void output_signed_angle_to_buff( char *obuff, const double angle,
+                               const int precision);
+
 double point_to_ellipse( const double a, const double b,
                          const double x, const double y, double *dist);
 int lat_alt_to_parallax( const double lat, const double ht_in_meters,
