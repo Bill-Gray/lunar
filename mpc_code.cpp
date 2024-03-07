@@ -743,7 +743,7 @@ int get_xxx_location_info( mpc_code_t *cinfo, const char *buff)
 
 #ifdef TEST_CODE
 
-static int text_search_and_replace( char *str, const char *oldstr,
+static int _text_search_and_replace( char *str, const char *oldstr,
                                      const char *newstr)
 {
    size_t ilen = strlen( str), rval = 0;
@@ -922,7 +922,7 @@ int main( const int argc, const char **argv)
                         code.lat, code.lon);
             }
          if( make_kml || show_link_for_this_line)
-            text_search_and_replace( buff, "&", "&amp;");
+            _text_search_and_replace( buff, "&", "&amp;");
          if( make_kml && code.planet == 3 && (code.lat || code.lon))
             {
             i = 0;
