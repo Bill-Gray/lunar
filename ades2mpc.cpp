@@ -317,6 +317,7 @@ static int find_tag( const char *buff, size_t len)
 static inline void pack_mpc_reference( char *packed, const char *ref)
 {
    const size_t len = strlen( ref);
+   char temp_packed[6];
 
    if( len >= 12 && len <= 14 && !memcmp( ref, "MPEC ", 5) && ref[9] == '-')
       {
@@ -325,6 +326,39 @@ static inline void pack_mpc_reference( char *packed, const char *ref)
       ref += 11;
       packed[0] = packed[1] = '0';
       memcpy( packed + 14 - len, ref, len - 11);
+      }
+   else if( !memcmp( ref, "MPS ", 4))
+      {
+      unsigned mps_number = atoi( ref + 4);
+
+      if( mps_number < 260000)
+         {
+         snprintf_err( temp_packed, sizeof( temp_packed),
+                                "%c%04u", 'a' + mps_number / 10000,
+                                mps_number % 10000);
+         memcpy( packed, temp_packed, 5);
+         }
+      else
+         {
+         *packed = '~';
+         encode_value_in_mutant_hex( packed + 1, 4, mps_number - 260000);
+         }
+      }
+   else if( !memcmp( ref, "MPC ", 4))
+      {
+      unsigned mpc_number = atoi( ref + 4);
+
+      if( mpc_number < 110000)
+         {
+         snprintf_err( temp_packed, sizeof( temp_packed),
+               (mpc_number < 100000 ? "%05u" : "@%04u"), mpc_number % 100000);
+         memcpy( packed, temp_packed, 5);
+         }
+      else
+         {
+         *packed = '#';
+         encode_value_in_mutant_hex( packed + 1, 4, mpc_number - 110000);
+         }
       }
 }
 
@@ -737,6 +771,7 @@ static int process_ades_tag( char *obuff, ades2mpc_t *cptr, const int itag,
       case ADES_astCat:
          assert( len < sizeof( name));
          cptr->line[71] = net_name_to_byte_code( name);
+         assert( cptr->line[71]);
          break;
       case ADES_rmsRA:
          assert( len < sizeof( cptr->rms_ra));
