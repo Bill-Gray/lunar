@@ -337,7 +337,7 @@ int process_file( const char *filename, FILE *ofile)
    int i, n_offsets = 0;
 
    assert( ifile);
-   fprintf( ofile, "COM add_off ver 2022 Dec 07,  run %s", ctime( &t0));
+   fprintf( ofile, "COM add_off ver 2024 Mar 12,  run %s", ctime( &t0));
    while( fgets( buff, sizeof( buff), ifile))
       if( (jd = get_sat_obs_jd( buff)) != 0.)
          {
@@ -482,7 +482,7 @@ int main( void)
    FILE *lock_file = fopen( "lock.txt", "w");
    extern char **environ;
    int cgi_status;
-   const char *temp_filename = "/tmp/add_off.txt";
+   const char *temp_filename = "/tmp/add_off2.txt";
    size_t i, bytes_written = 0;
 
    avoid_runaway_process( 15);
