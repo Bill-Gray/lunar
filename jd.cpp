@@ -289,11 +289,11 @@ int main( int argc, char **argv)
 
 
    jd = (double)( t2k + j2000);
-   printf( "Delta-T = TD - UT1 = %.4f; TD - UTC = %.4f; UT1 - UTC = DUT1 = %.4f\n",
+   printf( "Delta-T = TD - UT1 = %.7f; TD - UTC = %.7f; UT1 - UTC = DUT1 = %.7f\n",
                             td_minus_ut( jd),
                             td_minus_utc( jd),
                             td_minus_utc( jd) - td_minus_ut( jd));
-   printf( "TDB - TDT = %f milliseconds   TAI-UTC = %.3f    GPS-UTC = %.3f\n",
+   printf( "TDB - TDT = %.4f milliseconds   TAI-UTC = %.3f    GPS-UTC = %.3f\n",
          (double)tdb_minus_tdt( t2k / 36525.) * 1000.,
          td_minus_utc( jd) - tdt_minus_tai,
          td_minus_utc( jd) - tdt_minus_tai - tai_minus_gps);
