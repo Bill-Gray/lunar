@@ -590,9 +590,13 @@ static int process_ades_tag( char *obuff, ades2mpc_t *cptr, const int itag,
          }
          break;
       case ADES_band:
-         if( (*tptr == 'P' || *tptr == 'S'  || *tptr == 'G')
+         if( (*tptr == 'P' || *tptr == 'S')
                            && strchr( "grizwy", tptr[1]) && tptr[1])
-            cptr->line[70] = tptr[1];     /* PanSTARRS,  Sloan,  or Gaia band */
+            cptr->line[70] = tptr[1];     /* PanSTARRS or Sloan band */
+         else if( *tptr == 'A' && (tptr[1] == 'o' || tptr[1] == 'c'))
+            cptr->line[70] = tptr[1];   /* ATLAS Ao & Ac bands */
+         else if( *tptr == 'G' && (tptr[1] == 'b' || tptr[1] == 'r'))
+            cptr->line[70] = tptr[1];   /* Gaia b or r band */
          else
             cptr->line[70] = *tptr;
          assert( len > 0 && len < 4);    /* three-byte passcodes are allowed */
@@ -600,8 +604,9 @@ static int process_ades_tag( char *obuff, ades2mpc_t *cptr, const int itag,
          break;
       case ADES_mode:
          if( len == 3)
-            {
-            const char *modes = "CCCD VVID PPHO eENC pPMT MMIC TMER ";
+            {     /* https://www.minorplanetcenter.net/iau/info/ADESFieldValues.html */
+            const char *modes =  "CCCD BCMO VVID PPHO eENC pPMT"
+                                " MMIC TMER CTDI EOCC ?UNK ";
             int i;
 
             for( i = 0; modes[i]; i += 5)
