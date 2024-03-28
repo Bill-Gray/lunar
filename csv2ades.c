@@ -49,6 +49,7 @@ command and get an error message telling you which file wasn't found.) */
 #include <assert.h>
 #include <stdbool.h>
 #include "watdefs.h"
+#include "afuncs.h"
 #include "date.h"
 
 static char *get_csv( char *obuff, const char *ibuff,
@@ -90,16 +91,28 @@ static void csv_to_ades( const char *ibuff, const char *header,
       {
       const double jd_epoch = 2455197.5;    /* 2010 Jan 1.0 */
       double jd_obs;
+      int i;
 
       printf( "   <optical>\n");
       printf( "    <permID>%s</permID>\n", tbuff);
       printf( "    <mode>TDI</mode>\n");
       printf( "    <stn>258</stn>\n");
-      printf( "    <sys>ICRF_AU</sys>\n");
-      printf( "    <ctr>0</ctr>\n");
-      printf( "    <pos1>%s</pos1>\n", get_csv( tbuff, ibuff, header, "x_gaia,", 13));
-      printf( "    <pos2>%s</pos2>\n", get_csv( tbuff, ibuff, header, "y_gaia,", 13));
-      printf( "    <pos3>%s</pos3>\n", get_csv( tbuff, ibuff, header, "z_gaia,", 13));
+      printf( "    <sys>ICRF_KM</sys>\n");
+      printf( "    <ctr>399</ctr>\n");
+      for( i = 0; i < 6; i++)
+         {
+         char tag[30];
+         double value;
+
+         snprintf( tag, sizeof( tag), "%s%c_gaia_geocentric",
+                                          (i < 3 ? "" : "v"), 'x' + i % 3);
+         value = atof( get_csv( tbuff, ibuff, header, tag, sizeof( tag) - 1));
+         value *= AU_IN_KM;
+         if( i < 3)
+            printf( "    <pos%d>%.4f</pos%d>\n", i + 1, value, i + 1);
+         else
+            printf( "    <vel%d>%.10f</vel%d>\n", i - 2, value / seconds_per_day, i - 2);
+         }
       jd_obs = atof( get_csv( tbuff, ibuff, header, "epoch_utc,", 99)) + jd_epoch;
       full_ctime( tbuff, jd_obs, FULL_CTIME_MILLISECS | FULL_CTIME_YMD
                            | FULL_CTIME_LEADING_ZEROES | FULL_CTIME_MONTHS_AS_DIGITS);
