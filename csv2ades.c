@@ -103,13 +103,15 @@ static void csv_to_ades( const char *ibuff, const char *header,
          {
          char tag[30];
          double value;
+         const double LB = 1.550519768e-8;   /* conversion from TCB to TDB;  see */
+                  /* https://github.com/IAU-ADES/ADES-Master/issues/52#issuecomment-2024035881 */
 
          snprintf( tag, sizeof( tag), "%s%c_gaia_geocentric",
                                           (i < 3 ? "" : "v"), 'x' + i % 3);
          value = atof( get_csv( tbuff, ibuff, header, tag, sizeof( tag) - 1));
          value *= AU_IN_KM;
          if( i < 3)
-            printf( "    <pos%d>%.4f</pos%d>\n", i + 1, value, i + 1);
+            printf( "    <pos%d>%.4f</pos%d>\n", i + 1, value * (1 - LB), i + 1);
          else
             printf( "    <vel%d>%.10f</vel%d>\n", i - 2, value / seconds_per_day, i - 2);
          }
