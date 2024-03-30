@@ -698,9 +698,11 @@ static int process_ades_tag( char *obuff, ades2mpc_t *cptr, const int itag,
             if( cptr->line2[32] == '1')
                {
                decimal_loc = sign_loc + 6;
-               if( tptr2 - name == 7)     /* beyond 100000 km */
+               if( tptr2 - name >= 7)     /* beyond 100000 km */
                   decimal_loc++;
-               assert( tptr2 - name < 8);
+               if( tptr2 - name >= 8)     /* one to ten million km */
+                  decimal_loc++;
+               assert( tptr2 - name < 9);
                }
             else if( cptr->line2[32] == '2')
                {
