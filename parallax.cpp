@@ -67,6 +67,7 @@ static int get_mpc_obscode_data( mpc_code_t *loc, const char *mpc_code, int pass
          if( !memcmp( buff, mpc_code, 3) && buff[3] == end_char)
             {
             const int err_code = get_mpc_code_info( loc, buff);
+            char *tptr;
 
             if( 3 == err_code)
                {
@@ -79,6 +80,10 @@ static int get_mpc_obscode_data( mpc_code_t *loc, const char *mpc_code, int pass
                }
             else if( -1 != err_code)
                printf( "%s\n", loc->name);
+            tptr = strchr( buff, 10);
+            assert( tptr);       /* remove trailing LF */
+            *tptr = '\0';
+            loc->name = strdup( loc->name);
             rval = 0;
             }
       fclose( ifile);
@@ -197,6 +202,7 @@ int main( int argc, const char **argv)
 {
    mpc_code_t loc;
    int i, use_only_obscodes_dot_html = 0;
+   int show_mpc_format = 0;
 
    for( i = 1; i < argc; i++)
       if( argv[i][0] == '-' && !isdigit( argv[i][1]))
@@ -205,6 +211,9 @@ int main( int argc, const char **argv)
             {
             case 'f':
                use_only_obscodes_dot_html = 1;
+               break;
+            case 'm':
+               show_mpc_format = 1;
                break;
             default:
                fprintf( stderr, "Unrecognized option '%s'\n", argv[i]);
@@ -242,6 +251,20 @@ int main( int argc, const char **argv)
    loc.lat *= 180. / PI;
    loc.lon *= 180. / PI;
    show_location( &loc);
+   if( show_mpc_format)             /* output in format desired when */
+      {                             /* submitting corrections to MPC */
+      printf( "contact_name: Bill Gray\n");
+      printf( "email_adr: pluto@projectpluto.com\n");
+      printf( "observatory_code: %s\n", loc.code);
+      printf( "observatory_name: %s\n", loc.name);
+      printf( "observatory_site: %s\n", loc.name);
+      printf( "observatory_country: US\n");
+      printf( "observatory_lat: %f\n", loc.lat);
+      printf( "observatory_long: %f\n", loc.lon);
+      printf( "observatory_alt: %f\n", loc.alt);
+      printf( "telescope_height: 0\n");
+      printf( "reference: WGS84\n");
+      }
 }
 #else
 
@@ -349,8 +372,6 @@ int main( void)
               "browser and review your options.\n");
       return( 0);
       }
-   loc.x = loc.rho_cos_phi * cos( loc.lon);
-   loc.y = loc.rho_cos_phi * sin( loc.lon);
    loc.lat *= 180. / PI;
    loc.lon *= 180. / PI;
    loc.alt *= EARTH_MAJOR_AXIS_IN_METERS;
