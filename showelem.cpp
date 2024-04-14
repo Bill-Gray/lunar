@@ -268,7 +268,13 @@ int DLL_FUNC elements_in_mpc_format( char *obuff, const size_t obuff_size,
    n_lines++;
 
    if( is_cometary || elem->ecc >= 1.)
-      strlcpy_err( obuff, nineteen_blank_spaces, endptr - obuff);
+      {
+      if( elem->major_axis > -0.0011 || elem->major_axis < -100000.)
+         *obuff = '\0';             /* z won't fit or is meaninglessly large */
+      else
+         snprintf_err( obuff, endptr - obuff, "z%*.*f",
+                  n_digits_to_show + 5, n_digits_to_show, -1. / elem->major_axis);
+      }
    else
       {
       *obuff = 'a';
@@ -296,6 +302,7 @@ int DLL_FUNC elements_in_mpc_format( char *obuff, const size_t obuff_size,
                        n_digits_to_show + 3, elem->ecc);
       lop_digits( obuff + 8, precision);
       }
+   obuff[n_digits_to_show + 9] = '\0';
    obuff += strlen( obuff);
 
    snprintf_err( obuff, endptr - obuff, "Incl.%*.*f", n_digits_to_show + 6,
@@ -347,7 +354,7 @@ int DLL_FUNC elements_in_mpc_format( char *obuff, const size_t obuff_size,
                                               elem->slope_param);
          if( !elem->is_asteroid)
             if( format & SHOWELEM_COMET_MAGS_NUCLEAR)
-               obuff[4] = 'N';
+               obuff[3] = 'N';
          }
 
       strlcat_err( obuff, "   q ", endptr - obuff);
