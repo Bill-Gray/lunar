@@ -24,12 +24,6 @@ an example of its usage.   */
 #define EARTH_MINOR_AXIS_IN_METERS    6356752.314140347
 #define PI 3.1415926535897932384626433832795028841971693993751058209749445923
 
-typedef struct
-{
-   double lat, lon, alt;
-   double rho_sin_phi, rho_cos_phi, x, y;
-} loc_t;
-
 static char *show_angle( char *buff, double angle)
 {
    const long microarcsec = (long)( fabs( angle) * 3600e+5);
@@ -43,7 +37,7 @@ static char *show_angle( char *buff, double angle)
    return( buff);
 }
 
-static int get_mpc_obscode_data( loc_t *loc, const char *mpc_code, int pass)
+static int get_mpc_obscode_data( mpc_code_t *loc, const char *mpc_code, int pass)
 {
    int rval = -1;
    char end_char = mpc_code[3];
@@ -55,7 +49,6 @@ static int get_mpc_obscode_data( loc_t *loc, const char *mpc_code, int pass)
       const char *ifilename = (pass ? "ObsCodes.htm" : "rovers.txt");
       FILE *ifile;
       char buff[200];
-      mpc_code_t code_data;
 
 #ifdef CGI_VERSION
       strlcpy_error( buff, "/home/projectp/public_html/cgi_bin/fo/");
@@ -73,26 +66,19 @@ static int get_mpc_obscode_data( loc_t *loc, const char *mpc_code, int pass)
       while( rval && fgets( buff, sizeof( buff), ifile))
          if( !memcmp( buff, mpc_code, 3) && buff[3] == end_char)
             {
-            const int err_code = get_mpc_code_info( &code_data, buff);
+            const int err_code = get_mpc_code_info( loc, buff);
 
             if( 3 == err_code)
                {
-               loc->lat = code_data.lat;
-               loc->lon = code_data.lon;
                if( loc->lon > PI)
                   loc->lon -= PI + PI;
-               loc->alt = code_data.alt;
-               loc->rho_sin_phi = code_data.rho_sin_phi;
-               loc->rho_cos_phi = code_data.rho_cos_phi;
-               loc->x = cos( loc->lon) * loc->rho_cos_phi;
-               loc->y = sin( loc->lon) * loc->rho_cos_phi;
                printf( "%s !%+014.9f  %+013.9f %9.3f   %s\n", mpc_code,
                      loc->lon * 180. / PI,
                      loc->lat * 180. / PI,
-                     loc->alt, code_data.name);
+                     loc->alt, loc->name);
                }
             else if( -1 != err_code)
-               printf( "%s\n", code_data.name);
+               printf( "%s\n", loc->name);
             rval = 0;
             }
       fclose( ifile);
@@ -106,7 +92,7 @@ static int get_mpc_obscode_data( loc_t *loc, const char *mpc_code, int pass)
    return( rval);
 }
 
-static void show_location( const loc_t *loc)
+static void show_location( const mpc_code_t *loc)
 {
    char buff[80];
 
@@ -136,11 +122,13 @@ static void show_location( const loc_t *loc)
          }
 #endif
       printf( "xyz in Earth radii %+.7f %+.7f %+.7f\n",
-                  loc->x, loc->y, loc->rho_sin_phi);
+                                  cos( loc->lon) * loc->rho_cos_phi,
+                                  sin( loc->lon) * loc->rho_cos_phi,
+                                  loc->rho_sin_phi);
       printf( "xyz in meters      %+.5f %+.5f %+.5f\n",
-                                      loc->x * EARTH_MAJOR_AXIS_IN_METERS,
-                                      loc->y * EARTH_MAJOR_AXIS_IN_METERS,
-                                      loc->rho_sin_phi * EARTH_MAJOR_AXIS_IN_METERS);
+                  cos( loc->lon) * loc->rho_cos_phi * EARTH_MAJOR_AXIS_IN_METERS,
+                  sin( loc->lon) * loc->rho_cos_phi * EARTH_MAJOR_AXIS_IN_METERS,
+                                   loc->rho_sin_phi * EARTH_MAJOR_AXIS_IN_METERS);
       if( ifile)
          {
          extract_region_data_for_lat_lon( ifile, buff, loc->lat, loc->lon);
@@ -153,7 +141,7 @@ static void show_location( const loc_t *loc)
 
 #ifndef CGI_VERSION
 
-static void set_location_two_params( loc_t *loc, double rho_cos_phi,
+static void set_location_two_params( mpc_code_t *loc, double rho_cos_phi,
                                                  double rho_sin_phi)
 {
    if( fabs( rho_cos_phi) > 2. || fabs( rho_sin_phi) > 2.)
@@ -166,11 +154,10 @@ static void set_location_two_params( loc_t *loc, double rho_cos_phi,
    loc->lat = point_to_ellipse( 1., EARTH_MINOR_AXIS_IN_METERS / EARTH_MAJOR_AXIS_IN_METERS,
                  rho_cos_phi, rho_sin_phi, &loc->alt);
    loc->alt *= EARTH_MAJOR_AXIS_IN_METERS;
-   loc->x = rho_cos_phi;
-   loc->lon = loc->y = 0.;
+   loc->lon = 0.;
 }
 
-static void set_location_three_params( loc_t *loc, double p1, double p2, double p3)
+static void set_location_three_params( mpc_code_t *loc, double p1, double p2, double p3)
 {
    if( fabs( p1) > 400 || fabs( p2) > 400)
       {             /* looks like parallax values in meters */
@@ -183,8 +170,6 @@ static void set_location_three_params( loc_t *loc, double p1, double p2, double 
       const double rho_cos_phi = sqrt( p1 * p1 + p2 * p2);
 
       set_location_two_params( loc, rho_cos_phi, p3);
-      loc->x = p1;
-      loc->y = p2;
       loc->lon = atan2( p2, p1);
       }
    else        /* p1 = longitude, p2 = latitude, p3 = alt in meters */
@@ -194,8 +179,6 @@ static void set_location_three_params( loc_t *loc, double p1, double p2, double 
       loc->alt = p3;
       lat_alt_to_parallax( loc->lat, loc->alt, &loc->rho_cos_phi, &loc->rho_sin_phi,
                EARTH_MAJOR_AXIS_IN_METERS, EARTH_MINOR_AXIS_IN_METERS);
-      loc->x = loc->rho_cos_phi * cos( loc->lon);
-      loc->y = loc->rho_cos_phi * sin( loc->lon);
       }
 }
 
@@ -212,7 +195,7 @@ static void error_exit( void)
 
 int main( int argc, const char **argv)
 {
-   loc_t loc;
+   mpc_code_t loc;
    int i, use_only_obscodes_dot_html = 0;
 
    for( i = 1; i < argc; i++)
@@ -238,7 +221,7 @@ int main( int argc, const char **argv)
       get_mpc_obscode_data( &loc, argv[1], use_only_obscodes_dot_html);
    else if( argc == 3 && 3 == strlen( argv[1]) && 3 == strlen( argv[2]))
       {           /* two MPC codes provided */
-      loc_t loc2;
+      mpc_code_t loc2;
       double dist, posn_ang, p1[2], p2[2];
 
       get_mpc_obscode_data( &loc, argv[1], use_only_obscodes_dot_html);
@@ -303,7 +286,7 @@ static double get_angle( const char *ibuff)
 
 int main( void)
 {
-   loc_t loc;
+   mpc_code_t loc;
    char field[30], buff[100];
    int rval;
    double xyz[3];
@@ -318,7 +301,7 @@ int main( void)
       printf( "This isn't supposed to happen.</p>\n");
       return( 0);
       }
-   memset( &loc, 0, sizeof( loc_t));
+   memset( &loc, 0, sizeof( mpc_code_t));
    xyz[0] = xyz[1] = xyz[2] = 0.;
    while( !get_cgi_data( field, buff, NULL, sizeof( buff)))
       {
