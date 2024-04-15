@@ -273,7 +273,7 @@ int DLL_FUNC elements_in_mpc_format( char *obuff, const size_t obuff_size,
          *obuff = '\0';             /* z won't fit or is meaninglessly large */
       else
          snprintf_err( obuff, endptr - obuff, "z%*.*f",
-                  n_digits_to_show + 5, n_digits_to_show, -1. / elem->major_axis);
+                  n_digits_to_show + 5, n_digits_to_show, 1. / elem->major_axis);
       }
    else
       {
