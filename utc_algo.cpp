@@ -57,10 +57,14 @@ up with a UTC offset that'll keep |UTC-UT| < .5 second;  i.e.,  keep UTC
 and UT as close together as possible.
 
    This is admittedly something of a kludge.  But anything done to estimate
-future leap seconds has to be a kludge;  there's no "good" way to do it.  */
+future leap seconds has to be a kludge;  there's no "good" way to do it.
 
-#define JAN_1( YEAR) (((YEAR) * 365 + ((YEAR) - 1) / 4 - ((YEAR) - 1) / 100 \
-                         + ((YEAR) - 1) / 400) - 678940)
+   See 'delta_t.cpp' for an explanation of the following macro. */
+
+#define BASE_YEAR 19999999999L
+#define JAN_1( YEAR) (((YEAR) * 365L + ((YEAR) + BASE_YEAR) / 4L - ((YEAR) + BASE_YEAR) / 100L \
+                         + ((YEAR) + BASE_YEAR) / 400L) - 678940L \
+                         - ((BASE_YEAR + 1L) / 400L) * 97L)
 
 // unsigned day = mjd + 1931367u + 2400000u;
 // int year = (int)( day * 400u / 146097u) - 10000;
@@ -77,12 +81,12 @@ int main( const int argc, const char **argv)
 
       printf( "Year = %d\n", year);
       low = JAN_1( year);
-      printf( "MJD 1 Jan %d = %d\n", year, JAN_1( year));
+      printf( "MJD 1 Jan %d = %ld\n", year, JAN_1( year));
       if( mjd < low)
          {
          year--;
          low = JAN_1( year);
-         printf( "MJD 1 Jan %d = %d\n", year, JAN_1( year));
+         printf( "MJD 1 Jan %d = %ld\n", year, JAN_1( year));
          }
       high = JAN_1( year + 1);
       printf( "MJD 1 Jan %d = %d\n", year + 1, high);
@@ -109,7 +113,7 @@ int main( const int argc, const char **argv)
             n_less++;
          mjd++;
          }
-      printf( "%d %d\n", n_more, n_less);
+      printf( "%d cases went over;  %d went under\n", n_more, n_less);
       }
    return( 0);
 }

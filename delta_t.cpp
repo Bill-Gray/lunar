@@ -361,14 +361,17 @@ long double DLL_FUNC tdb_minus_tdt( const long double t_centuries)
    return( rval);     /* difference is in _seconds_  */
 }
 
-/* These macros determine the MJD of the given date in 'YEAR'.  They're
-valid for years after -9999 in the _Gregorian_ calendar.  Note that
-we use the fact that February 1 is always 31 days after January 1,
-but work backward from January 1 of the following year to get
-March to December without having to consider leap days. */
+/* These macros determine the MJD of the given date in 'YEAR'. They
+are valid for (Gregorian) years after roughly 20 billion years ago.
+This was chosen to comfortably include all dates since the Big Bang.
+We use the fact that February 1 is always 31 days after January 1,
+but have to work backward from January 1 of the following year to
+get March to December without having to consider leap days. */
 
-#define JAN_1( YEAR) (((YEAR) * 365 + ((YEAR) + 9999) / 4 - ((YEAR) + 9999) / 100 \
-                         + ((YEAR) + 9999) / 400) - 681365)
+#define BASE_YEAR 19999999999L
+#define JAN_1( YEAR) (((YEAR) * 365L + ((YEAR) + BASE_YEAR) / 4L - ((YEAR) + BASE_YEAR) / 100L \
+                         + ((YEAR) + BASE_YEAR) / 400L) - 678940L \
+                         - ((BASE_YEAR + 1L) / 400L) * 97L)
 #define FEB_1( YEAR) (JAN_1( YEAR) + 31)
 #define DEC_1( YEAR) (JAN_1( (YEAR)+1) - 31)
 #define NOV_1( YEAR) (DEC_1( YEAR) - 30)
