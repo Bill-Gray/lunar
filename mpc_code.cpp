@@ -525,6 +525,8 @@ static int extract_lat_lon( const char *buff, size_t *bytes_read, double *value)
 
    while( *tptr == ' ')
       tptr++;
+   if( !*tptr)
+      return( GOT_NOTHING);
    if( strchr( compass, *tptr))
       compass_byte = *tptr++;
    if( !strncasecmp( tptr, "alt", 3))
