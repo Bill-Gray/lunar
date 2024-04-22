@@ -51,6 +51,8 @@ int main( const int intentionally_unused_argc,
          "name",
                      /* added Sep 2018 */
          "rmsTime",
+                     /* added April 2024 */
+         "vel1", "vel2", "vel3",
          NULL };
    size_t i, j;
 

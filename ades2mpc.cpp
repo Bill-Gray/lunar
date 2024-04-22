@@ -258,6 +258,9 @@ sorted so that a binary search can speed up tag matching slightly. */
 #define ADES_trkSub                      140
 #define ADES_trx                         141
 #define ADES_uncTime                     142
+#define ADES_vel1                        143
+#define ADES_vel2                        144
+#define ADES_vel3                        145
 
 /* See 'adestags.c' for code that created following array
 and the above #defines. */
@@ -293,7 +296,8 @@ static int find_tag( const char *buff, size_t len)
        "selPhot", "shapeOcc", "sigCorr", "sigDec", "sigDelay",
        "sigDoppler", "sigMag", "sigRA", "sigTime", "software",
        "stn", "subFmt", "subFrm", "submitter", "sys", "telescope",
-       "trkID", "trkMPC", "trkSub", "trx", "uncTime",
+       "trkID", "trkMPC", "trkSub", "trx", "uncTime", "vel1",
+       "vel2", "vel3",
    NULL };
 
    int i, rval = -1;
