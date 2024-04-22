@@ -167,8 +167,14 @@ specifies J2000 equatorial coordinates.  TABLE_TYPE='V' specifies
 vectors.  VEC_TABLE='2' specifies positions and velocities.
 
    Each time adds 15 bytes to our URL.  I can send JPL an 8000-byte
-URL,  but not much beyond that without getting errors.  After
-allowing for the header and trailer data,  we can request 520
+URL,  but not much beyond that without getting errors.  (This is
+because I'm using the GET interface.  In hindsight,  the file-based
+POST system would have avoided this limitation,  though at the cost
+of other minor complications.  The file-based API is described at
+
+https://ssd-api.jpl.nasa.gov/doc/horizons_file.html
+
+   After allowing for the header and trailer data,  we can request 520
 offsets without overflowing the 8000-byte URL.   So if we
 encounter an unset offset,  we look for up to 519 other instances
 where that particular obscode was used,  form a query to ask for
