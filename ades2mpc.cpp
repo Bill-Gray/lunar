@@ -31,6 +31,7 @@ parsing in my software.
 #include "watdefs.h"
 #include "date.h"
 #include "mpc_func.h"
+#include "afuncs.h"
 
 #define NOT_A_VALID_TIME -3.141e+17
 #define MAX_DEPTH 20
@@ -51,6 +52,7 @@ typedef struct
    int prev_line_passed_through;
    int prev_rval, n_psv_fields;
    int *psv_tags;
+   double spacecraft_vel[3];
 } ades2mpc_t;
 
 void *init_ades2mpc( void)
@@ -488,6 +490,20 @@ static int get_a_line( char *obuff, const size_t obuff_size, ades2mpc_t *cptr)
          snprintf_append( obuff, obuff_size, " progcode:%s", cptr->program_code);
       cptr->passband[1] = cptr->notes[0] = cptr->program_code[0] = '\0';
       }
+   else if( cptr->spacecraft_vel[0] || cptr->spacecraft_vel[1] || cptr->spacecraft_vel[2])
+      {
+      double multiplier = 1.;
+
+      if( cptr->line2[32] == '2')   /* units are AU and days;  */
+         multiplier = AU_IN_KM / seconds_per_day;
+      snprintf_err( obuff, obuff_size, "COM vel (km/s) %.14s  %+13.7f%13.7f%13.7f %s",
+                     cptr->line + 15,
+                     cptr->spacecraft_vel[0] * multiplier,
+                     cptr->spacecraft_vel[1] * multiplier,
+                     cptr->spacecraft_vel[2] * multiplier,
+                     cptr->line + 77);
+      memset( cptr->spacecraft_vel, 0, sizeof( cptr->spacecraft_vel));
+      }
    else if( cptr->line[0])
       {
       strlcpy( obuff, cptr->line, obuff_size);
@@ -660,6 +676,12 @@ static int process_ades_tag( char *obuff, ades2mpc_t *cptr, const int itag,
          break;
       case ADES_ctr:
          cptr->spacecraft_center = atoi( name);
+         break;
+      case ADES_vel1:
+      case ADES_vel2:
+      case ADES_vel3:
+         assert( cptr->line[14] == 'S');
+         cptr->spacecraft_vel[itag - ADES_vel1] = atof( name);
          break;
       case ADES_pos1:
       case ADES_pos2:
