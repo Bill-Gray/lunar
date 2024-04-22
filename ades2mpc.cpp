@@ -42,12 +42,12 @@ typedef struct
    char line[83];    /* allow possible CR, LF,  & null */
    char line2[83];
    char rms_ra[PIECE_SIZE], rms_dec[PIECE_SIZE], corr[PIECE_SIZE];
-   char rms_mag[PIECE_SIZE], rms_time[PIECE_SIZE], center[PIECE_SIZE];
+   char rms_mag[PIECE_SIZE], rms_time[PIECE_SIZE];
    char full_ra[PIECE_SIZE], full_dec[PIECE_SIZE];
    char notes[7], program_code[3];
    char trk_sub[14], obs_id[PIECE_SIZE], trk_id[12], passband[4];
    long double full_t2k;
-   int id_set, getting_lines;
+   int id_set, getting_lines, spacecraft_center;
    int prev_line_passed_through;
    int prev_rval, n_psv_fields;
    int *psv_tags;
@@ -473,11 +473,6 @@ static int get_a_line( char *obuff, const size_t obuff_size, ades2mpc_t *cptr)
       snprintf_err( obuff, obuff_size, "COM RA/dec - %s\n", cptr->full_dec);
       cptr->full_dec[0] = '\0';
       }
-   else if( cptr->center[0])
-      {
-      snprintf_err( obuff, obuff_size, "COM Offset center %s", cptr->center);
-      cptr->center[0] = '\0';
-      }
    else if( cptr->passband[1] || cptr->notes[0] > ' ' || cptr->program_code[0] >= ' ')
       {
       snprintf_err( obuff, obuff_size, "COM ADES tags");
@@ -496,6 +491,8 @@ static int get_a_line( char *obuff, const size_t obuff_size, ades2mpc_t *cptr)
          {
          memcpy( cptr->line2, cptr->line, 12);
          memcpy( cptr->line2 + 15, cptr->line + 15, 17);
+         if( cptr->spacecraft_center != 399)
+            snprintf_err( cptr->line2 + 69, 9, "%8d", cptr->spacecraft_center);
          memcpy( cptr->line2 + 77, cptr->line + 77, 3);
          }
       cptr->line[0] = '\0';
@@ -658,8 +655,7 @@ static int process_ades_tag( char *obuff, ades2mpc_t *cptr, const int itag,
          cptr->line[14]  = toupper( cptr->line2[14]);
          break;
       case ADES_ctr:
-         assert( len < sizeof( cptr->center));
-         strlcpy_err( cptr->center, name, sizeof( cptr->center));
+         cptr->spacecraft_center = atoi( name);
          break;
       case ADES_pos1:
       case ADES_pos2:
@@ -720,7 +716,7 @@ static int process_ades_tag( char *obuff, ades2mpc_t *cptr, const int itag,
                {
                decimal_loc -= (int)(tptr2 - name);
                memcpy( &cptr->line2[decimal_loc + 1], name + 1,
-                                           (nlen > 12 ? 11 : nlen - 1));
+                                           (nlen > 11 ? 10 : nlen - 1));
                }
             }
          else               /* roving observer */
@@ -893,6 +889,7 @@ static void setup_observation( ades2mpc_t *cptr)
    strlcpy_err( cptr->line2 + 80, "\n", 2);
    cptr->line2[0] = '\0';
    cptr->id_set = 0;
+   cptr->spacecraft_center = 399;      /* default to geocentric */
    cptr->full_t2k = NOT_A_VALID_TIME;
 }
 
