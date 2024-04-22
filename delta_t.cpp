@@ -451,15 +451,15 @@ double DLL_FUNC td_minus_utc( const double jd_utc)
          int year = (int)( (int64_t)day * (int64_t)400 / (int64_t)146097);
          int low, high, july_1;
 
-         low = JAN_1( year);     /* The above value for 'year' is correct */
+         low = (int)JAN_1( year);  /* The above value for 'year' is correct */
          if( imjd_utc < low)     /* more than 99% of the time.  But we    */
             {                    /* may find,  for 31 December,  that     */
             year--;              /* it's too high by one year.            */
             high = low;
-            low = JAN_1( year);
+            low = (int)JAN_1( year);
             }
          else
-            high = JAN_1( year + 1);
+            high = (int)JAN_1( year + 1);
                       /*  jul  aug  sep  oct  nov  dec.. jul 1 is exactly 184 */
          july_1 = high - (31 + 31 + 30 + 31 + 30 + 31); /* days before jan 1  */
          if( imjd_utc < july_1) /* in first half of the year */
