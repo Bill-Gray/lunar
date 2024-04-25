@@ -105,6 +105,7 @@ void DLL_FUNC spin_matrix( double *v1, double *v2, const double angle);
 void DLL_FUNC pre_spin_matrix( double *v1, double *v2, const double angle);
 double DLL_FUNC td_minus_ut( const double jd);                /* delta_t.c */
 double DLL_FUNC td_minus_utc( const double jd_utc);           /* delta_t.c */
+double DLL_FUNC tdb_minus_utc( const double jd_utc);
 long double DLL_FUNC tdb_minus_tdt( const long double t_centuries);
 void DLL_FUNC reset_td_minus_dt_string( const char *string);  /* delta_t.c */
 

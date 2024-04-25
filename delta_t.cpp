@@ -193,9 +193,11 @@ Delta-T string:
 from the _Five Millennium Catalogue of Solar Eclipses_ by Espenak and
 Meeus,  as defined in the above default_delta_t_string.  */
 
+#define J2000 2451545.
+
 double default_td_minus_ut( const double jd)
 {
-   const double year = 2000. + (jd - 2451545.) / 365.25;
+   const double year = 2000. + (jd - J2000) / 365.25;
    double rval;
    /* first convert t from JD to years */
 
@@ -475,4 +477,11 @@ double DLL_FUNC td_minus_utc( const double jd_utc)
       }
                      /* still here?  Must be before jan 1961,  so UTC = UT1: */
    return( td_minus_ut( jd_utc));
+}
+
+double DLL_FUNC tdb_minus_utc( const double jd_utc)
+{
+   const double t_cen = (jd_utc - J2000) / 36525.;
+
+   return( tdb_minus_tdt( t_cen) / seconds_per_day + td_minus_utc( jd_utc));
 }
