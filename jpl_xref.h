@@ -30,7 +30,7 @@ static const jpl_xref_t jpl_xrefs[] = {
    { "Luc",      -49, 49328, "2021-093A",   "Lucy" },
    { "LFL",     -164, 54697, "2022-168B",   "Lunar Flashlight" },
    { "C53",  -139089, 39089, "2013-009D",   "NEOSSat" },
-   { "NeS",      -33, 99999, "2025-000ZZZ", "NEO Surveyor" },
+   { "C58",      -33, 99999, "2025-000ZZZ", "NEO Surveyor" },
    { "C54",      -98, 28928, "2006-001A",   "New Horizons" },
    { "OsR",      -64, 41757, "2016-055A",   "OSIRIS-REx" },
    { "PSP",      -96, 43592, "2018-065A",   "Parker Solar Probe" },
