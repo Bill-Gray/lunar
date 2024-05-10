@@ -41,6 +41,17 @@ const double tolerance = 1e-5;
 int verbose = 0;
 int n_positions_set = 0, n_positions_failed = 0;
 
+static int get_horizons_idx( const char *mpc_code)
+{
+   size_t i;
+   const size_t n_xrefs = sizeof( jpl_xrefs) / sizeof( jpl_xrefs[0]);
+
+   for( i = 0; i < n_xrefs; i++)
+      if( !memcmp( mpc_code, jpl_xrefs[i].mpc_code, 3))
+         return( jpl_xrefs[i].jpl_desig);
+   return( 0);
+}
+
 /* If the observation is from a spacecraft,  return the JDE of the
 observation.  (Horizons expects times for vector ephems in JDE,  not UTC
 JDs.)  We expect the time to be,  at minimum,  after HST was launched. */
@@ -58,17 +69,6 @@ static double get_sat_obs_jd( const char *buff)
    else
       jd += td_minus_utc( jd) / seconds_per_day;
    return( jd);
-}
-
-static int get_horizons_idx( const char *mpc_code)
-{
-   size_t i;
-   const size_t n_xrefs = sizeof( jpl_xrefs) / sizeof( jpl_xrefs[0]);
-
-   for( i = 0; i < n_xrefs; i++)
-      if( !memcmp( mpc_code, jpl_xrefs[i].mpc_code, 3))
-         return( jpl_xrefs[i].jpl_desig);
-   return( 0);
 }
 
 /* The following modifies an 'S' (satellite RA/dec line) into an 's' line
@@ -99,14 +99,22 @@ or 51.  This handles any offset up to 100 AU.
 z9987K06UJ8Y  s2019 07 26.2427421 + 551363.13 -1190783.85 - 650915.72   ~3GcZ258
 */
 
-static int set_mpc_style_offsets( char *buff, const double *xyz)
+static bool offsets_in_au( const double *xyz)
 {
-   bool output_in_au = false;
-   int i;
+   size_t i;
+   bool rval = false;
 
    for( i = 0; i < 3; i++)
       if( xyz[i] > 9999999.0 || xyz[i] < -9999999.0)
-         output_in_au = true;
+         rval = true;
+   return( rval);
+}
+
+static int set_mpc_style_offsets( char *buff, const double *xyz)
+{
+   const bool output_in_au = offsets_in_au( xyz);
+   int i;
+
    memset( buff + 33, ' ', 39);
    buff[32] = (output_in_au ? '2' : '1');
    buff[33] = ' ';
