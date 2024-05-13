@@ -30,6 +30,7 @@ has worked well thus far,  but the above URL could come in handy. */
 #include "mpc_func.h"
 #include "stringex.h"
 #include "jpl_xref.h"
+#include "date.h"
 
 typedef struct
 {
@@ -58,12 +59,33 @@ JDs.)  We expect the time to be,  at minimum,  after HST was launched. */
 
 const double hst_launch_jd = 2448005.5;  /* 1990 April 24 */
 
+/* The following will contain the obscode extracted from ADES,  _if_
+it corresponds to a known spacecraft observatory.  Otherwise,  it'll
+be an empty string. */
+
+char mpc_code_from_ades[4];
+
 static double get_sat_obs_jd( const char *buff)
 {
    double jd = 0.;
+   const char *ades_time = strstr( buff, "<obsTime>");
+   const char *ades_stn = strstr( buff, "<stn>");
 
+   if( ades_stn && get_horizons_idx( ades_stn + 5))
+      memcpy( mpc_code_from_ades, ades_stn + 5, 3);
    if( strlen( buff) > 80 && (buff[14] == 'S' || buff[14] == 's'))
       jd = extract_date_from_mpc_report( buff, NULL);
+   if( ades_time && *mpc_code_from_ades)
+      {
+      char tbuff[80];
+      size_t i = 0;
+
+      ades_time += 9;
+      while( *ades_time != 'Z' && *ades_time && i < sizeof( tbuff))
+         tbuff[i++] = *ades_time++;
+      jd = get_time_from_string( 0., tbuff, FULL_CTIME_YMD, NULL);
+      }
+
    if( jd < hst_launch_jd)
       jd = 0.;
    else
@@ -302,6 +324,25 @@ static int set_offsets( offset_t *offsets, const int n_offsets)
    return( 0);
 }
 
+      /* ADES spacecraft positions/velocities are limited to 13 bytes. */
+static char *ades_posvel( char *buff, const double value)
+{
+   sprintf( buff, "%.10f", value);
+   buff[13] = '\0';
+   return( buff);
+}
+
+   /* When processing ADES observations,  they may already contain
+   spacecraft offsets with the '<pos#>',  '<vel#>', <ctr>,  etc.  We
+   don't pass those through to the output,  since they're (we hope)
+   getting replaced. */
+
+static bool ades_posn_tag( const char *buff)
+{
+   return( strstr( buff, "<pos") || strstr( buff, "<vel")
+               || strstr( buff, "<ctr>") || strstr( buff, "<sys>"));
+}
+
 bool show_offsets_from_original = false;
 
 /* The following reads the input file and looks for 80-column obs from
@@ -349,13 +390,13 @@ int process_file( const char *filename, FILE *ofile)
    time_t t0 = time( NULL);
    offset_t *offsets = NULL;
    int i, n_offsets = 0;
+   bool ades_found = false;
 
    assert( ifile);
-   fprintf( ofile, "COM add_off ver 2024 Mar 12,  run %s", ctime( &t0));
    while( fgets( buff, sizeof( buff), ifile))
       if( (jd = get_sat_obs_jd( buff)) != 0.)
          {
-         if( buff[14] == 'S')
+         if( buff[14] == 'S' || *mpc_code_from_ades)
             {
             if( verbose)
                printf( "Sat obs: %.5f\n%s", jd, buff);
@@ -364,7 +405,13 @@ int process_file( const char *filename, FILE *ofile)
                                  n_offsets * sizeof( offset_t));
             memset( offsets + n_offsets - 1, 0, sizeof( offset_t));
             offsets[n_offsets - 1].jd = jd;
-            memcpy( offsets[n_offsets - 1].mpc_code, buff + 77, 3);
+            if( *mpc_code_from_ades)
+               {
+               memcpy( offsets[n_offsets - 1].mpc_code, mpc_code_from_ades, 3);
+               *mpc_code_from_ades = '\0';
+               }
+            else
+               memcpy( offsets[n_offsets - 1].mpc_code, buff + 77, 3);
             }
          else if( buff[14] == 's' && n_offsets && jd == offsets[n_offsets - 1].jd)
             {
@@ -380,6 +427,8 @@ int process_file( const char *filename, FILE *ofile)
                }
             }
          }
+      else if( strstr( buff, "<ades version="))
+         ades_found = true;
    for( i = 0; i < n_offsets; i++)
       {
       if( verbose)
@@ -387,42 +436,67 @@ int process_file( const char *filename, FILE *ofile)
       if( !offsets[i].xyz[0] && offsets[i].mpc_code[0])
          set_offsets( offsets + i, n_offsets - i);
       }
+   if( !ades_found)
+      fprintf( ofile, "COM add_off ver 2024 May 02,  run %s", ctime( &t0));
    fseek( ifile, 0, SEEK_SET);
    while( fgets( buff, sizeof( buff), ifile))
       if( (jd = get_sat_obs_jd( buff)) <= 0.)    /* not an observation;  */
-         fprintf( ofile, "%s", buff);            /* just pass it through */
-      else if( buff[14] != 's')
+         {                                       /* just pass it through */
+         if( !ades_posn_tag( buff))          /* unless it's an ADES posn tag */
+            fprintf( ofile, "%s", buff);
+         }
+      else if( buff[14] != 's' || *mpc_code_from_ades)
          {
          int idx = -1;
+         char *mpc_code = (*mpc_code_from_ades ? mpc_code_from_ades : buff + 77);
 
          for( i = 0; idx < 0 && i < n_offsets; i++)
-            if( !memcmp( buff + 77, offsets[i].mpc_code, 3)
+            if( !memcmp( mpc_code, offsets[i].mpc_code, 3)
                        && fabs( jd - offsets[i].jd) < tolerance)
                idx = i;
          if( idx >= 0)
             {
-            char vel_buff[80];
-
-            snprintf_err( vel_buff, sizeof( vel_buff),
-                     "COM vel (km/s) %.16s%+13.7f%+13.7f%+13.7f %.3s\n",
-                     buff + 15,
-                     offsets[idx].vel[0], offsets[idx].vel[1],
-                     offsets[idx].vel[2], offsets[idx].mpc_code);
-            fprintf( ofile, "%s", vel_buff);
-            if( show_offsets_from_original && offsets[idx].orig_xyz[0])
+            if( *mpc_code_from_ades)
                {
-               strlcpy_error( vel_buff, "COM delta from orig offsets (km)");
+               const bool output_in_au = offsets_in_au( offsets[idx].xyz);
+               double units = (output_in_au ? AU_IN_KM : 1.);
+               char tbuff[80];
+
+               fprintf( ofile, "    <sys>%s</sys>\n"
+                               "    <ctr>399</ctr>\n",
+                            output_in_au ? "ICRF_AU" : "ICRF_KM");
                for( i = 0; i < 3; i++)
-                  snprintf_append( vel_buff, sizeof( vel_buff), " %.3f",
-                        offsets[idx].xyz[i] - offsets[idx].orig_xyz[i]);
-               fprintf( ofile, "%s\n", vel_buff);
+                  fprintf( ofile, "    <pos%d>%s</pos%d>\n", i + 1,
+                          ades_posvel( tbuff, offsets[idx].xyz[i] / units), i + 1);
+               if( output_in_au)
+                  units /= seconds_per_day;
+               for( i = 0; i < 3; i++)
+                  fprintf( ofile, "    <vel%d>%s</vel%d>\n", i + 1,
+                          ades_posvel( tbuff, offsets[idx].vel[i] / units), i + 1);
                }
-            fprintf( ofile, "%s", buff);
-            set_mpc_style_offsets( buff, offsets[idx].xyz);
-            fprintf( ofile, "%s", buff);
+            else        /* output punched-card data */
+               {
+               char vel_buff[80];
+
+               snprintf_err( vel_buff, sizeof( vel_buff),
+                        "COM vel (km/s) %.16s%+13.7f%+13.7f%+13.7f %.3s\n",
+                        buff + 15,
+                        offsets[idx].vel[0], offsets[idx].vel[1],
+                        offsets[idx].vel[2], offsets[idx].mpc_code);
+               fprintf( ofile, "%s", vel_buff);
+               if( show_offsets_from_original && offsets[idx].orig_xyz[0])
+                  {
+                  strlcpy_error( vel_buff, "COM delta from orig offsets (km)");
+                  for( i = 0; i < 3; i++)
+                     snprintf_append( vel_buff, sizeof( vel_buff), " %.3f",
+                           offsets[idx].xyz[i] - offsets[idx].orig_xyz[i]);
+                  fprintf( ofile, "%s\n", vel_buff);
+                  }
+               fprintf( ofile, "%s", buff);
+               set_mpc_style_offsets( buff, offsets[idx].xyz);
+               }
             }
-         else
-            fprintf( ofile, "%s", buff);
+         fprintf( ofile, "%s", buff);
          }
    fclose( ifile);
    free( offsets);
@@ -430,7 +504,8 @@ int process_file( const char *filename, FILE *ofile)
          "COM %d positions set by add_off; %d failed in %.2f seconds\n",
          n_positions_set, n_positions_failed,
          (double)clock( ) / (double)CLOCKS_PER_SEC);
-   fprintf( ofile, "%s", buff);
+   if( !ades_found)
+      fprintf( ofile, "%s", buff);
    if( ofile != stdout)
       printf( "%s", buff + 4);
    return( 0);
