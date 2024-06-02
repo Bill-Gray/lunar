@@ -44,7 +44,7 @@ typedef struct
    char line2[83];
    char rms_ra[PIECE_SIZE], rms_dec[PIECE_SIZE], corr[PIECE_SIZE];
    char rms_mag[PIECE_SIZE], rms_time[PIECE_SIZE];
-   char full_ra[PIECE_SIZE], full_dec[PIECE_SIZE];
+   char full_ra[PIECE_SIZE], full_dec[PIECE_SIZE], full_mag[9];
    char notes[7], program_code[3];
    char trk_sub[14], obs_id[PIECE_SIZE], trk_id[12], passband[4];
    long double full_t2k;
@@ -479,6 +479,11 @@ static int get_a_line( char *obuff, const size_t obuff_size, ades2mpc_t *cptr)
       snprintf_err( obuff, obuff_size, "COM RA/dec - %s\n", cptr->full_dec);
       cptr->full_dec[0] = '\0';
       }
+   else if( cptr->full_mag[0])
+      {
+      snprintf_err( obuff, obuff_size, "COM full mag %s\n", cptr->full_mag);
+      cptr->full_mag[0] = '\0';
+      }
    else if( cptr->passband[1] || cptr->notes[0] > ' ' || cptr->program_code[0] >= ' ')
       {
       snprintf_err( obuff, obuff_size, "COM ADES tags");
@@ -881,6 +886,8 @@ static int process_ades_tag( char *obuff, ades2mpc_t *cptr, const int itag,
          break;
       case ADES_mag:
          memcpy( cptr->line + 65, tptr, (len < 5) ? len : 5);
+         if( len > 5)
+            strlcpy_err( cptr->full_mag, name, sizeof( cptr->full_mag));
          break;
       case ADES_trkMPC:    /* trkSub if it's deprecated;  */
          break;            /* currently ignored           */
