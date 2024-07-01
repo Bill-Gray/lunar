@@ -299,10 +299,10 @@ double DLL_FUNC find_moid_full( const ELEMENTS *elem1, const ELEMENTS *elem2, mo
 //                                  vel2[2] * AU_IN_KM / seconds_per_day);
    for( i = 0; i < 3; i++)
       vdiff[i] = vel2[i] - vel1[i];
-   mdata->barbee_speed = vector3_length( vdiff);
-   ecc_anom = true_anomaly_to_eccentric( mdata->obj1_true_anom, idata.elem1->ecc);
+   idata.mdata->barbee_speed = vector3_length( vdiff);
+   ecc_anom = true_anomaly_to_eccentric( idata.mdata->obj1_true_anom, idata.elem1->ecc);
    mean_anom = ecc_anom - idata.elem1->ecc * sin( ecc_anom);
-   mdata->jd1 = idata.elem1->perih_time + mean_anom * idata.elem1->t0;
+   idata.mdata->jd1 = idata.elem1->perih_time + mean_anom * idata.elem1->t0;
    }
 
    return( sqrt( least_dist_squared));
