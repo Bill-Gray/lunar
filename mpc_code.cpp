@@ -375,16 +375,21 @@ int get_mpc_code_info( mpc_code_t *cinfo, const char *buff)
       else
          rval = -1;
       }
+   memcpy( cinfo->code, buff, 4);
+   if( buff[3] == ' ')        /* standard 3-character code */
+      cinfo->code[3] = '\0';
+   else                       /* 'extended' 4-character code */
+      cinfo->code[4] = '\0';
    if( rval != -1)
       {
       cinfo->planet = rval;
-      memcpy( cinfo->code, buff, 4);
-      if( buff[3] == ' ')        /* standard 3-character code */
-         cinfo->code[3] = '\0';
-      else                       /* 'extended' 4-character code */
-         cinfo->code[4] = '\0';
       if( cinfo->lon < 0.)
          cinfo->lon += PI + PI;
+      }
+   else        /* fail to 'reasonable' geocentric default */
+      {
+      cinfo->name = "Unkn";
+      cinfo->planet = 3;
       }
    return( rval);
 }
