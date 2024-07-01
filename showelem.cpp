@@ -182,11 +182,11 @@ int DLL_FUNC elements_in_mpc_format( char *obuff, const size_t obuff_size,
       if( format & SHOWELEM_PERIH_TIME_MASK)
          {
          char hhmmss[20];
-         int format = FULL_CTIME_TIME_ONLY | CALENDAR_JULIAN_GREGORIAN;
+         int time_format = FULL_CTIME_TIME_ONLY | CALENDAR_JULIAN_GREGORIAN;
 
          if( precision > 5)
-            format |= FULL_CTIME_N_PLACES( precision - 5);
-         full_ctime( hhmmss, elem->perih_time, format);
+            time_format |= FULL_CTIME_N_PLACES( precision - 5);
+         full_ctime( hhmmss, elem->perih_time, time_format);
          snprintf_append( obuff, endptr - obuff,  " = %s (JD %.*f)",
                                hhmmss, precision, elem->perih_time);
          }
