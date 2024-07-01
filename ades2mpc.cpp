@@ -366,6 +366,11 @@ static inline void pack_mpc_reference( char *packed, const char *ref)
          encode_value_in_mutant_hex( packed + 1, 4, mpc_number - 110000);
          }
       }
+   else if( *ref == '!')
+      {
+      memcpy( packed, "     ", 5);
+      memcpy( packed, ref, len > 5 ? 5 : len);
+      }
 }
 
 static inline size_t move_fits_time( char *optr, const char *iptr)
