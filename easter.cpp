@@ -100,6 +100,25 @@ void easter_date( const long year, int *month, int *day)
    *day = (int)( tval % 31L) + 1;
 }
 
+/* From Meeus' _Astronomical Algorithms_.  This older method has
+the 19-year Metonic cycle of lunar phases combined with the 28-year
+cycle of the Julian calendar,  for a periodicity of 532 years.
+I think it initially got use after the Council of Nicea in 325 AD
+(there seems to be some confusion about this),  was then used by the
+Catholic Church up to the Gregorian switchover in 1582,  and it
+continues to be in use by the Orthodox Churches (so you can use
+it to compute the date of Orthodox Easter). */
+
+void easter_date_julian( const long year, int *month, int *day)
+{
+   const long a = year % 4L, b = year % 7L, c = year % 19L;
+   const long d = (19L * c + 15L) % 30L, e = (2L * a + 4L * b + 34L - d) % 7L;
+   const long tval = d + e + 114L;
+
+   *month = (int)( tval / 31L);
+   *day = (int)( tval % 31L) + 1;
+}
+
 #ifdef TEST_CODE
 
 static unsigned gcd( unsigned a, unsigned b)
@@ -136,7 +155,10 @@ int main( int argc, char **argv)
       for( i = 0; i < n_across * n_down; i++)
          {
          year = atol( argv[1]) + (i % n_across) * n_down + i / n_across;
-         easter_date( year, &month, &day);
+         if( year >= 1583L)
+            easter_date( year, &month, &day);
+         else
+            easter_date_julian( year, &month, &day);
          printf( "%ld %s %2d%s", year, (month == 3 ? "Mar" : "Apr"), day,
                   ((i + 1) % n_across) ? "    " : "\n");
          }
