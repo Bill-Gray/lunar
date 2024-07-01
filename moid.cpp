@@ -268,9 +268,9 @@ double DLL_FUNC find_moid_full( const ELEMENTS *elem1, const ELEMENTS *elem2, mo
             while( b.step_type)
                {
                const double new_true = brent_min_next( &b);
-               const double dist_squared = find_point_moid_2( &idata, new_true);
 
                assert( b.n_iterations < 200);
+               dist_squared = find_point_moid_2( &idata, new_true);
                if( least_dist_squared > dist_squared)
                   {
                   min_true2 = new_true;

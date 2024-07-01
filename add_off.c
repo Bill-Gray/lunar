@@ -602,7 +602,6 @@ int main( void)
          if( strlen( buff) > 70)
             {
             const char *tptr = strstr( buff, "COM verbo");
-            int i;
             FILE *ofile = fopen( temp_filename,
                                (bytes_written ? "ab" : "wb"));
 

@@ -388,7 +388,6 @@ void vincenty_direct( const double lat1, const double lon1,
                             const double flat, const double azimuth,
                             const double dist)
 {
-   const double pi = 3.14159265358979323846264338327950288419716939937510582;
    const double b = 1 - flat;       /* if a = 1 */
             /* u1, u2 are "reduced latitudes" */
    const double u1 = cvt_lat( b, lat1);
@@ -475,7 +474,6 @@ static void run_test_cases( void)
               174. + 59./60. + 59.88481/3600.,
         0. };
    const double *tptr = data;
-   const double pi = 3.14159265358979323846264338327950288419716939937510582;
    double max_diff = 0.;
    const double semimajor = 6378388.0;   /* Int'l spheroid */
 
@@ -521,7 +519,6 @@ the equatorial radius of 6378.140 km is used. */
 
 int main( const int argc, const char **argv)
 {
-   const double pi = 3.14159265358979323846264338327950288419716939937510582;
    const double flattening = 1. / 298.257223563;
    const double semimajor = 6378.137;
 // const double flattening = 1. / 298.257;
