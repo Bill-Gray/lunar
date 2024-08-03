@@ -22,6 +22,8 @@ precision (the usual MPC format allows only 10^-6 day = 86.4 ms
 precision).  The resulting "80-column data" will work with all of my
 tools,  but probably not with anyone else's. */
 
+void ades_artsat_desigs( void *ades_context, const bool ignore_artsat_desigs);
+
 int main( const int argc, const char **argv)
 {
    FILE *ifile = fopen( argv[1], "rb");
@@ -44,6 +46,9 @@ int main( const int argc, const char **argv)
                break;
             case 'c':
                comments = false;
+               break;
+            case 'a':
+               ades_artsat_desigs( ades_context, true);
                break;
             default:
                fprintf( stderr, "'%s' not recognized\n", argv[i]);
