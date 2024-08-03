@@ -73,10 +73,10 @@ static int get_mpc_obscode_data( mpc_code_t *loc, const char *mpc_code, int pass
                {
                if( loc->lon > PI)
                   loc->lon -= PI + PI;
-               printf( "%s !%+014.9f  %+013.9f %9.3f   %s\n", mpc_code,
+               printf( "%s !%+014.9f  %+013.9f %9.3f   %s%s", mpc_code,
                      loc->lon * 180. / PI,
                      loc->lat * 180. / PI,
-                     loc->alt, loc->name);
+                     loc->alt, loc->name, buff);
                }
             else if( -1 != err_code)
                printf( "%s\n", loc->name);
