@@ -53,6 +53,7 @@ typedef struct
    int prev_rval, n_psv_fields;
    int *psv_tags;
    double spacecraft_vel[3];
+   bool ignore_artsat_desigs;
 } ades2mpc_t;
 
 void *init_ades2mpc( void)
@@ -862,7 +863,7 @@ static int process_ades_tag( char *obuff, ades2mpc_t *cptr, const int itag,
          break;
       case ADES_artSat:
          assert( len < 13);
-         if( !cptr->id_set)
+         if( !cptr->id_set && !cptr->ignore_artsat_desigs)
             {
             cptr->id_set = ADES_artSat;
             memcpy( cptr->line, tptr, len);
@@ -1204,6 +1205,8 @@ int xlate_ades2mpc( void *context, char *obuff, const char *buff)
          rval = process_ades_tag( obuff, cptr, itag, tptr, len);
          tptr += len;
          }
+      else
+         return rval;
       tptr = skip_whitespace( tptr);
       }
    if( rval)
@@ -1260,4 +1263,11 @@ int fgets_with_ades_xlation( char *buff, const size_t len,
    *buff = '\0';
    cptr->prev_rval = prev_rval;
    return( prev_rval);
+}
+
+void ades_artsat_desigs( void *ades_context, const bool ignore_artsat_desigs)
+{
+   ades2mpc_t *cptr = (ades2mpc_t *)ades_context;
+
+   cptr->ignore_artsat_desigs = ignore_artsat_desigs;
 }
