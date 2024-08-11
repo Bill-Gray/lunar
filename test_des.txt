@@ -4,6 +4,13 @@
 # N210S;  on unpacking,  it becomes 'Neptune CCX'.
 # Test 2
 N210S         5 Neptune 210
+# And we have some unpacking-only tests.  The following should
+# be unpacked correctly,  but you lose the redundant provisional desig
+# data in the process.  So it can't be packed to get the original input.
+# Test 1
+0001IK17U010  3 1I
+0001PI35P010  3 1P
+67282J99A38M  1 (67282) = 1999 AM38
 # All the other tests are bidirectional :
 # Test 3
 # Packed      Typ  Fullname
@@ -11,9 +18,9 @@ N210S         5 Neptune 210
      K07Tf8A  0 2007 TA418
     SK03J020  4 S/2003 J 2
     SJ45Ux90  4 S/1945 U 599
-0041P         3 P/41
-3141P      e  3 P/3141-E
-3141P     az  3 P/3141-AZ
+0041P         3 41P
+3141P      e  3 3141P-E
+3141P     az  3 3141P-AZ
     DJ65Az9c  2 D/1965 A619-C
     XJ65K810  2 X/1965 K81
      PLS2040  0 2040 P-L

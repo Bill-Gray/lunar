@@ -734,11 +734,22 @@ int create_mpc_packed_desig( char *packed_desig, const char *obj_name)
    if( i == len)        /* nothing but numbers */
       if( number > 0 && number < 1000000 && i >= 5)
          in_parentheses = true;
-   if( number > 0 && number < 10000 && obj_name[i] && !obj_name[i + 1]
+   if( number > 0 && number < 10000 && obj_name[i]
+                      && (!obj_name[i + 1] || obj_name[i + 1] == '-')
                              && strchr( "PDI", obj_name[i]))
       {        /* such as '297P',  '1I',  etc. */
       snprintf( packed_desig, 5, "%04d", number);
       packed_desig[4] = obj_name[i];
+      if( obj_name[i + 1] == '-' && isupper( obj_name[i + 2]))
+         {           /* fragment designation */
+         if( isupper( obj_name[i + 3]))  /* two-letter fragment */
+            {
+            packed_desig[10] = obj_name[i + 2] + 'a' - 'A';
+            packed_desig[11] = obj_name[i + 3] + 'a' - 'A';
+            }
+         else        /* single-letter fragment desig */
+            packed_desig[11] = obj_name[i + 2] + 'a' - 'A';
+         }
       return( 0);
       }
 

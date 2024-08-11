@@ -262,7 +262,7 @@ int unpack_mpc_desig( char *obuff, const char *packed)
             start with an alphanumeric and be followed by three digits.
             Four,  if it's a numbered asteroid. */
    if( isalnum( packed[0]) && (digit_mask & 0xe) == 0xe
-                  && (space_mask & 0x3e0) == 0x3e0)
+                  && ((space_mask & 0x3e0) == 0x3e0 || *provisional_desig))
       {
       if( isdigit( packed[4]))
          {                                /* it's a numbered asteroid */
@@ -283,20 +283,19 @@ int unpack_mpc_desig( char *obuff, const char *packed)
                }
             }
          }
-      else if( strchr( "PCDXA", packed[4]))   /* it's a numbered comet */
+      else if( strchr( "PCDXAI", packed[4]))   /* it's a numbered comet */
          {
          if( obuff)
             {
-            int j = 2;
+            int j = 0;
             const char suffix_char = packed[11];
 
-            obuff[0] = packed[4];
-            obuff[1] = '/';
             i = 0;
             while( packed[i] == '0')         /* skip leading zeroes */
                i++;
             while( packed[i] >= '0' && packed[i] <= '9')   /* read digits... */
                obuff[j++] = packed[i++];
+            obuff[j++] = packed[4];
             if( suffix_char >= 'a' && suffix_char <= 'z')
                {
                const char extra_suffix_char = packed[10];
