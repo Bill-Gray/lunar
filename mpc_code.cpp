@@ -885,15 +885,14 @@ int main( const int argc, const char **argv)
          buff[i] = '\0';
          if( code.planet == 3)
             {
-            FILE *ifile;
             const char *geo_rect_filename = "geo_rect.txt";
+            FILE *geo_rect_fp = fopen_ext( argv[0], geo_rect_filename, "rb");
 
-            ifile = fopen_ext( argv[0], geo_rect_filename, "rb");
-            if( ifile)
+            if( geo_rect_fp)
                {
-               extract_region_data_for_lat_lon( ifile, region,
+               extract_region_data_for_lat_lon( geo_rect_fp, region,
                     code.lat, code.lon);
-               fclose( ifile);
+               fclose( geo_rect_fp);
                }
             }
          else                             /* not on Earth */
