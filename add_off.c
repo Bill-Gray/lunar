@@ -242,9 +242,18 @@ static int set_offsets( offset_t *offsets, const int n_offsets)
    for( i = 0; i < n_offsets; i++)
       if( !strcmp( offsets[i].mpc_code, offsets[0].mpc_code))
          {
-         if( i)
-            strlcat_err( buff, ",", sizeof( buff));
-         snprintf_err( buff + strlen( buff), 18, "'%.6f'", offsets[i].jd - 2400000.5);
+         char tbuff[15];
+
+         assert( offsets[i].jd > hst_launch_jd
+                               && offsets[i].jd < 2700000.);
+         snprintf_err( tbuff, sizeof( tbuff),
+                          "'%.6f'", offsets[i].jd - 2400000.5);
+         if( !strstr( buff, tbuff))    /* don't add the same time twice */
+            {
+            if( i)
+               strlcat_error( buff, ",");
+            strlcat_error( buff, tbuff);
+            }
          if( strlen( buff) + 60 > sizeof( buff))   /* allow room for 'cmd_end' */
             break;
          }
@@ -437,7 +446,7 @@ int process_file( const char *filename, FILE *ofile)
          set_offsets( offsets + i, n_offsets - i);
       }
    if( !ades_found)
-      fprintf( ofile, "COM add_off ver 2024 May 02,  run %s", ctime( &t0));
+      fprintf( ofile, "COM add_off ver 2024 Aug 11,  run %s", ctime( &t0));
    fseek( ifile, 0, SEEK_SET);
    while( fgets( buff, sizeof( buff), ifile))
       if( (jd = get_sat_obs_jd( buff)) <= 0.)    /* not an observation;  */
