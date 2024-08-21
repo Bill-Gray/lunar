@@ -18,6 +18,10 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 #ifndef MPC_FUNC_H_INCLUDED
 #define MPC_FUNC_H_INCLUDED
 
+#ifndef DLL_FUNC
+   #include "watdefs.h"
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -47,7 +51,7 @@ typedef struct
 #define MPC_CODE_LAT_LON_ALT        2
 #define MPC_CODE_SATELLITE          3
 
-int text_search_and_replace( char *str, const char *oldstr,
+int DLL_FUNC text_search_and_replace( char *str, const char *oldstr,
                                      const char *newstr);
 int get_mpc_code_info( mpc_code_t *cinfo, const char *buff);
 int get_xxx_location_info( mpc_code_t *cinfo, const char *buff);
