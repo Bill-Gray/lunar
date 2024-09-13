@@ -642,6 +642,9 @@ static int process_ades_tag( char *obuff, ades2mpc_t *cptr, const int itag,
                   cptr->line[14] = modes[i];
             }
          break;
+      case ADES_deprecated:
+         cptr->line[14] = 'X';
+         break;
       case ADES_disc:
          if( *tptr == '*')
             cptr->line[12] = '*';
