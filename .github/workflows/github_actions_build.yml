@@ -11,7 +11,7 @@ jobs:
     - name: make
       run: make ERRORS=Y
     - name: Archive lib
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v4
       with:
          name: lib
          path: liblunar.a
