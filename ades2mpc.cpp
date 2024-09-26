@@ -633,7 +633,7 @@ static int process_ades_tag( char *obuff, ades2mpc_t *cptr, const int itag,
       case ADES_mode:
          if( len == 3)
             {     /* https://www.minorplanetcenter.net/iau/info/ADESFieldValues.html */
-            const char *modes =  "CCCD BCMO VVID PPHO eENC pPMT"
+            const char *modes =  "CCCD BCMO nVID PPHO eENC pPMT"
                                 " MMIC TMER CTDI EOCC ?UNK ";
             int i;
 
