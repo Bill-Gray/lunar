@@ -33,6 +33,9 @@ elp82.dat
 *.out
 *.app
 
+# Build directory
+build/
+
 adestest
 astcheck
 astephem
