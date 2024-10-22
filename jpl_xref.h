@@ -14,13 +14,16 @@ typedef struct
 
 /* MPC code    JPL#   NORAD#  Intl desig    Common name */
 static const jpl_xref_t jpl_xrefs[] = {
+   { "Cap",    -1176, 52914, "2022-070A",   "CAPSTONE" },
    { "Cas",      -82, 25008, "1997-061A",   "Cassini" },
    { "Cha",     -151, 25867, "1999-040B",   "Chandra X-ray Observatory" },
    { "Cdr",     -158, 57320, "2023-098A",   "Chandrayaan-3" },
    { "Equ",     -101, 79970, "2022-156ZZZ", "EQUULEUS" },
    { "273",     -680, 57209, "2023-092A",   "Euclid" },
+   { "EuC",     -159, 61507, "2024-182A",   "Europa Clipper" },
    { "258",  -139479, 39479, "2013-074A",   "Gaia" },
    { "Ha2",      -37, 40319, "2014-076A",   "Hayabusa 2" },
+   { "Her",      -91, 61449, "2024-180A",   "Hera", },
    { "250",      -48, 20580, "1990-037B",   "Hubble Space Telescope" },
    { "IM1",     -229, 58963, "2024-030A",   "IM-1 (Odysseus)" },
    { "274",     -170, 50463, "2021-130A",   "James Webb Space Telescope" },
