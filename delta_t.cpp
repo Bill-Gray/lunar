@@ -24,6 +24,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 #include <assert.h>
 #include "watdefs.h"
 #include "afuncs.h"
+#include "mjd_defs.h"
 
 #ifdef __WATCOMC__
 #define sinl(x) ((long double)sin((double)x))
@@ -362,29 +363,6 @@ long double DLL_FUNC tdb_minus_tdt( const long double t_centuries)
       rval += amplitude[i] * sinl( freq[i] * t_centuries + phase[i]);
    return( rval);     /* difference is in _seconds_  */
 }
-
-/* These macros determine the MJD of the given date in 'YEAR'. They
-are valid for (Gregorian) years after roughly 20 billion years ago.
-This was chosen to comfortably include all dates since the Big Bang.
-We use the fact that February 1 is always 31 days after January 1,
-but have to work backward from January 1 of the following year to
-get March to December without having to consider leap days. */
-
-#define BASE_YEAR 19999999999L
-#define JAN_1( YEAR) (((YEAR) * 365L + ((YEAR) + BASE_YEAR) / 4L - ((YEAR) + BASE_YEAR) / 100L \
-                         + ((YEAR) + BASE_YEAR) / 400L) - 678940L \
-                         - ((BASE_YEAR + 1L) / 400L) * 97L)
-#define FEB_1( YEAR) (JAN_1( YEAR) + 31)
-#define DEC_1( YEAR) (JAN_1( (YEAR)+1) - 31)
-#define NOV_1( YEAR) (DEC_1( YEAR) - 30)
-#define OCT_1( YEAR) (NOV_1( YEAR) - 31)
-#define SEP_1( YEAR) (OCT_1( YEAR) - 30)
-#define AUG_1( YEAR) (SEP_1( YEAR) - 31)
-#define JUL_1( YEAR) (AUG_1( YEAR) - 31)
-#define JUN_1( YEAR) (JUL_1( YEAR) - 30)
-#define MAY_1( YEAR) (JUN_1( YEAR) - 31)
-#define APR_1( YEAR) (MAY_1( YEAR) - 30)
-#define MAR_1( YEAR) (APR_1( YEAR) - 31)
 
 #define utc0  (JAN_1( 1972))
       /*  'utc0' = MJD of date when the UTC leap seconds began */
