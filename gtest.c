@@ -205,7 +205,7 @@ position of any artsat to be known.    */
 
 static inline double ThetaG( const double jd)
 {
-//const double omega_E = excess / 360. + 1.;
+/*const double omega_E = excess / 360. + 1.;    */
   const double omega_E = 1.00273790934;
                  /* Reference:  The 1992 Astronomical Almanac, page B6. */
                  /* Earth rotations per sidereal day (non-constant) */
@@ -214,12 +214,12 @@ static inline double ThetaG( const double jd)
   const double jd_2000 = 2451545.0;   /* 1.5 Jan 2000 = JD 2451545. */
   double t_cen, GMST, rval;
 
-//t_cen = (jd      - jd_2000) / 36525.;
+/*t_cen = (jd      - jd_2000) / 36525.;   */
   t_cen = (jd - UT - jd_2000) / 36525.;
   GMST = 24110.54841 + t_cen * (8640184.812866 + t_cen *
                            (0.093104 - t_cen * 6.2E-6));
   GMST = GMST / seconds_per_day + omega_E * UT;
-//GMST = fmod( GMST / seconds_per_day + omega_E * UT, 1.);
+/*GMST = fmod( GMST / seconds_per_day + omega_E * UT, 1.);  */
   if( GMST < 0.)
      GMST += 1.;
   rval = 2. * pi * GMST;
