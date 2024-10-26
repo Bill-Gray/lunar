@@ -83,7 +83,11 @@ static int get_mpc_obscode_data( mpc_code_t *loc, const char *mpc_code, int pass
             tptr = strchr( buff, 10);
             assert( tptr);       /* remove trailing LF */
             *tptr = '\0';
+#ifdef _WIN32                /* MS is different. */
+            loc->name = _strdup( loc->name);
+#else
             loc->name = strdup( loc->name);
+#endif
             rval = 0;
             }
       fclose( ifile);
