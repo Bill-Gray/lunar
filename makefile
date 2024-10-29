@@ -33,8 +33,8 @@ endif
 
 LIBSADDED=
 EXE=
-CFLAGS+=-Wextra -Wall -O3 -pedantic
-CXXFLAGS+=-Wextra -Wall -O3 -pedantic
+CFLAGS+=-Wextra -Wall -O3 -pedantic -Wshadow
+CXXFLAGS+=-Wextra -Wall -O3 -pedantic -Wshadow
 
 ifdef UCHAR
  CFLAGS += -funsigned-char
