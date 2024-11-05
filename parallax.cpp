@@ -121,6 +121,7 @@ static void show_location( const mpc_code_t *loc)
    if( loc->lon)
       {
       FILE *ifile = fopen( "geo_rect.txt", "rb");
+      const double lon = loc->lon * PI / 180.;
 
 #ifndef CGI_VERSION
       if( !ifile)
@@ -131,12 +132,12 @@ static void show_location( const mpc_code_t *loc)
          }
 #endif
       printf( "xyz in Earth radii %+.7f %+.7f %+.7f\n",
-                                  cos( loc->lon) * loc->rho_cos_phi,
-                                  sin( loc->lon) * loc->rho_cos_phi,
+                                  cos( lon) * loc->rho_cos_phi,
+                                  sin( lon) * loc->rho_cos_phi,
                                   loc->rho_sin_phi);
       printf( "xyz in meters      %+.5f %+.5f %+.5f\n",
-                  cos( loc->lon) * loc->rho_cos_phi * EARTH_MAJOR_AXIS_IN_METERS,
-                  sin( loc->lon) * loc->rho_cos_phi * EARTH_MAJOR_AXIS_IN_METERS,
+                  cos( lon) * loc->rho_cos_phi * EARTH_MAJOR_AXIS_IN_METERS,
+                  sin( lon) * loc->rho_cos_phi * EARTH_MAJOR_AXIS_IN_METERS,
                                    loc->rho_sin_phi * EARTH_MAJOR_AXIS_IN_METERS);
       if( ifile)
          {
