@@ -149,6 +149,27 @@ static void show_location( const mpc_code_t *loc)
       }
 }
 
+static double get_angle( const char *ibuff)
+{
+   bool is_negative = false;
+   double rval;
+   char field1[40], field2[40], field3[40];
+
+   if( *ibuff == '-')
+      {
+      ibuff++;
+      is_negative = true;
+      }
+   else if( *ibuff == '+')
+      ibuff++;
+   *field1 = *field2 = *field3 = '\0';
+   sscanf( ibuff, "%20s %20s %20s", field1, field2, field3);
+   rval = atof( field1) + atof( field2) / 60. + atof( field3) / 3600.;
+   if( is_negative)
+      rval = -rval;
+   return( rval);
+}
+
 #ifndef CGI_VERSION
 
 static void set_location_two_params( mpc_code_t *loc, double rho_cos_phi,
@@ -252,7 +273,7 @@ int main( int argc, const char **argv)
    else if( argc == 3)          /* parallax constants provided */
       set_location_two_params( &loc, atof( argv[1]), atof( argv[2]));
    else        /* argc == 4 */
-      set_location_three_params( &loc, atof( argv[1]), atof( argv[2]), atof( argv[3]));
+      set_location_three_params( &loc, get_angle( argv[1]), get_angle( argv[2]), atof( argv[3]));
    loc.lat *= 180. / PI;
    loc.lon *= 180. / PI;
    show_location( &loc);
@@ -290,27 +311,6 @@ int main( int argc, const char **argv)
    #include "cgi_func.h"
 #endif
 #include <string.h>
-
-static double get_angle( const char *ibuff)
-{
-   bool is_negative = false;
-   double rval;
-   char field1[40], field2[40], field3[40];
-
-   if( *ibuff == '-')
-      {
-      ibuff++;
-      is_negative = true;
-      }
-   else if( *ibuff == '+')
-      ibuff++;
-   *field1 = *field2 = *field3 = '\0';
-   sscanf( ibuff, "%20s %20s %20s", field1, field2, field3);
-   rval = atof( field1) + atof( field2) / 60. + atof( field3) / 3600.;
-   if( is_negative)
-      rval = -rval;
-   return( rval);
-}
 
 int main( void)
 {
