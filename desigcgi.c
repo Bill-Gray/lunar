@@ -46,16 +46,14 @@ int main( void)
       {
       if( !strcmp( field, "packed") && strlen( buff) > 3)
          {
-         int rval = unpack_unaligned_mpc_desig( tbuff, buff);
-
+         rval = unpack_unaligned_mpc_desig( tbuff, buff);
          printf( "'%s' unpacks to '%s'\n", buff, tbuff);
          if( rval == -1)
             printf( "(This does not appear to be a valid packed designation)\n");
          }
       if( !strcmp( field, "unpacked") && strlen( buff) > 3)
          {
-         int rval = create_mpc_packed_desig( tbuff, buff);
-
+         rval = create_mpc_packed_desig( tbuff, buff);
          printf( "'%s' packs to '%s'\n", buff, tbuff);
          if( rval == -1)
             printf( "(This was not successfully packed.)\n");
