@@ -22,7 +22,9 @@ int main( const int intentionally_unused_argc,
          "prog", "obsTime", "ra", "dec", "raStar", "decStar", "obsCenter",
          "deltaRA", "deltaDec", "dist", "pa", "rmsRA", "rmsDec", "rmsDist",
          "rmsPA", "rmsCorr", "delay", "rmsDelay", "doppler", "rmsDoppler",
-         "astCat", "mag", "rmsMag", "band", "photCat", "photAp",
+         "astCat", "mag", "rmsMag", "band",
+         "fltr",           /* added 2024 Dec 16 */
+         "photCat", "photAp",
          "nucMag", "logSNR", "shapeOcc", "seeing", "exp",
                      /* end p6, start p7 */
          "rmsFit", "nStars", "com",
@@ -40,7 +42,7 @@ int main( const int intentionally_unused_argc,
                      /* end p10/start p11 */
          "comment", "optical", "offset", "occultation", "radar", "obsContext",
          "obsData", "obsBlock", "opticalResidual", "radarResidual", "ades",
-                     /* start p 18: complex types */
+                     /* start "Table of Restricted Simple Types" */
          "MPCID", "OpticalID", "RadarID", "RadarValue", "Precision", "Location",
          "Photometry", "OffsetVal", "OpticalRes", "OpticalResMag",
          "OpticalResiduals", "RadarResiduals",
