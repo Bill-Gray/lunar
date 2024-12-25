@@ -215,19 +215,22 @@ static void set_location_three_params( mpc_code_t *loc, double p1, double p2, do
 
 static void error_exit( void)
 {
-   printf( "Run 'parallax' with three arguments (latitude, longitude, altitude)\n"
-           "and they will be converted to parallax constants.  Run with two arguments\n"
-           "(rho_cos_phi, rho_sin_phi) and the corresponding latitude and altitude\n"
-           "will be computed and shown.  Run with one argument (MPC obscode) and\n"
-           "all the location data for it will be shown.  Run with two MPC codes as\n"
-           "command-line arguments,  and the distance between them will be shown.\n");
+   printf( "Run 'parallax' specifying a geographical location on the command line.\n"
+           "This can be a comma-separated lat/lon/alt,  such as\n\n"
+           "./parallax n44.02, w69.9, 381m\n"
+           "./parallax 69 54W, n44 01 12, 1250 ft\n\n"
+           "or similar (the above are all the same location),  or two arguments\n"
+           "(rho_cos_phi, rho_sin_phi),  or just a three-characte MPC observatory code.\n"
+           "The positions and parallax constants for that location will be shown.\n"
+           "Run the program with two MPC codes as command-line arguments,  and the\n"
+           "distance between them will be shown.\n");
    exit( -1);
 }
 
 int main( int argc, const char **argv)
 {
    mpc_code_t loc;
-   int i, use_only_obscodes_dot_html = 0;
+   int i, j, n_commas = 0, use_only_obscodes_dot_html = 0;
    int show_mpc_format = 0;
 
    for( i = 1; i < argc; i++)
@@ -249,8 +252,25 @@ int main( int argc, const char **argv)
          memmove( argv + i, argv + i + 1, (argc - i) * sizeof( char *));
          i--;
          }
+      else
+         for( j = 0; argv[i][j]; j++)
+            if( argv[i][j] == ',')
+               n_commas++;
 
-   if( argc < 2 || argc > 4)
+   if( 2 == n_commas)
+      {
+      char buff[100];
+
+      strlcpy_error( buff, argv[1]);
+      for( i = 2; i < argc; i++)
+         {
+         strlcat_error( buff, " ");
+         strlcat_error( buff, argv[i]);
+         }
+      if( get_lat_lon_info( &loc, buff))
+         error_exit( );
+      }
+   else if( argc < 2 || argc > 4)
       error_exit( );
    else if( argc == 2)          /* MPC code provided */
       get_mpc_obscode_data( &loc, argv[1], use_only_obscodes_dot_html);
