@@ -95,8 +95,12 @@ int snprintf_append( char *string, const size_t max_len,      /* ephem0.cpp */
 /* strlcat() and strlcpy() appear in some BSDs,  but I don't think they
 appear anyplace else (though in my opinion,  they should).  In my
 humble opinion,  they should only be used when truncation may
-legitimately happen.  If what you really want is buffer overflow
-detection,  use strlcat_err() or strlcpy_err(),  shown below.
+legitimately happen.  If strlen( src) should never exceed dsize-1,
+use strlcat_err() or strlcpy_err(),  shown below.  (If 'dest' is an
+automatic variable,  such that dsize == sizeof( dest),  use the
+strlcat_error() or strlcpy_error() macros;  see stringex.h.)  Otherwise,
+the result will be silently truncated and you won't know there was a
+problem (until,  probably,  a bit further down the line).
 
 The following is from
 http://www.openbsd.org/cgi-bin/cvsweb/src/lib/libc/string/ . */
