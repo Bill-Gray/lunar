@@ -836,8 +836,8 @@ int main( const int argc, const char **argv)
                google_map_links = true;
                google_offset = 3;
                while( fgets( buff, sizeof( buff), hdr_ifile))
-                  if( strstr( buff, "%s"))
-                     printf( buff, ctime( &t0));
+                  if( strstr( buff, "%.24s"))
+                     printf( buff, asctime( gmtime( &t0)));
                   else if( *buff == '#')
                      {
                      if( strstr( ifilename, "rovers") &&

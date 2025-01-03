@@ -65,7 +65,7 @@ int main( const int argc, const char **argv)
       if( !memcmp( buff, "# Ephemeris end:", 16))
          strlcpy_error( buff, new_end);
       if( !memcmp( buff, "# Last updated with", 19))
-         strlcpy_err( buff + 42, ctime( &t0), sizeof( buff) - 42);
+         strlcpy_err( buff + 42, asctime( gmtime( &t0)), sizeof( buff) - 42);
 
       fputs( buff,  temp_file);
       if( !memcmp( buff, "# MJD ", 6) && atof( buff + 6) == jd0_new - 1.)

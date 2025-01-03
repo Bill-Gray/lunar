@@ -446,7 +446,7 @@ int process_file( const char *filename, FILE *ofile)
          set_offsets( offsets + i, n_offsets - i);
       }
    if( !ades_found)
-      fprintf( ofile, "COM add_off ver 2024 Aug 11,  run %s", ctime( &t0));
+      fprintf( ofile, "COM add_off ver 2025 Jan 02,  run %.24s UTC\n", asctime( gmtime( &t0)));
    fseek( ifile, 0, SEEK_SET);
    while( fgets( buff, sizeof( buff), ifile))
       if( (jd = get_sat_obs_jd( buff)) <= 0.)    /* not an observation;  */

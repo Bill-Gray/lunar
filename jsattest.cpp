@@ -63,7 +63,7 @@ int main( const int argc, const char **argv)
       return( -1);
       }
    printf( "All data in kilometers,  in J2000 ecliptic coords\n");
-   printf( "Compiled %s %s; run %s", __DATE__, __TIME__, ctime( &t0));
+   printf( "Compiled %s %s; run %.24s\n", __DATE__, __TIME__, asctime( gmtime( &t0)));
    printf( "   JDE         dx        dy        dz             ");
    printf( "x          y          z         radial    along\n");
    while( fgets( buff, sizeof( buff), ifile))
