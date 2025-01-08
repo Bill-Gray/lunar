@@ -527,6 +527,7 @@ static int calendar( const int month, const int year)
       fprintf( ofile, "%d %d moveto %d %d lineto\n", X0 + i * xsize, Y0,
                                              X0 + i * xsize, YEND);
    fprintf( ofile, "/defaultfontsize  { 14 scalefont } def\n");
+   fprintf( ofile, "/itemfontsize  { 12 scalefont } def\n");
    fprintf( ofile, "/Times-Roman findfont defaultfontsize setfont\n");
    for( i = 0; i < 35; i++)
       lines_used[i] = phases_shown[i] = 0;
@@ -589,9 +590,9 @@ static int calendar( const int month, const int year)
                if( curr_font == FONT_ITALIC)
                   fprintf( ofile, "/Times-Italic findfont 14 scalefont setfont\n");
                if( curr_font == FONT_PLAIN)
-                  fprintf( ofile, "/Times-Roman findfont 9 scalefont setfont\n");
+                  fprintf( ofile, "/Times-Roman findfont itemfontsize setfont\n");
                if( curr_font == FONT_BOLD)
-                  fprintf( ofile, "/Times-Bold findfont 9 scalefont setfont\n");
+                  fprintf( ofile, "/Times-Bold findfont itemfontsize setfont\n");
                }
             if( curr_font != FONT_PLAIN)
                text_to_show++;    /* first char is a font indicator */
@@ -606,8 +607,8 @@ static int calendar( const int month, const int year)
                }
             if( *text_to_show == '\\' && text_to_show[1] == 'p')
                {
-               fprintf( ofile, "/Symbol findfont 9 scalefont setfont (p) show\n");
-               fprintf( ofile, "/Times-Roman findfont 9 scalefont setfont\n");
+               fprintf( ofile, "/Symbol findfont itemfontsize setfont (p) show\n");
+               fprintf( ofile, "/Times-Roman findfont itemfontsize setfont\n");
                text_to_show += 2;
                }
             fprintf( ofile, "(%s) show\n", text_to_show);
