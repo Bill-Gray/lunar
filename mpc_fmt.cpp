@@ -671,6 +671,92 @@ static int pack_provisional_natsat( char *packed, const char *fullname)
    return( -1);
 }
 
+/* Returns either a negative value for an error code,  or the
+location of the decimal point for a valid coordinate */
+
+inline int get_satellite_coordinate( const char *iptr, double coord[1])
+{
+   char tbuff[12];
+   const char sign_byte = *iptr;
+   int rval = 0;
+
+   memcpy( tbuff, iptr, 11);
+   tbuff[11] = '\0';
+   if( sign_byte != '+' && sign_byte != '-')
+      {
+      rval = SATELL_COORD_ERR_BAD_SIGN;
+      *coord = atof( tbuff);
+      }
+   else
+      {
+      char *tptr;
+      int n_bytes_read;
+
+      if( sscanf( tbuff + 1, "%lf%n", coord, &n_bytes_read) != 1
+                     || n_bytes_read < 7)
+         rval = SATELL_COORD_ERR_BAD_NUMBER;
+      else if( (tptr = strchr( tbuff, '.')) == NULL)
+         rval = SATELL_COORD_ERR_NO_DECIMAL;
+      else
+         rval = (int)( tptr - tbuff);
+      if( sign_byte == '-')
+         *coord = -*coord;
+      }
+   return( rval);
+}
+
+/* Returns spacecraft offset in AU,  in J2000 ecliptic coords */
+
+int DLL_FUNC get_satellite_offset( const char *iline, double xyz[3])
+{
+   size_t i;
+   int error_code = 0;
+   const int observation_units = (int)iline[32] - '0';
+   double r2 = 0.;
+   const double earth_radius_in_au = 6378.14 / AU_IN_KM;
+   const double min_radius = 1.01 * earth_radius_in_au;
+   const size_t slen = strlen( iline);
+
+   assert( 80 <= slen && slen < 83);  /* allow for LF, CR/LF, or no line end */
+   for( i = 0; i < 3; i++)    /* in case of error,  use 0 offsets */
+      xyz[i] = 0.;
+   iline += 34;      /* this is where the offsets start */
+   for( i = 0; i < 3; i++, iline += 12)
+      {
+      int decimal_loc;
+
+      decimal_loc = get_satellite_coordinate( iline, xyz + i);
+      if( decimal_loc < 0 && !error_code)
+         error_code = decimal_loc;
+      if( observation_units == 1)         /* offset given in km */
+         {
+         xyz[i] /= AU_IN_KM;
+         if( !error_code)
+            if( decimal_loc < 6 || decimal_loc > 8)
+               error_code = SATELL_COORD_ERR_DECIMAL_MISPLACED;
+         if( !error_code && xyz[i] == 0.)
+            error_code = SATELL_COORD_ERR_EXACTLY_ZERO;
+         }
+      else if( observation_units == 2)          /* offset in AU */
+         {                         /* offset must be less than 100 AU */
+         if( !error_code)
+            if( decimal_loc != 2 && decimal_loc != 3)
+               error_code = SATELL_COORD_ERR_DECIMAL_MISPLACED;
+         }
+      else if( !error_code)      /* don't know about this sort of offset */
+         error_code = SATELL_COORD_ERR_UNKNOWN_OFFSET;
+      r2 += xyz[i] * xyz[i];
+      }
+               /* (275) geocentric occultation obs can have offsets  */
+               /* inside the earth.  All others ought to be at least */
+               /* slightly outside the atmosphere.                   */
+   if( !error_code && r2 < min_radius * min_radius)
+      if( !strcmp( iline + 77, "275"))
+         error_code = SATELL_COORD_ERR_INSIDE_EARTH;
+   equatorial_to_ecliptic( xyz);
+   return( error_code);
+}
+
 /* create_mpc_packed_desig( ) takes a "normal" name for a comet/asteroid,
 such as P/1999 Q1a or 2005 FF351,  and turns it into the 12-byte packed
 format used in MPC reports and element files.  ('packed_desig' will

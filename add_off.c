@@ -424,16 +424,10 @@ int process_file( const char *filename, FILE *ofile)
             }
          else if( buff[14] == 's' && n_offsets && jd == offsets[n_offsets - 1].jd)
             {
+            get_satellite_offset( buff, offsets[n_offsets - 1].orig_xyz);
             for( i = 0; i < 3; i++)
-               {
-               double ival = atof( buff + 35 + i * 12);
-
-               if( buff[34 + i * 12] == '-')
-                  ival = -ival;
-               if( buff[32] == '2')
-                  ival *= AU_IN_KM;
-               offsets[n_offsets - 1].orig_xyz[i] = ival;
-               }
+               offsets[n_offsets - 1].orig_xyz[i] *= AU_IN_KM;
+            ecliptic_to_equatorial( offsets[n_offsets - 1].orig_xyz);
             }
          }
       else if( strstr( buff, "<ades version="))
@@ -497,7 +491,7 @@ int process_file( const char *filename, FILE *ofile)
                   {
                   strlcpy_error( vel_buff, "COM delta from orig offsets (km)");
                   for( i = 0; i < 3; i++)
-                     snprintf_append( vel_buff, sizeof( vel_buff), " %.3f",
+                     snprintf_append( vel_buff, sizeof( vel_buff), " %.4f",
                            offsets[idx].xyz[i] - offsets[idx].orig_xyz[i]);
                   fprintf( ofile, "%s\n", vel_buff);
                   }

@@ -92,6 +92,28 @@ int unpack_unaligned_mpc_desig( char *obuff, const char *packed);
 #define OBJ_DESIG_ARTSAT                 6
 #define OBJ_DESIG_OTHER                 -1
 
+/*   The offset between a satellite observation and the earth or sun
+is stored in a second line,  as described at
+
+https://www.minorplanetcenter.net/iau/info/SatelliteObs.html
+
+   These are sometimes -- nay,  frequently -- mangled (decimal points
+in odd places,  etc.)  get_satellite_offset() will do its best to
+recover from such things,  but may fail.        */
+
+#define SATELL_COORD_ERR_NO_ERROR            0
+#define SATELL_COORD_ERR_BAD_SIGN           -1
+#define SATELL_COORD_ERR_BAD_NUMBER         -2
+#define SATELL_COORD_ERR_NO_DECIMAL         -3
+#define SATELL_COORD_ERR_DECIMAL_MISPLACED  -4
+#define SATELL_COORD_ERR_UNKNOWN_OFFSET     -5
+#define SATELL_COORD_ERR_EXACTLY_ZERO       -6
+#define SATELL_COORD_ERR_INSIDE_EARTH       -7
+
+#define N_SATELL_COORD_ERRORS                8
+
+int DLL_FUNC get_satellite_offset( const char *iline, double xyz[3]);
+
 #ifdef __cplusplus
 }
 #endif
