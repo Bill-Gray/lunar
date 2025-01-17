@@ -103,10 +103,13 @@ int main( const int argc, const char **argv)
                format |= FULL_CTIME_6_PLACES;
                full_ctime( tbuff, jd, format);
                memcpy( buff + 15, tbuff, 17);
-               output_angle_to_buff( tbuff, ra * 12. / PI, 3);
-               memcpy( buff + 32, tbuff, 12);
-               output_signed_angle_to_buff( tbuff, dec * 180. / PI, 2);
-               memcpy( buff + 44, tbuff, 12);
+               if( buff[14] != 'v')
+                  {
+                  output_angle_to_buff( tbuff, ra * 12. / PI, 3);
+                  memcpy( buff + 32, tbuff, 12);
+                  output_signed_angle_to_buff( tbuff, dec * 180. / PI, 2);
+                  memcpy( buff + 44, tbuff, 12);
+                  }
                }
             }
          }
