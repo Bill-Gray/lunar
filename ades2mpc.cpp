@@ -25,6 +25,7 @@ parsing in my software.
 #include <string.h>
 #include <assert.h>
 #include <stdlib.h>
+#include <math.h>
 #include "stringex.h"
 #include <stdio.h>
 #include <ctype.h>
@@ -762,27 +763,18 @@ static int process_ades_tag( char *obuff, ades2mpc_t *cptr, const int itag,
             }
          else               /* roving observer */
             {
-            char *tptr2 = strchr( name, '.');
+            const double ival = atof( name);
             size_t loc;
 
             if( itag == ADES_pos1)     /* East longitude */
-               loc = 37 - (tptr2 - name);
-            else if( itag == ADES_pos2)
-               {           /* lat _must_ be signed,  w/sign in column 46 */
-               if( *name == '-' || *name == '+')
-                  {
-                  cptr->line2[45] = *name;
-                  memmove( name, name + 1, len);
-                  tptr2--;
-                  len--;
-                  }
-               else
-                  cptr->line2[45] = '+';
-               loc = 48 - (tptr2 - name);
-               }
+               snprintf_err( cptr->line2 + 34, 10, "%9.5f",
+                              fmod( ival + 360., 360.));
+            else if( itag == ADES_pos2)      /* latitude must be signed */
+               snprintf_err( cptr->line2 + 45, 10, "%+9.5f", ival);
             else           /* altitude */
-               loc = 61 - len;
-            memcpy( cptr->line2 + loc, name, len);
+               snprintf_err( cptr->line2 + 56, 6, "%5d", (int)ival);
+            loc = strlen( cptr->line2);
+            cptr->line2[loc] = ' ';
             }
          break;
       case ADES_ra:
