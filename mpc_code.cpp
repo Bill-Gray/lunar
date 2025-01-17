@@ -311,6 +311,7 @@ int get_mpc_code_info( mpc_code_t *cinfo, const char *buff)
    while( buff[i] > ' ' && buff[i] <= '~' && buff[i] != '!')
       i++;
    memset( cinfo, 0, sizeof( mpc_code_t));
+   memcpy( cinfo->code, buff, 4);
    if( i >= 3 && i <= 4 && strlen( buff) >= 30)
       {
       rval = 3;         /* assume earth */
@@ -375,8 +376,23 @@ int get_mpc_code_info( mpc_code_t *cinfo, const char *buff)
       else
          rval = -1;
       }
-   memcpy( cinfo->code, buff, 4);
-   if( buff[3] == ' ')        /* standard 3-character code */
+   else if( buff[14] == 'v' && strlen( buff) >= 80 && buff[80] < ' '
+               && buff[77] == '2' && (buff[45] == '+' || buff[45] == '-'))
+      {              /* roving observer line */
+      double lat, lon, alt;
+
+      if( 3 == sscanf( buff + 34, "%lf %lf %lf%n", &lon, &lat, &alt, &i))
+         {
+         cinfo->lon = lon * PI / 180.;
+         cinfo->lat = lat * PI / 180.;
+         cinfo->alt = alt;
+         cinfo->name = "Roving observer";
+         cinfo->planet = rval = 3;
+         _set_parallax_constants( cinfo);
+         memcpy( cinfo->code, buff + 77, 3);
+         }
+      }
+   if( cinfo->code[3] == ' ')        /* standard 3-character code */
       cinfo->code[3] = '\0';
    else                       /* 'extended' 4-character code */
       cinfo->code[4] = '\0';
