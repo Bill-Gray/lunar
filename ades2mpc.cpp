@@ -44,7 +44,7 @@ typedef struct
    char line[83];    /* allow possible CR, LF,  & null */
    char line2[83];
    char rms_ra[PIECE_SIZE], rms_dec[PIECE_SIZE], corr[PIECE_SIZE];
-   char rms_mag[PIECE_SIZE], rms_time[PIECE_SIZE];
+   char rms_mag[PIECE_SIZE], rms_time[PIECE_SIZE], unc_time[PIECE_SIZE];
    char full_ra[PIECE_SIZE], full_dec[PIECE_SIZE], full_mag[9];
    char notes[7], program_code[3];
    char trk_sub[14], obs_id[PIECE_SIZE], trk_id[12], passband[4];
@@ -456,6 +456,12 @@ static int get_a_line( char *obuff, const size_t obuff_size, ades2mpc_t *cptr)
          strlcat_err( obuff, cptr->rms_time, obuff_size);
          cptr->rms_time[0] = '\0';
          }
+      if( cptr->unc_time[0])
+         {
+         strlcat_err( obuff, " u:", obuff_size);
+         strlcat_err( obuff, cptr->unc_time, obuff_size);
+         cptr->unc_time[0] = '\0';
+         }
       cptr->rms_ra[0] = '\0';
       strlcat_err( obuff, "\n", obuff_size);
       }
@@ -829,6 +835,10 @@ static int process_ades_tag( char *obuff, ades2mpc_t *cptr, const int itag,
       case ADES_rmsTime:
          assert( len < sizeof( cptr->rms_time));
          strlcpy_err( cptr->rms_time, name, sizeof( cptr->rms_time));
+         break;
+      case ADES_uncTime:
+         assert( len < sizeof( cptr->unc_time));
+         strlcpy_err( cptr->unc_time, name, sizeof( cptr->unc_time));
          break;
       case ADES_rmsMag:
          assert( len < sizeof( cptr->rms_mag));
