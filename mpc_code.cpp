@@ -343,7 +343,7 @@ int get_mpc_code_info( mpc_code_t *cinfo, const char *buff)
                   cinfo->lat = cinfo->lon = cinfo->alt = 0.;
                }
             cinfo->planet = rval;
-            if( cinfo->lat && cinfo->lon)   /* i.e.,  topocentric */
+            if( cinfo->lat || cinfo->lon || cinfo->alt)   /* i.e.,  topocentric */
                _set_parallax_constants( cinfo);
             }
          }
@@ -570,6 +570,7 @@ static int extract_lat_lon( const char *buff, size_t *bytes_read, double *value)
       else if( *tptr == 'f' && tptr[1] == 't')
          {
          const double intl_feet_to_meters = 0.3048;
+/*       const double us_survey_feet_to_meters = 12. / 39.37;   */
 
          tptr += 2;               /* alt given in feet (shudder) */
          rval = GOT_ALT;
