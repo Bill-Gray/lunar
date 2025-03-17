@@ -19,7 +19,7 @@ LIB_OBJS= ades2mpc.obj alt_az.obj astfuncs.obj big_vsop.obj &
       eart2000.obj elp82dat.obj eop_prec.obj &
       getplane.obj get_time.obj jsats.obj lunar2.obj  &
       miscell.obj moid.obj mpc_code.obj mpc_fmt.obj &
-      nanosecs.obj &
+      mpc_fmt2.obj nanosecs.obj &
       nutation.obj obliquit.obj pluto.obj precess.obj  &
       refract.obj refract4.obj rocks.obj showelem.obj sof.obj &
       snprintf.obj spline.obj ssats.obj triton.obj &
