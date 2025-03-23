@@ -17,7 +17,11 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301, USA.    */
 
-/* A little test program I wrote to test out my implementation of Lieske's E5
+/*  NOTE that 'ssattest' now provides testing of Galilean satellite
+ephems,  as well as Saturnian satellite ephems.  The following
+program is not entirely obsolete,  but it's close to it.
+
+   A little test program I wrote to test out my implementation of Lieske's E5
 theory of the Galilean satellites,  as written in 'jsats.cpp'.  It works by
 reading in an ASCII ephemeris of Jovicentric vectors for a given satellite,
 computing the position for that satellite at that time using E5,  and showing
