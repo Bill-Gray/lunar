@@ -93,7 +93,6 @@ SAT_ELEMS
    {
    double jd, semimaj, ecc, gamma, lambda;
    double omega, Omega, epoch;
-   double loc[4];
    int sat_no;
    };
 
@@ -508,7 +507,7 @@ int DLL_FUNC calc_ssat_loc( const double t, double DLLPTR *ssat,
 {
    SAT_ELEMS elems;
    ELEMENTS orbit;
-   double matrix[9];
+   double matrix[9], loc[4];
 
    if( precision == -1L)         /* just checking version # */
       return( 1);
@@ -519,19 +518,19 @@ int DLL_FUNC calc_ssat_loc( const double t, double DLLPTR *ssat,
    set_ssat_elems( &elems, &orbit);
 
    setup_orbit_vectors( &orbit);
-   comet_posn_part_ii( &orbit, IGNORED_DOUBLE, elems.loc, NULL);
+   comet_posn_part_ii( &orbit, IGNORED_DOUBLE, loc, NULL);
 
    if( sat_wanted < RHEA)    /* inner 4 satellites are returned in Saturnic */
       {                            /*  coords so gotta rotate to B1950.0 */
-      rotate_vector( elems.loc, INCL0, 0);
-      rotate_vector( elems.loc, ASC_NODE0, 2);
+      rotate_vector( loc, INCL0, 0);
+      rotate_vector( loc, ASC_NODE0, 2);
       }
-                        /* After above,  elems.loc is ecliptic 1950 coords */
-   rotate_vector( elems.loc, OBLIQUITY_1950, 0);
-                        /* Now,  elems.loc is equatorial 1950 coords */
+                        /* After above,  loc is ecliptic 1950 coords */
+   rotate_vector( loc, OBLIQUITY_1950, 0);
+                        /* Now,  loc is equatorial 1950 coords */
 
    setup_precession( matrix, 1950., 2000);
-   precess_vector( matrix, elems.loc, ssat);
+   precess_vector( matrix, loc, ssat);
                         /* Now,  ssats is equatorial J2000... */
    rotate_vector( ssat, -OBLIQUITY_2000, 0);
                         /* And now,  ssats is ecliptical J2000 */
@@ -540,7 +539,7 @@ int DLL_FUNC calc_ssat_loc( const double t, double DLLPTR *ssat,
                of date coordinates,  to match Meeus' code.  I can't
                come up with a good reason to do that.       */
    setup_precession( matrix, 1950., 2000. + t_years);
-   precess_vector( matrix, elems.loc, ssat);
+   precess_vector( matrix, loc, ssat);
                         /* Now,  ssats is equatorial of epoch coords */
    rotate_vector( ssat, -mean_obliquity( t_years / 100.), 0);
                         /* And now,  ssats is ecliptical of epoch coords */
