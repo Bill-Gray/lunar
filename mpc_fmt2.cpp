@@ -15,8 +15,8 @@ static int64_t ten_to_the_nth( int n)
    return( rval);
 }
 
-int text_search_and_replace( char *str, const char *oldstr,
-                                     const char *newstr)
+int DLL_FUNC text_search_and_replace( char *str, const char *oldstr,
+                                      const char *newstr)
 {
    size_t ilen = strlen( str), rval = 0;
    const size_t oldlen = strlen( oldstr);
