@@ -24,7 +24,7 @@ jobs:
     - name: make
       run: make CLANG=Y ERRORS=Y
 
-  buildWindows:
+  buildWindowsX64:
     runs-on: windows-latest
 
     steps:
@@ -34,3 +34,14 @@ jobs:
         call "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" x64
         nmake -f lunar.mak
       shell: cmd
+
+  buildWindowsX86:
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@master
+    - name: make
+      run: |
+        call "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" x86
+        nmake -f lunar.mak BITS_32=Y
+      shell: cmd      
