@@ -67,7 +67,7 @@ int DLL_FUNC setup_elems_from_ast_file( ELEMENTS DLLPTR *class_elem,
                /* I should have done right from the beginning.             */
    if( elem[1] > VERY_LARGE_AXIS)   /* kludge to accommodate large axes */
       {
-      double tval = 4. - class_elem->major_axis / 10.5;
+      const double tval = 4. - class_elem->major_axis / 10.5;
 
       class_elem->major_axis = 63. / tval;
       }
@@ -93,7 +93,7 @@ to the direction of perihelion. */
 void setup_orbit_vectors( ELEMENTS DLLPTR *e)
 {
    const double sin_incl = sin( e->incl), cos_incl = cos( e->incl);
-   double FAR *vec;
+   double FAR *vec = e->perih_vec;
    double vec_len;
    double up[3];
    unsigned i;
@@ -101,7 +101,6 @@ void setup_orbit_vectors( ELEMENTS DLLPTR *e)
    e->minor_to_major = sqrt( fabs( 1. - e->ecc * e->ecc));
    e->lon_per = e->asc_node + atan2( sin( e->arg_per) * cos_incl,
                                        cos( e->arg_per));
-   vec = e->perih_vec;
 
    vec[0] = cos( e->lon_per) * cos_incl;
    vec[1] = sin( e->lon_per) * cos_incl;
@@ -180,10 +179,11 @@ static double near_parabolic( const double ecc_anom, const double e)
    return( rval);
 }
 
-/* For a full description of this function,  see KEPLER.HTM on the Guide
-Web site,  http://www.projectpluto.com.  There was a long thread about
+/* For a full description of this function,  see
+https://www.projectpluto.com/kepler.htm . There was a long thread about
 solutions to Kepler's equation on sci.astro.amateur,  and I decided to
-go into excruciating detail as to how it's done below. */
+go into excruciating detail as to how it's done below (admittedly,  some
+time ago,  and changes have occurred). */
 
 #define MAX_ITERATIONS 7
 
@@ -283,16 +283,15 @@ void comet_posn_part_ii( const ELEMENTS DLLPTR *elem, const double t,
 
    if( elem->ecc == 1.)    /* parabolic */
       {
-      double g = elem->w0 * t * .5;
+      const double g = elem->w0 * t * .5;
 
       y = CUBE_ROOT( g + sqrt( g * g + 1.));
       true_anom = 2. * atan( y - 1. / y);
       }
    else           /* got the mean anomaly;  compute eccentric,  then true */
       {
-      double ecc_anom;
+      const double ecc_anom = kepler( elem->ecc, elem->mean_anomaly);
 
-      ecc_anom = kepler( elem->ecc, elem->mean_anomaly);
       if( elem->ecc > 1.)     /* hyperbolic case */
          {
          x = (elem->ecc - cosh( ecc_anom));
@@ -320,11 +319,11 @@ void comet_posn_part_ii( const ELEMENTS DLLPTR *elem, const double t,
       }
    if( vel && (elem->angular_momentum != 0.))
       {
-      double angular_component = elem->angular_momentum / (r * r);
-      double radial_component = elem->ecc * sin( true_anom) *
+      const double angular_component = elem->angular_momentum / (r * r);
+      const double radial_component = elem->ecc * sin( true_anom) *
                                 elem->angular_momentum / (r * r0);
-      double x1 = x * radial_component - y * angular_component;
-      double y1 = y * radial_component + x * angular_component;
+      const double x1 = x * radial_component - y * angular_component;
+      const double y1 = y * radial_component + x * angular_component;
       unsigned i;
 
       for( i = 0; i < 3; i++)
