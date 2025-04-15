@@ -71,3 +71,15 @@ U410S         5 Uranus CDX
      _RD0aEM  0 2027 DZ6190
      _SEZZZZ  0 2028 EA339749
      _TFzzzz  0 2029 FL591673
+# ...and,  sometime between my writing the above and 2025 Apr 15,  MPC added
+# 'explicit examples of cometified [sic] object designations'.  Let's test
+# them,  too.  (Note that they're actually the same examples,  except with a
+# letter-slash prepended.)
+    PK23B00A  2 P/2023 BA
+    CK24C03Z  2 C/2024 CZ3
+    AK25Dz9Z  0 A/2025 DZ619
+    P_PD0000  2 P/2025 DA620
+    C_QD000N  2 C/2026 DY620
+    A_RD0aEM  0 A/2027 DZ6190
+    C_SEZZZZ  2 C/2028 EA339749
+    P_TFzzzz  2 P/2029 FL591673
