@@ -405,6 +405,10 @@ static int is_between( int bound1, int bound2, int x, int tolerance)
 
    bound1 -= x;
    bound2 -= x;
+   if( bound1 - bound2 > 32768)     /* bound1 is more than 180 degrees greater than bound2 */
+      bound1 -= 65536;
+   if( bound2 - bound1 > 32768)    /* bound2 is more than 180 degrees greater than bound1 */
+      bound2 -= 65536;
    while( bound1 + bound2 < -65536)
       {
       bound1 += 65536;
