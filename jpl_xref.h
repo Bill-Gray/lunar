@@ -33,6 +33,7 @@ static const jpl_xref_t jpl_xrefs[] = {
    { "C56",  -141043, 41043, "2015-070A",   "LISA Pathfinder" },
    { "Luc",      -49, 49328, "2021-093A",   "Lucy" },
    { "LFL",     -164, 54697, "2022-168B",   "Lunar Flashlight" },
+/* { "289",                                 "Nancy Grace Roman Space Telescope",  */
    { "C53",  -139089, 39089, "2013-009D",   "NEOSSat" },
    { "C58",      -33, 99999, "2025-000ZZZ", "NEO Surveyor" },
    { "C54",      -98, 28928, "2006-001A",   "New Horizons" },
@@ -43,6 +44,7 @@ static const jpl_xref_t jpl_xrefs[] = {
    { "Sli",     -240, 57803, "2023-137D",   "SLIM" },
    { "249",      -21, 23726, "1995-065A",   "SOHO" },
    { "SoO",     -144, 45167, "2020-010A",   "Solar Orbiter" },
+   { "288",  -163183, 63183, "2025-047E",   "SPHEREx" },
    { "245",      -79, 27871, "2003-038A",   "Spitzer Space Telescope" },
    { "C49",     -234, 29510, "2006-047A",   "STEREO-A" },
    { "C50",     -235, 29511, "2006-047B",   "STEREO-B" },
