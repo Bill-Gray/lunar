@@ -732,7 +732,7 @@ int DLL_FUNC get_satellite_offset( const char *iline, double xyz[3])
          {
          xyz[i] /= AU_IN_KM;
          if( !error_code)
-            if( decimal_loc < 6 || decimal_loc > 8)
+            if( decimal_loc < 6 || decimal_loc > 10)
                error_code = SATELL_COORD_ERR_DECIMAL_MISPLACED;
          if( !error_code && xyz[i] == 0.)
             error_code = SATELL_COORD_ERR_EXACTLY_ZERO;
