@@ -724,7 +724,7 @@ static int process_ades_tag( char *obuff, ades2mpc_t *cptr, const int itag,
                strlcpy_err( obuff, "Bad posn data\n", obuff_size);
                rval = 1;
                }
-                     /* cvt scientific notation,  if any : */
+                     /* cvt scientific notation,  if any (NOT VALID ADES) : */
             if( strchr( name, 'e') || strchr( name, 'E'))
                {
                snprintf_err( name, sizeof( name), "%.13f", atof( name));
@@ -742,19 +742,17 @@ static int process_ades_tag( char *obuff, ades2mpc_t *cptr, const int itag,
             if( cptr->line2[32] == '1')
                {
                decimal_loc = sign_loc + 6;
-               if( tptr2 - name >= 7)     /* beyond 100000 km */
-                  decimal_loc++;
-               if( tptr2 - name >= 8)     /* one to ten million km */
-                  decimal_loc++;
-               assert( tptr2 - name < 9);
+               if( tptr2 - name >= 7)     /* 100000 to one billion km */
+                  decimal_loc += tptr2 - name - 6;
+               assert( tptr2 - name < 11);
                }
             else if( cptr->line2[32] == '2')
                {
                decimal_loc = sign_loc + 2;
                if( tptr2 - name == 3)     /* beyond 10 AU */
                   decimal_loc++;
-               assert( tptr2 - name < 4);
-               }
+               assert( tptr2 - name < 4);    /* anything beyond 100 AU */
+               }                             /*  is probably an error */
             else
                {
                strlcpy_err( obuff, "Bad posn data\n", obuff_size);
