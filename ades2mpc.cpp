@@ -25,6 +25,7 @@ parsing in my software.
 #include <string.h>
 #include <assert.h>
 #include <stdlib.h>
+#include <stdint.h>
 #include <math.h>
 #include "stringex.h"
 #include <stdio.h>
@@ -433,6 +434,34 @@ static const char *skip_whitespace( const char *tptr)
    return( tptr);
 }
 
+/* A spacecraft offset in ADES is an optionally signed number fitting
+in 13 characters.  The old punch-card format puts each coordinate into a
+sign plus ten bytes.  If an offset given in ADES won't fit into the
+punch-card constraint,  the following function converts the digital
+part into a nine base-62-digits.  The lead digit then indicates the
+location of the decimal point.  See unpack_oversized_spacecraft_offset()
+in mpc_fmt.c for the reverse function. */
+
+static void pack_oversized_spacecraft_offset( char *obuff, const char *ibuff)
+{
+   int64_t oval = 0;
+   int i;
+
+   *obuff = *ibuff;        /* + or - sign */
+   obuff[1] = 'A';         /* assuming no decimal point */
+   for( i = 1; ibuff[i]; i++)
+      if( ibuff[i] >= '0' && ibuff[i] <= '9')
+         oval = oval * 10 + ibuff[i] - '0';
+      else if( ibuff[i] == '.')
+         obuff[1] = (char)( 'A' + i);
+   for( i = 10; i > 1; i--)
+      {
+      obuff[i] = int_to_mutant_hex_char( (int)( oval % 62));
+      oval /= 62;
+      }
+   obuff[11] = ' ';
+}
+
 static int get_a_line( char *obuff, const size_t obuff_size, ades2mpc_t *cptr)
 {
    if (cptr->rms_ra[0])
@@ -743,7 +772,7 @@ static int process_ades_tag( char *obuff, ades2mpc_t *cptr, const int itag,
                {
                decimal_loc = sign_loc + 6;
                if( tptr2 - name >= 7)     /* 100000 to one billion km */
-                  decimal_loc += tptr2 - name - 6;
+                  decimal_loc += (int)( tptr2 - name) - 6;
                assert( tptr2 - name < 11);
                }
             else if( cptr->line2[32] == '2')
@@ -758,11 +787,12 @@ static int process_ades_tag( char *obuff, ades2mpc_t *cptr, const int itag,
                strlcpy_err( obuff, "Bad posn data\n", obuff_size);
                rval = 1;
                }
-            if( decimal_loc)
+            if( nlen > 11)
+               pack_oversized_spacecraft_offset( &cptr->line2[sign_loc], name);
+            else if( decimal_loc)
                {
                decimal_loc -= (int)(tptr2 - name);
-               memcpy( &cptr->line2[decimal_loc + 1], name + 1,
-                                           (nlen > 11 ? 10 : nlen - 1));
+               memcpy( &cptr->line2[decimal_loc + 1], name + 1, nlen - 1);
                }
             }
          else               /* roving observer */

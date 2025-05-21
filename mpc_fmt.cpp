@@ -671,13 +671,54 @@ static int pack_provisional_natsat( char *packed, const char *fullname)
    return( -1);
 }
 
+/* Some C/C++ libraries offer a function to convert a 64-bit int to
+a string.  Most don't.  Not hard to implement our own,  though. */
+
+inline void _int_to_a( char *obuff, uint64_t ival)
+{
+   int i = 0, j = 0;
+
+   if( !ival)
+      obuff[i++] = '0';
+   while( ival)
+      {
+      obuff[i++] = (char)( '0' + ival % 10);
+      ival /= 10;
+      }              /* gives us the string,  but backwards */
+   obuff[i--] = '\0';
+   while( i > j)
+      {
+      const char temp = obuff[i];
+
+      obuff[i--] = obuff[j];
+      obuff[j++] = temp;
+      }
+}
+
+inline void unpack_oversized_spacecraft_offset( char *obuff, const char *ibuff)
+{
+   uint64_t value = 0;
+   int i, decimal_loc = ibuff[1] - 'B';
+
+   *obuff++ = ibuff[0];       /* copy +/- sign */
+   for( i = 2; i < 11; i++)
+       value = value * 62 + mutant_hex_char_to_int( ibuff[i]);
+   _int_to_a( obuff, value);
+   if( decimal_loc >= 0)
+      {
+      obuff += decimal_loc;
+      memmove( obuff + 1, obuff, strlen( obuff) + 1);
+      *obuff = '.';
+      }
+}
+
 /* Returns either a negative value for an error code,  or the
 location of the decimal point for a valid coordinate */
 
 inline int get_satellite_coordinate( const char *iptr, double coord[1])
 {
-   char tbuff[12];
    const char sign_byte = *iptr;
+   char tbuff[16];
    int rval = 0;
 
    memcpy( tbuff, iptr, 11);
@@ -692,13 +733,22 @@ inline int get_satellite_coordinate( const char *iptr, double coord[1])
       char *tptr;
       int n_bytes_read;
 
-      if( sscanf( tbuff + 1, "%lf%n", coord, &n_bytes_read) != 1
-                     || n_bytes_read < 7)
-         rval = SATELL_COORD_ERR_BAD_NUMBER;
-      else if( (tptr = strchr( tbuff, '.')) == NULL)
-         rval = SATELL_COORD_ERR_NO_DECIMAL;
+      if( iptr[1] >= 'A' && iptr[1] <= 'N')
+         {
+         unpack_oversized_spacecraft_offset( tbuff, iptr);
+         *coord = atof( tbuff);
+         rval = 99;
+         }
       else
-         rval = (int)( tptr - tbuff);
+         {
+         if( sscanf( tbuff + 1, "%lf%n", coord, &n_bytes_read) != 1
+                    || n_bytes_read < 7)
+            rval = SATELL_COORD_ERR_BAD_NUMBER;
+         else if( (tptr = strchr( tbuff, '.')) == NULL)
+            rval = SATELL_COORD_ERR_NO_DECIMAL;
+         else
+            rval = (int)( tptr - tbuff);
+         }
       if( sign_byte == '-')
          *coord = -*coord;
       }
@@ -745,6 +795,8 @@ int DLL_FUNC get_satellite_offset( const char *iline, double xyz[3])
          }
       else if( !error_code)      /* don't know about this sort of offset */
          error_code = SATELL_COORD_ERR_UNKNOWN_OFFSET;
+      if( decimal_loc == 99)     /* actually okay,  just a very long ADES */
+         error_code = 0;         /* spacecraft offset */
       r2 += xyz[i] * xyz[i];
       }
                /* (275) geocentric occultation obs can have offsets  */
