@@ -748,9 +748,9 @@ inline int get_satellite_coordinate( const char *iptr, double coord[1])
             rval = SATELL_COORD_ERR_NO_DECIMAL;
          else
             rval = (int)( tptr - tbuff);
+         if( sign_byte == '-')
+            *coord = -*coord;
          }
-      if( sign_byte == '-')
-         *coord = -*coord;
       }
    return( rval);
 }
