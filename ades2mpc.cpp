@@ -370,7 +370,7 @@ static inline void pack_mpc_reference( char *packed, const char *ref)
          encode_value_in_mutant_hex( packed + 1, 4, mpc_number - 110000);
          }
       }
-   else if( *ref == '!')
+   else if( *ref == '!' || !memcmp( ref, "JPL", 3))
       {
       memcpy( packed, "     ", 5);
       memcpy( packed, ref, len > 5 ? 5 : len);
@@ -561,7 +561,7 @@ static int get_a_line( char *obuff, const size_t obuff_size, ades2mpc_t *cptr)
          memcpy( cptr->line2 + 15, cptr->line + 15, 17);
          if( cptr->spacecraft_center != 399)
             snprintf_err( cptr->line2 + 69, 9, "%8d", cptr->spacecraft_center);
-         memcpy( cptr->line2 + 77, cptr->line + 77, 3);
+         memcpy( cptr->line2 + 72, cptr->line + 72, 8);
          }
       cptr->line[0] = '\0';
       }
@@ -685,6 +685,76 @@ static int process_ades_tag( char *obuff, ades2mpc_t *cptr, const int itag,
       case ADES_disc:
          if( *tptr == '*')
             cptr->line[12] = '*';
+         break;
+      case ADES_rcv:
+         cptr->line2[0] = ' ';
+         cptr->line2[14] = 'r';
+         cptr->line[14] = 'R';
+         assert( 3 == strlen( name));
+         memcpy( cptr->line + 77, name, 3);
+         break;
+      case ADES_trx:
+         assert( 3 == strlen( name));
+         memcpy( cptr->line + 68, name, 3);
+         memcpy( cptr->line2 + 68, name, 3);
+         break;
+      case ADES_com:
+         cptr->line2[32] = (*name == '1' ? 'C' : 'S');
+         break;
+      case ADES_frq:
+         {
+         const int freq = (int)( atof( name) * 10. + 0.5);
+         const char saved_char = cptr->line[68];
+
+         assert( freq > 10000 && freq < 999999);
+         snprintf( cptr->line + 62, 7, "%6d", freq);
+         cptr->line[68] = saved_char;
+         if( cptr->line[67] == '0')
+            cptr->line[67] = ' ';
+         }
+         break;
+      case ADES_delay:
+      case ADES_rmsDelay:
+         {
+         double value = atof( name);
+         char *loc, saved_char;
+
+         if( ADES_delay == itag)
+            {           /* delay given in _seconds_ in ADES */
+                     /* following are approximate "reasonable limits" */
+            assert( value > 0.1 && value < 3600.);
+            value *= 1000000.;
+            loc = cptr->line;
+            }
+         else           /* delay uncertainty is given in microseconds */
+            {
+            loc = cptr->line2;
+            assert( value > 0.01);
+            }
+         saved_char = loc[47];
+         snprintf( loc + 32, 16, "%15ld", (long)( value * 10000. + 0.5));
+         loc[47] = saved_char;
+         if( loc[46] == '0')
+            loc[46] = ' ';
+         }
+         break;
+      case ADES_doppler:
+      case ADES_rmsDoppler:
+         {
+         double value = atof( name);
+         char *loc = (itag == ADES_doppler ? cptr->line : cptr->line2);
+         const char saved_char = loc[62];
+
+         if( ADES_doppler == itag)
+            {
+            loc[47] = (value > 0. ? '+' : '-');
+            value = fabs( value);
+            }
+         snprintf( loc + 48, 15, "%14ld", (long)( value * 10000. + 0.5));
+         loc[62] = saved_char;
+         if( loc[61] == '0')
+            loc[61] = ' ';
+         }
          break;
       case ADES_ref:
          if( len < sizeof( name))
@@ -1219,8 +1289,8 @@ int xlate_ades2mpc( void *context, char *obuff, const char *buff)
                   if( cptr->depth == MAX_DEPTH)
                      rval = ADES_DEPTH_MAX;
                   }
-               if( tag_idx == ADES_optical)
-                  {
+               if( tag_idx == ADES_optical || tag_idx == ADES_radar)
+                  {     /* may someday handle ADES_offset and/or ADES_occultation */
                   if( tptr[1] == '/')
                      cptr->getting_lines = rval = 1;
                   else
