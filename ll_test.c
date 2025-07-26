@@ -16,6 +16,7 @@ static void run_tests( void)
 {
    FILE *ifile = fopen( "ll_test.txt", "rb");
    char buff[200];
+   int n_tests = 0;
 
    assert( ifile);
    while( fgets( buff, sizeof( buff), ifile))
@@ -48,7 +49,9 @@ static void run_tests( void)
                        buff + 32,
                        cinfo.lat * 180. / PI, cinfo.lon * 180. / PI, cinfo.alt);
             }
+         n_tests++;
          }
+   printf( "%d tests run\n", n_tests);
    fclose( ifile);
 }
 
