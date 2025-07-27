@@ -36,6 +36,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 #define MERCURY_MAJOR_AXIS  2440530.
 #define MERCURY_MINOR_AXIS  2438260.
 #define VENUS_RADIUS        6051800.
+/* Following axes are for the  GRS80 ellipsoid */
 #define EARTH_MAJOR_AXIS    6378137.
 #define EARTH_MINOR_AXIS    6356752.314140347
 #define MARS_MAJOR_AXIS     3396190.
@@ -571,11 +572,13 @@ static int extract_lat_lon( const char *buff, size_t *bytes_read, double *value)
          }
       else if( *tptr == 'f' && tptr[1] == 't')
          {
-         const double intl_feet_to_meters = 0.3048;
+         const double intl_inches_to_meters = 0.0254;
+         const double foot_to_inches = 12.;
+         const double intl_feet_to_meters = foot_to_inches * intl_inches_to_meters;
 /*       const double us_survey_feet_to_meters = 12. / 39.37;   */
 
          tptr += 2;               /* alt given in feet (shudder) */
-         rval = GOT_ALT;
+         rval = GOT_ALT;          /* US feet are (almost) obsolete */
          *value *= intl_feet_to_meters;
          }
       }
