@@ -671,45 +671,24 @@ static int pack_provisional_natsat( char *packed, const char *fullname)
    return( -1);
 }
 
-/* Some C/C++ libraries offer a function to convert a 64-bit int to
-a string.  Most don't.  Not hard to implement our own,  though. */
+/* See comments for pack_oversized_spacecraft_offset( ) in 'ades2mpc.cpp'
+to understand what's going on here. */
 
-inline void _int_to_a( char *obuff, uint64_t ival)
-{
-   int i = 0, j = 0;
-
-   if( !ival)
-      obuff[i++] = '0';
-   while( ival)
-      {
-      obuff[i++] = (char)( '0' + ival % 10);
-      ival /= 10;
-      }              /* gives us the string,  but backwards */
-   obuff[i--] = '\0';
-   while( i > j)
-      {
-      const char temp = obuff[i];
-
-      obuff[i--] = obuff[j];
-      obuff[j++] = temp;
-      }
-}
-
-inline void unpack_oversized_spacecraft_offset( char *obuff, const char *ibuff)
+double unpack_oversized_spacecraft_offset( const char *ibuff)
 {
    uint64_t value = 0;
-   int i, decimal_loc = ibuff[1] - 'B';
+   double rval;
+   size_t i, exponent = ibuff[1] - 'B';
 
-   *obuff++ = ibuff[0];       /* copy +/- sign */
+   assert( *ibuff == '-' || *ibuff == '+');
    for( i = 2; i < 11; i++)
        value = value * 62 + mutant_hex_char_to_int( ibuff[i]);
-   _int_to_a( obuff, value);
-   if( decimal_loc >= 0)
-      {
-      obuff += decimal_loc;
-      memmove( obuff + 1, obuff, strlen( obuff) + 1);
-      *obuff = '.';
-      }
+   rval = (double)value;
+   while( exponent--)
+      rval *= 0.1;
+   if( *ibuff == '-')
+      rval = -rval;
+   return( rval);
 }
 
 /* Returns either a negative value for an error code,  or the
@@ -733,10 +712,9 @@ inline int get_satellite_coordinate( const char *iptr, double coord[1])
       char *tptr;
       int n_bytes_read;
 
-      if( iptr[1] >= 'A' && iptr[1] <= 'N')
+      if( iptr[1] >= 'A' && iptr[1] <= 'R')
          {
-         unpack_oversized_spacecraft_offset( tbuff, iptr);
-         *coord = atof( tbuff);
+         *coord = unpack_oversized_spacecraft_offset( iptr);
          rval = 99;
          }
       else
@@ -765,7 +743,9 @@ int DLL_FUNC get_satellite_offset( const char *iline, double xyz[3])
    double r2 = 0.;
    const double earth_radius_in_au = 6378.14 / AU_IN_KM;
    const double min_radius = 1.01 * earth_radius_in_au;
+#ifndef NDEBUG
    const size_t slen = strlen( iline);
+#endif
 
    assert( 80 <= slen && slen < 83);  /* allow for LF, CR/LF, or no line end */
    for( i = 0; i < 3; i++)    /* in case of error,  use 0 offsets */

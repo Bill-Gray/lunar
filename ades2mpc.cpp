@@ -438,22 +438,28 @@ static const char *skip_whitespace( const char *tptr)
 in 13 characters.  The old punch-card format puts each coordinate into a
 sign plus ten bytes.  If an offset given in ADES won't fit into the
 punch-card constraint,  the following function converts the digital
-part into a nine base-62-digits.  The lead digit then indicates the
-location of the decimal point.  See unpack_oversized_spacecraft_offset()
+part into a nine-digit base-62 integer.  The lead digit then indicates the
+location of the decimal point (i.e.,  an exponent).  Thus,  we can store
+up to ~16 significant digits.  See unpack_oversized_spacecraft_offset()
 in mpc_fmt.c for the reverse function. */
+
+#define SIXTY_TWO_CUBED ((int64_t)(62*62*62))
+#define SIXTY_TWO_TO_THE_NINTH_POWER (SIXTY_TWO_CUBED * SIXTY_TWO_CUBED * SIXTY_TWO_CUBED)
 
 static void pack_oversized_spacecraft_offset( char *obuff, const char *ibuff)
 {
    int64_t oval = 0;
-   int i;
+   size_t i, loc = 0;
 
    *obuff = *ibuff;        /* + or - sign */
    obuff[1] = 'A';         /* assuming no decimal point */
-   for( i = 1; ibuff[i]; i++)
+   for( i = 1; ibuff[i] && oval < SIXTY_TWO_TO_THE_NINTH_POWER / 10 - 1; i++)
       if( ibuff[i] >= '0' && ibuff[i] <= '9')
          oval = oval * 10 + ibuff[i] - '0';
       else if( ibuff[i] == '.')
-         obuff[1] = (char)( 'A' + i);
+         loc = i;
+   assert( loc);        /* gotta have a decimal point in there */
+   obuff[1] = (char)( 'A' + i - loc);
    for( i = 10; i > 1; i--)
       {
       obuff[i] = int_to_mutant_hex_char( (int)( oval % 62));
@@ -560,7 +566,7 @@ static int get_a_line( char *obuff, const size_t obuff_size, ades2mpc_t *cptr)
          memcpy( cptr->line2, cptr->line, 12);
          memcpy( cptr->line2 + 15, cptr->line + 15, 17);
          if( cptr->spacecraft_center != 399)
-            snprintf_err( cptr->line2 + 69, 9, "%8d", cptr->spacecraft_center);
+            snprintf_err( cptr->line2 + 69, 4, "%3d", cptr->spacecraft_center);
          memcpy( cptr->line2 + 72, cptr->line + 72, 8);
          }
       cptr->line[0] = '\0';
