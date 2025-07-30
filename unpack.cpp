@@ -82,6 +82,8 @@ static int unpack_provisional_packed_desig( char *obuff, const size_t obuff_size
 {
    int rval = 0;
 
+   if( obuff)
+      *obuff = '\0';
    if( *ibuff ==  '_' && ibuff[2] >= 'A' && ibuff[2] <= 'Z')
       {
       const int year = mutant_hex_char_to_int( ibuff[1]);
@@ -89,7 +91,7 @@ static int unpack_provisional_packed_desig( char *obuff, const size_t obuff_size
 
       if( year < 0 || desig_num < 0)
          rval = -1;
-      else
+      else if( obuff)
          {
          char letter = 'A' + desig_num % 25;
 
@@ -131,11 +133,7 @@ static int unpack_provisional_packed_desig( char *obuff, const size_t obuff_size
          }
       }
    else
-      {
-      if( obuff)
-         *obuff = '\0';
       rval = -1;
-      }
    return( rval);
 }
 
