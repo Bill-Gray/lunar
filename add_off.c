@@ -223,10 +223,10 @@ static int set_offsets( offset_t *offsets, const int n_offsets)
 
    if( !horizons_idx)
       {
-      printf( "ERROR! MPC code '%s' wasn't found.\n", offsets->mpc_code);
-      printf( "Either it's not an MPC code,  or it's not one of the spacecraft\n");
-      printf( "that this software knows about.  Check the 'add_off.c' source\n");
-      printf( "code,  and/or contact the author.\n");
+      fprintf( stderr, "ERROR! MPC code '%s' wasn't found.\n", offsets->mpc_code);
+      fprintf( stderr, "Either it's not an MPC code,  or it's not one of the spacecraft\n");
+      fprintf( stderr, "that this software knows about.  Check the 'add_off.c' source\n");
+      fprintf( stderr, "code,  and/or contact the author.\n");
       for( i = 0; i < n_offsets; i++)
          if( !strcmp( offsets[i].mpc_code, offsets[0].mpc_code))
             offsets[i].xyz[0] = -0.1;     /* mark as "don't try again" */
@@ -315,9 +315,9 @@ static int set_offsets( offset_t *offsets, const int n_offsets)
    else
       {
 #ifdef _WIN32
-      printf( "Error from URLDownloadToFile : %d\n", error_code);
+      fprintf( stderr, "Error from URLDownloadToFile : %d\n", error_code);
 #else
-      printf( "Error with system() : '%s'\n", strerror( errno));
+      fprintf( stderr, "Error with system() : '%s'\n", strerror( errno));
 #endif
       printf( "'%s'\n", buff);
       }
@@ -440,7 +440,7 @@ int process_file( const char *filename, FILE *ofile)
          set_offsets( offsets + i, n_offsets - i);
       }
    if( !ades_found)
-      fprintf( ofile, "COM add_off ver 2025 Jan 02,  run %.24s UTC\n", asctime( gmtime( &t0)));
+      fprintf( ofile, "COM add_off ver 2025 Aug 08,  run %.24s UTC\n", asctime( gmtime( &t0)));
    fseek( ifile, 0, SEEK_SET);
    while( fgets( buff, sizeof( buff), ifile))
       if( (jd = get_sat_obs_jd( buff)) <= 0.)    /* not an observation;  */
