@@ -581,6 +581,34 @@ static int get_a_line( char *obuff, const size_t obuff_size, ades2mpc_t *cptr)
    return( cptr->getting_lines);
 }
 
+/* See https://minorplanetcenter.net/iau/info/RadarObs.html . The punch-card
+format stores radar values and their uncertainties with implicit decimal
+points.  This function aligns the values according to their specification. */
+
+static void _format_without_decimal( char *optr, const char *ival, const size_t max_decimals,
+                  const size_t max_before_decimal)
+{
+   const char *decimal_loc = strchr( ival, '.');
+   size_t n_decimals = strlen( decimal_loc) - 1;
+   size_t n_before_decimal = decimal_loc - ival;
+
+   assert( decimal_loc);
+   assert( n_before_decimal <= max_before_decimal);
+   decimal_loc++;
+   if( n_decimals > max_decimals)
+      n_decimals = max_decimals;
+   memcpy( optr, decimal_loc, n_decimals);
+   if( n_before_decimal > max_before_decimal)
+      memset( optr - max_before_decimal, '!', max_before_decimal);
+   else
+      {
+      optr -= n_before_decimal;
+      memcpy( optr, ival, n_before_decimal);
+      while( *optr == '0')          /* clobber leading zeroes */
+         *optr++ = ' ';
+      }
+}
+
 /* Returns 1 if it's a properly handled header tag,  0 if it's some
 other tag or among the remaining unhandled header tags (I'm not
 dealing with the telescope details yet,  for example.) */
@@ -708,59 +736,27 @@ static int process_ades_tag( char *obuff, ades2mpc_t *cptr, const int itag,
          cptr->line2[32] = (*name == '1' ? 'C' : 'S');
          break;
       case ADES_frq:
-         {
-         const int freq = (int)( atof( name) * 10. + 0.5);
-         const char saved_char = cptr->line[68];
-
-         assert( freq > 10000 && freq < 999999);
-         snprintf( cptr->line + 62, 7, "%6d", freq);
-         cptr->line[68] = saved_char;
-         if( cptr->line[67] == '0')
-            cptr->line[67] = ' ';
-         }
+         _format_without_decimal( cptr->line + 67, name, 1, 5);
          break;
       case ADES_delay:
+         _format_without_decimal( cptr->line + 37, name, 10, 5);
+         break;
       case ADES_rmsDelay:
-         {
-         double value = atof( name);
-         char *loc, saved_char;
-
-         if( ADES_delay == itag)
-            {           /* delay given in _seconds_ in ADES */
-                     /* following are approximate "reasonable limits" */
-            assert( value > 0.1 && value < 3600.);
-            value *= 1000000.;
-            loc = cptr->line;
-            }
-         else           /* delay uncertainty is given in microseconds */
-            {
-            loc = cptr->line2;
-            assert( value > 0.01);
-            }
-         saved_char = loc[47];
-         snprintf( loc + 32, 16, "%15ld", (long)( value * 10000. + 0.5));
-         loc[47] = saved_char;
-         if( loc[46] == '0')
-            loc[46] = ' ';
-         }
+         _format_without_decimal( cptr->line2 + 43, name, 4, 10);
          break;
       case ADES_doppler:
-      case ADES_rmsDoppler:
          {
-         double value = atof( name);
-         char *loc = (itag == ADES_doppler ? cptr->line : cptr->line2);
-         const char saved_char = loc[62];
+         char *nptr = name;
 
-         if( ADES_doppler == itag)
-            {
-            loc[47] = (value > 0. ? '+' : '-');
-            value = fabs( value);
-            }
-         snprintf( loc + 48, 15, "%14ld", (long)( value * 10000. + 0.5));
-         loc[62] = saved_char;
-         if( loc[61] == '0')
-            loc[61] = ' ';
+         if( *nptr == '+' || *nptr == '-')
+            cptr->line[47] = *nptr++;
+         else
+            cptr->line[47] = '+';
+         _format_without_decimal( cptr->line + 58, nptr, 4, 10);
          }
+         break;
+      case ADES_rmsDoppler:
+         _format_without_decimal( cptr->line2 + 58, name, 4, 11);
          break;
       case ADES_ref:
          if( len < sizeof( name))
