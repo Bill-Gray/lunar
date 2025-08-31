@@ -764,11 +764,14 @@ static int process_ades_tag( char *obuff, ades2mpc_t *cptr, const int itag,
          break;
       case ADES_prog:
          {
-         const char *programs = "0123456789!\"#$%&'()*+,-./[\\]^_`{|}~";
-         const int idx = atoi( tptr);
+         const char *programs = "0123456789!\"#$%&'()*+,-./[\\]^_`{|}~<=>?@";
+         const int idx = get_mutant_hex_value( tptr, 2);
 
+         assert( idx > 0);
          if( idx >=0 && idx <= 34)
             cptr->line[13] = programs[idx];
+         else if( idx < 94)
+            cptr->line[13] = int_to_mutant_hex_char( idx - 32);
          assert( len < sizeof( cptr->program_code));
          strlcpy_err( cptr->program_code, name, sizeof( cptr->program_code));
          }
