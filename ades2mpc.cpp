@@ -767,7 +767,7 @@ static int process_ades_tag( char *obuff, ades2mpc_t *cptr, const int itag,
          const char *programs = "0123456789!\"#$%&'()*+,-./[\\]^_`{|}~<=>?@";
          const int idx = get_mutant_hex_value( tptr, 2);
 
-         assert( idx > 0);
+         assert( idx >= 0);
          if( idx >=0 && idx <= 34)
             cptr->line[13] = programs[idx];
          else if( idx < 94)
