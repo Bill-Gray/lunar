@@ -20,15 +20,15 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 
 /*  Underlying algorithms copied from :                                     */
 /*     http://www.giss.nasa.gov/tools/mars24/help/algorithm.html            */
-/* Routines to compute "Mars Coordinated Time" (MCT),  the Martian          */
-/* equivalent of UTC,  and "Mars True Solar Time (MTST) at Airy" (Airy is   */
+/* Routines to compute "Mars Mean Standard Time" (MST),  the Martian        */
+/* equivalent of TT,  and "Mars True Solar Time (MTST) at Airy" (Airy is    */
 /* the Martian equivalent of the Greenwich meridian),  for a given JDT.     */
 /* The "reverse" code to convert MTST to TT was added by me (Bill Gray).    */
 /*    A test case,  from the above URL:  if run with MJDT=51549.00074       */
 /* (the default value),  one should get:                                    */
 /*                                                                          */
 /* pbs = 0.001418; a_fms = 272.74566102; v-m = 4.44192663; Ls = 277.1875876 */
-/* MTC = 44795.999758 (23:59:39.057); eot = -0.014410                       */
+/* MST = 44795.999758 (23:59:39.057); eot = -0.014410                       */
 /* LTST at Airy: 23:38:53.998                                               */
 /*                                                                          */
 /*    The "recovered MJD" should be equal to the input MJDT of 51549.00074; */
@@ -47,21 +47,21 @@ const double days_per_sol = 1.0274912517;
 const double zero_sol_point = 44796.0 - 0.0009626;
 const double zero_mjd_point = 51549.0;
 
-double tt_to_mtc( const double mjd);
-double mtc_to_tt( const double mtc);
+double tt_to_mst( const double mjd);
+double mst_to_tt( const double mst);
 double mars_true_solar_minus_mean_solar_time( const double mjd);
 double mtst_at_airy_to_tt( const double mtst);
 
-double tt_to_mtc( const double mjd)
+double tt_to_mst( const double mjd)
 {
                                  /* eqn C-2: */
    return( (mjd - zero_mjd_point) / days_per_sol + zero_sol_point);
 }
 
-double mtc_to_tt( const double mtc)
+double mst_to_tt( const double mst)
 {
                                  /* C-2 equation reversed: */
-   return( (mtc - zero_sol_point) * days_per_sol + zero_mjd_point);
+   return( (mst - zero_sol_point) * days_per_sol + zero_mjd_point);
 }
 
 /* "longitude_sun" = 0 degrees at the northern hemisphere vernal equinox;
@@ -125,9 +125,10 @@ double mars_true_solar_minus_mean_solar_time( const double mjd)
 /* Reversing MTST (Mars True Solar Time) to other systems is made      */
 /* slightly tricky by the fact that the first step involves computing  */
 /* the equation of time,  which takes TT as an input.  So we pretend   */
-/* the input MTST is actually an MTC,  and compute a TT from it using  */
-/* mtc_to_tt.  This gives us an "approx_tt" which may be up to an hour */
-/* off (it basically is ignoring the Martian equation of time).        */
+/* the input MTST is actually an MST (Mars Mean Solar Time),  and      */
+/* compute a TT from it using mst_to_tt.  This gives us an "approx_tt" */
+/* which may be up to an hour off (it basically is ignoring the        */
+/* Martian equation of time).                                          */
 /*    However,  if we compute the Martian EOT using approx_tt,  we'll  */
 /* get a passably correct EOT and can use it to compute a better TT.   */
 /* And we can then compute the EOT using this better TT to get a still */
@@ -138,7 +139,7 @@ double mars_true_solar_minus_mean_solar_time( const double mjd)
 
 double mtst_at_airy_to_tt( const double mtst)
 {
-   const double approx_tt = mtc_to_tt( mtst);
+   const double approx_tt = mst_to_tt( mtst);
    double rval[3], d1, d2, x;
    size_t i;
 
@@ -176,14 +177,14 @@ static void format_time( const double day, char *buff)
 int main( const int argc, const char **argv)
 {
    const double mjd = (argc > 1 ? atof( argv[1]) : 51549.00074);
-   const double mtc = tt_to_mtc( mjd);
+   const double mst = tt_to_mst( mjd);
    const double eot = mars_true_solar_minus_mean_solar_time( mjd);
-   const double ltst_at_airy = mtc + eot;
+   const double ltst_at_airy = mst + eot;
    char buff[80];
 
             /* Above equation of time = true - mean time. */
-   format_time( mtc, buff);
-   printf( "MTC = %f (%s); eot = %f\n", mtc, buff, eot);
+   format_time( mst, buff);
+   printf( "MST = %f (%s); eot = %f\n", mst, buff, eot);
    format_time( ltst_at_airy, buff);
    printf( "LTST at Airy: %s\n", buff);
    printf( "Recovered MJD: %.10f\n", mtst_at_airy_to_tt( ltst_at_airy));
@@ -191,7 +192,7 @@ int main( const int argc, const char **argv)
       {
       const double lon = atof( argv[2]);
       const double ltst = ltst_at_airy - lon / 360.;
-      const double lmst = mtc - lon / 360.;
+      const double lmst = mst - lon / 360.;
 
       format_time( ltst, buff);
       printf( "LTST at loc: %s\n", buff);
