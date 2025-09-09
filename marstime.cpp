@@ -24,12 +24,12 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 /* equivalent of UTC,  and "Mars True Solar Time (MTST) at Airy" (Airy is   */
 /* the Martian equivalent of the Greenwich meridian),  for a given JDT.     */
 /* The "reverse" code to convert MTST to TT was added by me (Bill Gray).    */
-/*    A test case,  from the above URL:  if run with MJDT=51549.00074,      */
-/* one should get:                                                          */
+/*    A test case,  from the above URL:  if run with MJDT=51549.00074       */
+/* (the default value),  one should get:                                    */
 /*                                                                          */
-/* pbs = 0.001418; a_fms = 272.744861; v_minus_m = 4.441908                 */
-/* MTC = 44795.999760 (23:59:39.281); eot = -0.014410                       */
-/* LTST at Airy: 23:38:54.247                                               */
+/* pbs = 0.001418; a_fms = 272.74566102; v-m = 4.44192663; Ls = 277.1875876 */
+/* MTC = 44795.999758 (23:59:39.057); eot = -0.014410                       */
+/* LTST at Airy: 23:38:53.998                                               */
 /*                                                                          */
 /*    The "recovered MJD" should be equal to the input MJDT of 51549.00074; */
 /* i.e.,  the time transformations should all be correctly reversed.        */
@@ -111,7 +111,7 @@ double mars_true_solar_minus_mean_solar_time( const double mjd)
    longitude_sun = a_fms + v_minus_m;       /* eqn B-5 */
 #ifdef TEST_PROGRAM
    printf( "pbs = %f; ", pbs / D2R);
-   printf( "a_fms = %.8f; v_minus_m = %.8f; longitude of sun = %.8f\n",
+   printf( "a_fms = %.8f; v-m = %.8f; Ls = %.8f\n",
             a_fms / D2R, v_minus_m / D2R, longitude_sun / D2R);
 #endif
    eqn_of_time = (2.861 / 360.) * sin( 2. * longitude_sun)   /* eqn C-1 */
