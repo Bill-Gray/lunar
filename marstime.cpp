@@ -24,14 +24,14 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 /* equivalent of UTC,  and "Mars True Solar Time (MTST) at Airy" (Airy is   */
 /* the Martian equivalent of the Greenwich meridian),  for a given JDT.     */
 /* The "reverse" code to convert MTST to TT was added by me (Bill Gray).    */
-/*    A test case,  from the above URL:  if run with JDT=2451549.50074,     */
+/*    A test case,  from the above URL:  if run with MJDT=51549.00074,      */
 /* one should get:                                                          */
 /*                                                                          */
 /* pbs = 0.001418; a_fms = 272.744861; v_minus_m = 4.441908                 */
 /* MTC = 44795.999760 (23:59:39.281); eot = -0.014410                       */
 /* LTST at Airy: 23:38:54.247                                               */
 /*                                                                          */
-/*    The "recovered JD" should be equal to the input JDT of 2451549.50074; */
+/*    The "recovered MJD" should be equal to the input MJDT of 51549.00074; */
 /* i.e.,  the time transformations should all be correctly reversed.        */
 
 #include <math.h>
@@ -45,33 +45,33 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 
 const double days_per_sol = 1.0274912517;
 const double zero_sol_point = 44796.0 - 0.0009626;
-const double zero_jd_point = 2451549.5;
+const double zero_mjd_point = 51549.0;
 
-double tt_to_mtc( const double jd);
+double tt_to_mtc( const double mjd);
 double mtc_to_tt( const double mtc);
-double mars_true_solar_minus_mean_solar_time( const double jd);
+double mars_true_solar_minus_mean_solar_time( const double mjd);
 double mtst_at_airy_to_tt( const double mtst);
 
-double tt_to_mtc( const double jd)
+double tt_to_mtc( const double mjd)
 {
                                  /* eqn C-2: */
-   return( (jd - zero_jd_point) / days_per_sol + zero_sol_point);
+   return( (mjd - zero_mjd_point) / days_per_sol + zero_sol_point);
 }
 
 double mtc_to_tt( const double mtc)
 {
                                  /* C-2 equation reversed: */
-   return( (mtc - zero_sol_point) * days_per_sol + zero_jd_point);
+   return( (mtc - zero_sol_point) * days_per_sol + zero_mjd_point);
 }
 
 /* "longitude_sun" = 0 degrees at the northern hemisphere vernal equinox;
 = 90 degrees at summer solstice,  = 180 at autumnal equinox,  = 270 at
 winter solstice. */
 
-double mars_true_solar_minus_mean_solar_time( const double jd)
+double mars_true_solar_minus_mean_solar_time( const double mjd)
 {
-   const double jd_2000 = 2451545.0;  /* JD 2451545.0 = 1.5 Jan 2000 */
-   const double t = jd - jd_2000;
+   const double mjd_2000 = 51544.5;  /* JD 2451545.0 = 1.5 Jan 2000 */
+   const double t = mjd - mjd_2000;
    const double pi =
       3.1415926535897932384626433832795028841971693993751058209749445923;
    const double D2R = pi / 180.;
@@ -110,6 +110,7 @@ double mars_true_solar_minus_mean_solar_time( const double jd)
 #endif
    longitude_sun = a_fms + v_minus_m;       /* eqn B-5 */
 #ifdef TEST_PROGRAM
+   printf( "pbs = %f; ", pbs / D2R);
    printf( "a_fms = %f; v_minus_m = %f; longitude of sun = %f\n",
             a_fms / D2R, v_minus_m / D2R, longitude_sun / D2R);
 #endif
@@ -165,9 +166,9 @@ static void format_time( const double day, char *buff)
 
 int main( const int argc, const char **argv)
 {
-   const double jd = (argc > 1 ? atof( argv[1]) : 2451549.50074);
-   const double mtc = tt_to_mtc( jd);
-   const double eot = mars_true_solar_minus_mean_solar_time( jd);
+   const double mjd = (argc > 1 ? atof( argv[1]) : 51549.00074);
+   const double mtc = tt_to_mtc( mjd);
+   const double eot = mars_true_solar_minus_mean_solar_time( mjd);
    const double ltst_at_airy = mtc + eot;
    char buff[80];
 
@@ -176,7 +177,7 @@ int main( const int argc, const char **argv)
    printf( "MTC = %f (%s); eot = %f\n", mtc, buff, eot);
    format_time( ltst_at_airy, buff);
    printf( "LTST at Airy: %s\n", buff);
-   printf( "Recovered JD: %.8f\n", mtst_at_airy_to_tt( ltst_at_airy));
+   printf( "Recovered MJD: %.8f\n", mtst_at_airy_to_tt( ltst_at_airy));
    if( argc > 2)                  /* West longitudes are positive */
       {
       const double lon = atof( argv[2]);
