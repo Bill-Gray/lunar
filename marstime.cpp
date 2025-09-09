@@ -111,7 +111,7 @@ double mars_true_solar_minus_mean_solar_time( const double mjd)
    longitude_sun = a_fms + v_minus_m;       /* eqn B-5 */
 #ifdef TEST_PROGRAM
    printf( "pbs = %f; ", pbs / D2R);
-   printf( "a_fms = %f; v_minus_m = %f; longitude of sun = %f\n",
+   printf( "a_fms = %.8f; v_minus_m = %.8f; longitude of sun = %.8f\n",
             a_fms / D2R, v_minus_m / D2R, longitude_sun / D2R);
 #endif
    eqn_of_time = (2.861 / 360.) * sin( 2. * longitude_sun)   /* eqn C-1 */
@@ -131,23 +131,32 @@ double mars_true_solar_minus_mean_solar_time( const double mjd)
 /*    However,  if we compute the Martian EOT using approx_tt,  we'll  */
 /* get a passably correct EOT and can use it to compute a better TT.   */
 /* And we can then compute the EOT using this better TT to get a still */
-/* better TT.  These two iterations of computing the EOT are enough to */
-/* get a "real" TT that's good to machine precision.                   */
+/* better TT.  Continued iterations would converge linearly;  we use   */
+/* just two iterations,  then compute a more 'exact' TT using Aitken's */
+/* delta-squared sequence method for accelerated convergence.  The     */
+/* result is good to machine precision.                                */
 
 double mtst_at_airy_to_tt( const double mtst)
 {
    const double approx_tt = mtc_to_tt( mtst);
-   double rval = approx_tt;
-   int iter;
+   double rval[3], d1, d2, x;
+   size_t i;
 
-   for( iter = 2; iter; iter--)
+   rval[0] = approx_tt;
+   for( i = 1; i < 3; i++)
       {
       const double eqn_of_time =
-              mars_true_solar_minus_mean_solar_time( rval);
+              mars_true_solar_minus_mean_solar_time( rval[i - 1]);
+      const double delta = approx_tt - eqn_of_time * days_per_sol - rval[i - 1];
 
-      rval = approx_tt - eqn_of_time * days_per_sol;
+      rval[i] = rval[i - 1] + delta;
+      printf( "iter %d : %.10lf\n", (int)i, rval[i]);
       }
-   return( rval);
+   d1 = rval[2] - rval[1];             /* Aitken delta-squared */
+   d2 = rval[1] - rval[0];
+   x = rval[2] - d1 * d1 / (d1 - d2);
+   printf( "Aitken %.10f\n", x);
+   return( x);
 }
 
 #ifdef TEST_PROGRAM
@@ -177,7 +186,7 @@ int main( const int argc, const char **argv)
    printf( "MTC = %f (%s); eot = %f\n", mtc, buff, eot);
    format_time( ltst_at_airy, buff);
    printf( "LTST at Airy: %s\n", buff);
-   printf( "Recovered MJD: %.8f\n", mtst_at_airy_to_tt( ltst_at_airy));
+   printf( "Recovered MJD: %.10f\n", mtst_at_airy_to_tt( ltst_at_airy));
    if( argc > 2)                  /* West longitudes are positive */
       {
       const double lon = atof( argv[2]);
