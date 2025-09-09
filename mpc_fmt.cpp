@@ -671,23 +671,25 @@ static int pack_provisional_natsat( char *packed, const char *fullname)
    return( -1);
 }
 
-/* See comments for pack_oversized_spacecraft_offset( ) in 'ades2mpc.cpp'
-to understand what's going on here. */
+/* See comments about '_pack_overlong_float()' in ades2mpc.cpp.  */
 
-double unpack_oversized_spacecraft_offset( const char *ibuff)
+static double _unpack_overlong_float( const char *ibuff, const size_t isize)
 {
-   uint64_t value = 0;
+   int64_t value = 0;
    double rval;
-   size_t i, exponent = ibuff[1] - 'B';
+   size_t i;
+   int n_decimals = *ibuff - 'A';
 
-   assert( *ibuff == '-' || *ibuff == '+');
-   for( i = 2; i < 11; i++)
-       value = value * 62 + mutant_hex_char_to_int( ibuff[i]);
+   for( i = 1; i < isize; i++)
+      value = value * 62 + (int64_t)mutant_hex_char_to_int( ibuff[i]);
    rval = (double)value;
-   while( exponent--)
+   while( n_decimals >= 6)
+      {
+      rval *= 1e-6;
+      n_decimals -= 6;
+      }
+   while( n_decimals--)
       rval *= 0.1;
-   if( *ibuff == '-')
-      rval = -rval;
    return( rval);
 }
 
@@ -714,7 +716,9 @@ inline int get_satellite_coordinate( const char *iptr, double coord[1])
 
       if( iptr[1] >= 'A' && iptr[1] <= 'R')
          {
-         *coord = unpack_oversized_spacecraft_offset( iptr);
+         *coord = _unpack_overlong_float( iptr + 1, 10);
+         if( sign_byte == '-')
+            *coord = -*coord;
          rval = 99;
          }
       else

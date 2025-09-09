@@ -434,38 +434,61 @@ static const char *skip_whitespace( const char *tptr)
    return( tptr);
 }
 
-/* A spacecraft offset in ADES is an optionally signed number fitting
-in 13 characters.  The old punch-card format puts each coordinate into a
-sign plus ten bytes.  If an offset given in ADES won't fit into the
-punch-card constraint,  the following function converts the digital
-part into a nine-digit base-62 integer.  The lead digit then indicates the
-location of the decimal point (i.e.,  an exponent).  Thus,  we can store
-up to ~16 significant digits.  See unpack_oversized_spacecraft_offset()
-in mpc_fmt.c for the reverse function. */
+/* There are several places where ADES allows floating-point values
+that won't fit in the fixed field sizes of the 80-column format.
+For example,  spacecraft offsets are allotted ten bytes in the old format,
+but can be 13 in ADES.  Radar delay/Doppler measurement fields are also
+larger in ADES.  Magnitudes can be up to seven characters in ADES;  five
+are provided in MPC80.  RA/decs can have up to thirteen characters.
 
-#define SIXTY_TWO_CUBED ((int64_t)(62*62*62))
-#define SIXTY_TWO_TO_THE_NINTH_POWER (SIXTY_TWO_CUBED * SIXTY_TWO_CUBED * SIXTY_TWO_CUBED)
+   To pack such numbers into MPC80-sized fields,  the following code
+treats them as integers divided by a power of ten,  with that power
+determined by the decimal point location.  The exponent is stored in the
+first character; A = divisor is 1 (no decimal point found or it was at
+the end of the string);  B = 10 (one digit found after decimal point);
+C = 100, D = 1000,  etc.  The fact that the first character is a letter
+signifies that it's a packed float.
 
-static void pack_oversized_spacecraft_offset( char *obuff, const char *ibuff)
+   The integer portion is packed in base 62.  So,  for example, '3.1416'
+could be read as the integer 31416 (8Ai in base 62),  divided by 10000
+(exponent character E),  and stored as 'E8Ai'.  The resulting
+compression allows all of the above ADES cases to be stored in 80-column
+format sized fields.
+
+   See 'mpc_fmt.cpp' for the _unpack_overlong_float() function.      */
+
+static int _pack_overlong_float( char *obuff, size_t osize,
+                                const char *ibuff, const size_t isize)
 {
-   int64_t oval = 0;
-   size_t i, loc = 0;
+   int rval = 0;
+   const char *decimal_loc = NULL, *endptr = ibuff + isize;
+   int64_t value = 0;
 
-   *obuff = *ibuff;        /* + or - sign */
-   obuff[1] = 'A';         /* assuming no decimal point */
-   for( i = 1; ibuff[i] && oval < SIXTY_TWO_TO_THE_NINTH_POWER / 10 - 1; i++)
-      if( ibuff[i] >= '0' && ibuff[i] <= '9')
-         oval = oval * 10 + ibuff[i] - '0';
-      else if( ibuff[i] == '.')
-         loc = i;
-   assert( loc);        /* gotta have a decimal point in there */
-   obuff[1] = (char)( 'A' + i - loc);
-   for( i = 10; i > 1; i--)
+   while( ibuff < endptr && *ibuff == ' ')
+      ibuff++;
+   while( ibuff < endptr)
       {
-      obuff[i] = int_to_mutant_hex_char( (int)( oval % 62));
-      oval /= 62;
+      if( *ibuff >= '0' && *ibuff <= '9')
+         value = value * 10 + (int64_t)( *ibuff - '0');
+      else if( *ibuff == '.' && !decimal_loc)
+         decimal_loc = ibuff;
+      else
+         break;
+      ibuff++;
       }
-   obuff[11] = ' ';
+   *obuff = (decimal_loc ? 'A' + (ibuff - decimal_loc - 1) : 'A');
+   while( ibuff < endptr && *ibuff == ' ')
+      ibuff++;
+   if( ibuff < endptr)
+      rval = -2;
+   while( --osize)
+      {
+      obuff[osize] = int_to_mutant_hex_char( (int)( value % 62));
+      value /= 62;
+      }
+   if( value)
+      rval = -1;
+   return( rval);
 }
 
 static int get_a_line( char *obuff, const size_t obuff_size, ades2mpc_t *cptr)
@@ -863,7 +886,10 @@ static int process_ades_tag( char *obuff, ades2mpc_t *cptr, const int itag,
                rval = 1;
                }
             if( nlen > 11)
-               pack_oversized_spacecraft_offset( &cptr->line2[sign_loc], name);
+               {
+               cptr->line[sign_loc] = *name;
+               _pack_overlong_float( &cptr->line2[sign_loc + 1], 10, name + 1, nlen - 1);
+               }
             else if( decimal_loc)
                {
                decimal_loc -= (int)(tptr2 - name);
