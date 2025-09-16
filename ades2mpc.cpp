@@ -476,7 +476,7 @@ static int _pack_overlong_float( char *obuff, size_t osize,
          break;
       ibuff++;
       }
-   *obuff = (decimal_loc ? 'A' + (ibuff - decimal_loc - 1) : 'A');
+   *obuff = (char)(decimal_loc ? 'A' + (ibuff - decimal_loc - 1) : 'A');
    while( ibuff < endptr && *ibuff == ' ')
       ibuff++;
    if( ibuff < endptr)
