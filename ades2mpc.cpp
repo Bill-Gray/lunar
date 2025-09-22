@@ -1028,7 +1028,7 @@ static int process_ades_tag( char *obuff, ades2mpc_t *cptr, const int itag,
       case ADES_mag:
          memcpy( cptr->line + 65, tptr, (len < 5) ? len : 5);
          if( len > 5)
-            strlcpy( cptr->full_mag, name, sizeof( cptr->full_mag));
+            strlcpy_err( cptr->full_mag, name, sizeof( cptr->full_mag));
          break;
       case ADES_trkMPC:    /* trkSub if it's deprecated;  */
          break;            /* currently ignored           */
