@@ -151,7 +151,7 @@ double mtst_at_airy_to_tt( const double mtst)
       const double delta = approx_tt - eqn_of_time * days_per_sol - rval[i - 1];
 
       rval[i] = rval[i - 1] + delta;
-      printf( "iter %d : %.10lf\n", (int)i, rval[i]);
+      printf( "iter %d : %.10f\n", (int)i, rval[i]);
       }
    d1 = rval[2] - rval[1];             /* Aitken delta-squared */
    d2 = rval[1] - rval[0];
