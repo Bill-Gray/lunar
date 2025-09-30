@@ -913,6 +913,7 @@ static int process_ades_tag( char *obuff, ades2mpc_t *cptr, const int itag,
             }
          break;
       case ADES_ra:
+      case ADES_raStar:
          if( *tptr == '+')
             {
             tptr++;
@@ -925,6 +926,7 @@ static int process_ades_tag( char *obuff, ades2mpc_t *cptr, const int itag,
             }
          break;
       case ADES_dec:
+      case ADES_decStar:
          if( *tptr == '-' || *tptr == '+')
             {
             cptr->line[44] = *tptr++;
@@ -1320,8 +1322,9 @@ int xlate_ades2mpc( void *context, char *obuff, const char *buff)
                   if( cptr->depth == MAX_DEPTH)
                      rval = ADES_DEPTH_MAX;
                   }
-               if( tag_idx == ADES_optical || tag_idx == ADES_radar)
-                  {     /* may someday handle ADES_offset and/or ADES_occultation */
+               if( tag_idx == ADES_optical || tag_idx == ADES_radar
+                                           || tag_idx == ADES_occultation)
+                  {     /* may someday handle ADES_offset */
                   if( tptr[1] == '/')
                      cptr->getting_lines = rval = 1;
                   else
