@@ -150,7 +150,7 @@ elliptical case,  where in Kepler's equation,
 
 M = E - e sin( E)
 
-   E and e sin( E) can be almost identical quantities.  To
+   E and e sin( E) can be almost identical quantities.  To work
 around this,  near_parabolic( ) computes E - e sin( E) by expanding
 the sine function as a power series:
 

@@ -192,7 +192,9 @@ Delta-T string:
 
    Since then,  I've switched to quadratic and higher-order polynomials
 from the _Five Millennium Catalogue of Solar Eclipses_ by Espenak and
-Meeus,  as defined in the above default_delta_t_string.  */
+Meeus,  as defined in the above default_delta_t_string :
+
+https://eclipse.gsfc.nasa.gov/SEcat5/deltatpoly.html     */
 
 #define J2000 2451545.
 
