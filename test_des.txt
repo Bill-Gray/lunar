@@ -1,7 +1,7 @@
 #  Test input for 'test_des'.  See 'test_des.cpp'.
 # 'Test 1' = test packing;  'Test 2' = test unpacking;  'Test 3' = test both
-# At present,  we have one one-way test.  'Neptune 210' will be packed to
-# N210S;  on unpacking,  it becomes 'Neptune CCX'.
+# At present,  we have one pack-only test.  'Neptune 210' packs to N210S;
+# but on unpacking,  it becomes 'Neptune CCX'.
 # Test 2
 N210S         5 Neptune 210
 # And we have some unpacking-only tests.  The following should
@@ -83,3 +83,11 @@ U410S         5 Uranus CDX
     A_RD0aEM  0 A/2027 DZ6190
     C_SEZZZZ  2 C/2028 EA339749
     P_TFzzzz  2 P/2029 FL591673
+# I had cases (now fixed) of eight-character designations starting with P, C,
+# D, X, A,  etc. which were erroneously treated as comet or satellite desigs.
+# These can't be re-packed (and are not really valid packed designations to
+# begin with),  so only unpacking is tested.
+# Test 1
+    Censored -1 Censored
+    P317abo# -1 P317abo#
+    STress17 -1 STress17

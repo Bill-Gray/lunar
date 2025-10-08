@@ -314,15 +314,21 @@ int unpack_mpc_desig( char *obuff, const char *packed)
    if( rval == OBJ_DESIG_OTHER && !memcmp( packed, "    ", 4)
             && strchr( " PCDXA", packed[4]))
       {
-      if( obuff && packed[4] != ' ')
+      const bool is_prefixed = (obuff && packed[4] != ' ');
+      const size_t size_to_use = obuff_size - (packed[4] == ' ' ? 0 : 2);
+
+      if( !unpack_provisional_packed_desig( obuff, size_to_use, packed + 5))
          {
-         *obuff++ = packed[4];
-         *obuff++ = '/';
-         }
-      if( !unpack_provisional_packed_desig( obuff, obuff_size, packed + 5))
+         if( is_prefixed)
+            {
+            memmove( obuff + 2, obuff, strlen( obuff) + 1);
+            obuff[0] = packed[4];
+            obuff[1] = '/';
+            }
          rval = ((packed[4] == ' ' || packed[4] == 'A') ?
                                       OBJ_DESIG_ASTEROID_PROVISIONAL
                                     : OBJ_DESIG_COMET_PROVISIONAL);
+         }
       }
    if( rval == OBJ_DESIG_OTHER && space_mask == 0x1f
             && (digit_mask & 0xf00) == 0xf00 && packed[7] == 'S')
