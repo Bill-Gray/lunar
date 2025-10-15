@@ -2,6 +2,7 @@
 #include <ctype.h>
 #include <string.h>
 #include <stdlib.h>
+#include <assert.h>
 #include "watdefs.h"
 #include "mpc_func.h"
 #include "stringex.h"
@@ -151,6 +152,23 @@ static int is_artsat_desig( const char *desig)
    return( 0);
 }
 
+static void roman_numeralize( char *buff, const size_t obuff_size, const int number)
+{
+   const char *roman_digits[10] = { "", "I", "II", "III", "IV",
+            "V", "VI", "VII", "VIII", "IX" };
+   const char *roman_tens[10] = { "", "X", "XX", "XXX", "XL",
+            "L", "LX", "LXX", "LXXX", "XC" };
+   const char *roman_hundreds[10] = { "", "C", "CC", "CCC", "CD",
+            "D", "DC", "DCC", "DCCC", "CM" };
+   const char *roman_thousands[5] = { "", "M", "MM", "MMM", "MMMM" };
+
+   assert( number > 0 && number < 4000);
+   strlcpy_err( buff, roman_thousands[number / 1000], obuff_size);
+   strlcat_err( buff, roman_hundreds[(number / 100) % 10], obuff_size);
+   strlcat_err( buff, roman_tens[(number / 10) % 10], obuff_size);
+   strlcat_err( buff, roman_digits[number % 10], obuff_size);
+}
+
 const char *planet_names_in_english[] = { "Venus", "Earth", "Mars", "Jupiter",
                   "Saturn", "Uranus", "Neptune", "Pluto" };
 
@@ -188,12 +206,6 @@ int unpack_mpc_desig( char *obuff, const char *packed)
          {
          if( obuff)
             {
-            const char *roman_digits[10] = { "", "I", "II", "III", "IV",
-                     "V", "VI", "VII", "VIII", "IX" };
-            const char *roman_tens[10] = { "", "X", "XX", "XXX", "XL",
-                     "L", "LX", "LXX", "LXXX", "XC" };
-            const char *roman_hundreds[10] = { "", "C", "CC", "CCC", "CD",
-                     "D", "DC", "DCC", "DCCC", "CM" };
             const int obj_number = atoi( packed + 1);
 
             for( i = 0; i < 8; i++)
@@ -202,12 +214,8 @@ int unpack_mpc_desig( char *obuff, const char *packed)
                   strlcpy( obuff, planet_names_in_english[i], obuff_size);
                   strlcat( obuff, " ", obuff_size);
                   }
-            if( obj_number / 100)
-               strlcat_err( obuff, roman_hundreds[obj_number / 100], obuff_size);
-            if( (obj_number / 10) % 10)
-               strlcat_err( obuff, roman_tens[(obj_number / 10) % 10], obuff_size);
-            if( obj_number % 10)
-               strlcat_err( obuff, roman_digits[obj_number % 10], obuff_size);
+            roman_numeralize( obuff + strlen( obuff), obuff_size - strlen( obuff),
+                           obj_number);
             }
          rval = OBJ_DESIG_NATSAT_NUMBERED;
          }
