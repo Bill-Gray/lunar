@@ -32,10 +32,13 @@ static void error_exit( void)
    const size_t n_xrefs = sizeof( jpl_xrefs) / sizeof( jpl_xrefs[0]);
    size_t i;
 
-   fprintf( stderr, "Usage : jpl_url <MPC code or YYYY-NNNA desig> <start date> <end date>\n"
-           "See comments in 'jpl_url.c' for details.\n");
+   fputs( "usage : jpl_url obj_desig start_date end_date\n"
+           "   obj_desig = MPC code or YYYY-NNNA (COSPAR) designation\n"
+           "See comments in 'jpl_url.c' for details.\n"
+           "Supported objects:\n\n"
+           "MPC  COSPAR_desig   name\n", stderr);
    for( i = 0; i < n_xrefs; i++)
-      fprintf( stderr, "%s %-11s %s\n", jpl_xrefs[i].mpc_code,
+      fprintf( stderr, "%s  %-11s  %s\n", jpl_xrefs[i].mpc_code,
                                         jpl_xrefs[i].intl_desig,
                                         jpl_xrefs[i].name);
    exit( -1);
