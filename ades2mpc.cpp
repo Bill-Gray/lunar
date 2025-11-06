@@ -887,7 +887,7 @@ static int process_ades_tag( char *obuff, ades2mpc_t *cptr, const int itag,
                }
             if( nlen > 11)
                {
-               cptr->line[sign_loc] = *name;
+               cptr->line2[sign_loc] = *name;
                _pack_overlong_float( &cptr->line2[sign_loc + 1], 10, name + 1, nlen - 1);
                }
             else if( decimal_loc)
