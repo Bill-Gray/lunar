@@ -501,6 +501,7 @@ static int get_a_line( char *obuff, const size_t obuff_size, ades2mpc_t *cptr)
          snprintf_append( obuff, obuff_size, "x%s", cptr->rms_dec);
          if( atof( cptr->corr))
             snprintf_append( obuff, obuff_size, ",%s", cptr->corr);
+         cptr->corr[0] = '\0';
          }
       if( cptr->rms_mag[0])
          {
@@ -1099,7 +1100,7 @@ static int check_for_tholen_sigmas( ades2mpc_t *cptr, char *obuff, const char *i
          setup_observation( cptr);
          memcpy( cptr->rms_ra, ibuff + 81, 5);
          memcpy( cptr->rms_dec, ibuff + 87, 5);
-         cptr->rms_ra[5] = cptr->rms_dec[5] = '\0';
+         cptr->rms_ra[5] = cptr->rms_dec[5] = cptr->corr[0] = '\0';
          strlcpy_err( cptr->line, obuff, sizeof( cptr->line));
          obuff[12] = '\0';
          if( !create_mpc_packed_desig( packed_desig, obuff))
