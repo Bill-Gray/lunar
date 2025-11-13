@@ -496,7 +496,7 @@ static int get_a_line( char *obuff, const size_t obuff_size, ades2mpc_t *cptr)
    if (cptr->rms_ra[0])
       {
       snprintf_err( obuff, obuff_size, "COM Sigmas %s", cptr->rms_ra);
-      if( strcmp( cptr->rms_ra, cptr->rms_dec))
+      if( strcmp( cptr->rms_ra, cptr->rms_dec) || atof( cptr->corr))
          {
          snprintf_append( obuff, obuff_size, "x%s", cptr->rms_dec);
          if( atof( cptr->corr))
@@ -741,8 +741,8 @@ static int process_ades_tag( char *obuff, ades2mpc_t *cptr, const int itag,
          cptr->line[14] = 'X';
          break;
       case ADES_disc:
-         if( *tptr == '*')
-            cptr->line[12] = '*';
+         assert( *tptr == '*');     /* may also == '+',  but haven't seen that */
+         cptr->line[12] = *tptr;    /* yet and want to see if it happens */
          break;
       case ADES_rcv:
          cptr->line2[0] = ' ';
