@@ -48,7 +48,7 @@ typedef struct
    char rms_mag[PIECE_SIZE], rms_time[PIECE_SIZE], unc_time[PIECE_SIZE];
    char full_ra[PIECE_SIZE], full_dec[PIECE_SIZE], full_mag[12];
    char notes[7], program_code[3];
-   char trk_sub[14], obs_id[PIECE_SIZE], trk_id[12], passband[4];
+   char trk_sub[14], obs_id[PIECE_SIZE], trk_id[14], passband[4];
    long double full_t2k;
    int id_set, getting_lines, spacecraft_center;
    int prev_line_passed_through;
