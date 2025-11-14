@@ -399,7 +399,7 @@ int process_file( const char *filename, FILE *ofile)
    time_t t0 = time( NULL);
    offset_t *offsets = NULL;
    int i, n_offsets = 0;
-   bool ades_found = false;
+   bool ades_found = false, is_spacecraft = false;
 
    assert( ifile);
    while( fgets( buff, sizeof( buff), ifile))
@@ -445,8 +445,8 @@ int process_file( const char *filename, FILE *ofile)
    while( fgets( buff, sizeof( buff), ifile))
       if( (jd = get_sat_obs_jd( buff)) <= 0.)    /* not an observation;  */
          {                                       /* just pass it through */
-         if( !ades_posn_tag( buff))          /* unless it's an ADES posn tag */
-            fprintf( ofile, "%s", buff);
+         if( !ades_posn_tag( buff) || !is_spacecraft)
+            fprintf( ofile, "%s", buff);         /* unless it's an ADES posn tag */
          }
       else if( buff[14] != 's' || *mpc_code_from_ades)
          {
@@ -457,6 +457,7 @@ int process_file( const char *filename, FILE *ofile)
             if( !memcmp( mpc_code, offsets[i].mpc_code, 3)
                        && fabs( jd - offsets[i].jd) < tolerance)
                idx = i;
+         is_spacecraft = (idx >= 0);
          if( idx >= 0)
             {
             if( *mpc_code_from_ades)
