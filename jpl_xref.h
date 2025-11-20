@@ -36,6 +36,7 @@ static const jpl_xref_t jpl_xrefs[] = {
    { "C56",  -141043, 41043, "2015-070A",   "LISA Pathfinder" },
    { "Luc",      -49, 49328, "2021-093A",   "Lucy" },
    { "LFL",     -164, 54697, "2022-168B",   "Lunar Flashlight" },
+   { "MRO",      -74, 28788, "2005-029A",   "Mars Reconnaissance Orbiter" },
    { "289",     -211, 99999, "2026-000ZZZ", "Nancy Grace Roman Space Telescope" },
    { "C53",  -139089, 39089, "2013-009D",   "NEOSSat" },
    { "C58",      -33, 99999, "2027-000ZZZ", "NEO Surveyor" },
