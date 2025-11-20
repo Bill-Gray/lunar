@@ -71,8 +71,13 @@ static double get_sat_obs_jd( const char *buff)
    const char *ades_time = strstr( buff, "<obsTime>");
    const char *ades_stn = strstr( buff, "<stn>");
 
-   if( ades_stn && get_horizons_idx( ades_stn + 5))
-      memcpy( mpc_code_from_ades, ades_stn + 5, 3);
+   if( ades_stn)
+      {
+      if( get_horizons_idx( ades_stn + 5))
+         memcpy( mpc_code_from_ades, ades_stn + 5, 3);
+      else
+         *mpc_code_from_ades = '\0';
+      }
    if( strlen( buff) > 80 && (buff[14] == 'S' || buff[14] == 's'))
       jd = extract_date_from_mpc_report( buff, NULL);
    if( ades_time && *mpc_code_from_ades)
@@ -81,8 +86,9 @@ static double get_sat_obs_jd( const char *buff)
       size_t i = 0;
 
       ades_time += 9;
-      while( *ades_time != 'Z' && *ades_time && i < sizeof( tbuff))
+      while( *ades_time != 'Z' && *ades_time && i < sizeof( tbuff) - 1)
          tbuff[i++] = *ades_time++;
+      tbuff[i] = '\0';
       jd = get_time_from_string( 0., tbuff, FULL_CTIME_YMD, NULL);
       }
 
@@ -342,14 +348,31 @@ static char *ades_posvel( char *buff, const double value)
 }
 
    /* When processing ADES observations,  they may already contain
-   spacecraft offsets with the '<pos#>',  '<vel#>', <ctr>,  etc.  We
-   don't pass those through to the output,  since they're (we hope)
+   spacecraft offsets with the '<pos#>',  '<vel#>', <ctr>,  etc.  If
+   these are for a spacecraft,  we strip them,  since they are (we hope)
    getting replaced. */
 
-static bool ades_posn_tag( const char *buff)
+static void remove_ades_posn_tags( char *buff)
 {
-   return( strstr( buff, "<pos") || strstr( buff, "<vel")
-               || strstr( buff, "<ctr>") || strstr( buff, "<sys>"));
+   const char *removers[] = { "pos1>", "pos2>", "pos3>", "vel1>", "vel2>", "vel3>",
+                  "ctr>", "sys>" };
+   char *open_tag, *close_tag;
+   size_t i;
+
+   for( i = 0; i < sizeof( removers) / sizeof( removers[0]); i++)
+      if( NULL != (open_tag = strstr( buff, removers[i]))
+               && open_tag > buff && open_tag[-1] == '<'
+               && NULL != (close_tag = strstr( open_tag + 1, removers[i]))
+               && close_tag[-1] == '/' && close_tag[-2] == '<')
+         {
+         close_tag += strlen( removers[i]);
+         memmove( open_tag - 1, close_tag, strlen( close_tag) + 1);
+         }
+   i = 0;
+   while( buff[i] == ' ')
+      i++;
+   if( buff[i] < ' ')     /* we removed everything except spaces and CR/LF */
+      *buff = '\0';
 }
 
 bool show_offsets_from_original = false;
@@ -399,7 +422,7 @@ int process_file( const char *filename, FILE *ofile)
    time_t t0 = time( NULL);
    offset_t *offsets = NULL;
    int i, n_offsets = 0;
-   bool ades_found = false, is_spacecraft = false;
+   bool ades_found = false;
 
    assert( ifile);
    while( fgets( buff, sizeof( buff), ifile))
@@ -445,7 +468,9 @@ int process_file( const char *filename, FILE *ofile)
    while( fgets( buff, sizeof( buff), ifile))
       if( (jd = get_sat_obs_jd( buff)) <= 0.)    /* not an observation;  */
          {                                       /* just pass it through */
-         if( !ades_posn_tag( buff) || !is_spacecraft)
+         if( *mpc_code_from_ades)
+            remove_ades_posn_tags( buff);
+         if( *buff)
             fprintf( ofile, "%s", buff);         /* unless it's an ADES posn tag */
          }
       else if( buff[14] != 's' || *mpc_code_from_ades)
@@ -457,7 +482,6 @@ int process_file( const char *filename, FILE *ofile)
             if( !memcmp( mpc_code, offsets[i].mpc_code, 3)
                        && fabs( jd - offsets[i].jd) < tolerance)
                idx = i;
-         is_spacecraft = (idx >= 0);
          if( idx >= 0)
             {
             if( *mpc_code_from_ades)
