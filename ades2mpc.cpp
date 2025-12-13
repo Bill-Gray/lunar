@@ -536,16 +536,12 @@ static int get_a_line( char *obuff, const size_t obuff_size, ades2mpc_t *cptr)
       cptr->trk_sub[0] = cptr->obs_id[0] = cptr->trk_id[0] = '\0';
       strlcat_err( obuff, "\n", obuff_size);
       }
-   else if( cptr->full_ra[0] || cptr->full_dec[0] || cptr->full_t2k != NOT_A_VALID_TIME)
+   else if( cptr->full_ra[0] || cptr->full_dec[0])
       {
-      snprintf_err( obuff, obuff_size, "COM RA/dec %s %s",
+      snprintf_err( obuff, obuff_size, "COM RA/dec %s %s\n",
                (cptr->full_ra[0] ? cptr->full_ra : "-"),
                (cptr->full_dec[0] ? cptr->full_dec : "-"));
-      if( cptr->full_t2k != NOT_A_VALID_TIME)
-         snprintf_append( obuff, obuff_size, " %.15f", (double)cptr->full_t2k);
-      strlcat_err( obuff, "\n", obuff_size);
       cptr->full_ra[0] = cptr->full_dec[0] = '\0';
-      cptr->full_t2k = NOT_A_VALID_TIME;
       }
    else if( cptr->full_dec[0])
       {
@@ -699,16 +695,40 @@ static int process_ades_tag( char *obuff, ades2mpc_t *cptr, const int itag,
       case ADES_obsTime:
          {
          const bool too_far_in_future = (atoi( tptr) > 2099);
+         char *zptr = strchr( name, 'Z');
 
-         if( move_fits_time( cptr->line + 15, tptr) > 17 || too_far_in_future)
+         if( zptr)
+            *zptr = '\0';
+         cptr->full_t2k = get_time_from_stringl( 0., name, 0, NULL);
+         move_fits_time( cptr->line + 15, tptr);
+         if( too_far_in_future)
+            cptr->line[15] = 'K';
+         }
+         break;
+      case ADES_precTime:
+         {
+         int prec = atoi( tptr), format_out = 0;
+         const int base_format = FULL_CTIME_MONTHS_AS_DIGITS
+                     | FULL_CTIME_LEADING_ZEROES | FULL_CTIME_YMD
+                     | FULL_CTIME_FORMAT_DAY;
+         char tbuff[25];
+         const int remaps[] = {
+               1,      FULL_CTIME_FORMAT_DAY | FULL_CTIME_6_PLACES,
+               10,     FULL_CTIME_FORMAT_DAY | FULL_CTIME_5_PLACES,
+               100,    FULL_CTIME_FORMAT_DAY | FULL_CTIME_4_PLACES,
+               1000,   FULL_CTIME_FORMAT_DAY | FULL_CTIME_3_PLACES,
+               10000,  FULL_CTIME_FORMAT_DAY | FULL_CTIME_2_PLACES,
+               100000, FULL_CTIME_FORMAT_DAY | FULL_CTIME_1_PLACE };
+         const size_t n_remaps = sizeof( remaps) / sizeof( remaps[0]);
+
+         for( size_t i = 0; !format_out && i < n_remaps; i += 2)
+            if( prec == remaps[i])
+               format_out = remaps[i + 1];
+         if( format_out)
             {
-            char *zptr = strchr( name, 'Z');
-
-            if( zptr)
-               *zptr = '\0';
-            cptr->full_t2k = get_time_from_stringl( 0., name, 0, NULL);
-            if( too_far_in_future)
-               cptr->line[15] = 'K';
+            full_ctimel( tbuff, cptr->full_t2k, format_out | base_format);
+            strlcat_error( tbuff, "      ");
+            memcpy( cptr->line + 15, tbuff, 17);
             }
          }
          break;
