@@ -629,6 +629,21 @@ static void _format_without_decimal( char *optr, const char *ival, const size_t 
       }
 }
 
+static int ades_precision_to_mpc80_precision( const char *prec)
+{
+   int output_format = 999;
+
+   if( !strcmp( prec, "0.001"))
+      output_format = 3;
+   else if( !strcmp( prec, "0.01"))
+      output_format = 2;
+   else if( !strcmp( prec, "0.1"))
+      output_format = 1;
+   else if( *prec == '1')
+      output_format = 0;
+   return( output_format);
+}
+
 /* Returns 1 if it's a properly handled header tag,  0 if it's some
 other tag or among the remaining unhandled header tags (I'm not
 dealing with the telescope details yet,  for example.) */
@@ -705,7 +720,35 @@ static int process_ades_tag( char *obuff, ades2mpc_t *cptr, const int itag,
             cptr->line[15] = 'K';
          }
          break;
-      case ADES_precTime:
+      case ADES_precRA:       /* reformat RA in the original base-60 */
+         {
+         const int output_format = ades_precision_to_mpc80_precision( name);
+
+         if( output_format != 999)
+            {
+            const double ra = atof( cptr->line + 32);
+            char tbuff[20];
+
+            output_angle_to_buff( tbuff, ra / 15., output_format);
+            memcpy( cptr->line + 32, tbuff, 12);
+            }
+         }
+         break;
+      case ADES_precDec:      /* reformat dec in the original base-60 */
+         {
+         const int output_format = ades_precision_to_mpc80_precision( name);
+
+         if( output_format != 999)
+            {
+            const double dec = atof( cptr->line + 45);
+            char tbuff[20];
+
+            output_angle_to_buff( tbuff, dec, output_format);
+            memcpy( cptr->line + 45, tbuff, 11);
+            }
+         }
+         break;
+      case ADES_precTime:     /* reformat time in decimal days */
          {
          int prec = atoi( tptr), format_out = 0;
          const int base_format = FULL_CTIME_MONTHS_AS_DIGITS
