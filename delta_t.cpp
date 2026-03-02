@@ -34,15 +34,15 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 to check default_delta_t_string only for years before 1620.  This should
 have zero effect on the results,  but should save some CPU cycles.   */
 
-/* The following method for computing Delta-T works as follows.  For dates
-between 1620 and 2016,  the value comes from the 'delta_t_table' (copied
-in turn from Meeus' _Astronomical Algorithms_),  extended using data from
-the USNO sites referenced below.  The table gives delta-t at two-year
-intervals;  between those values,  a linear interpolation is used.  If
-the year is before 1620,  one of four polynomial approximations is used
-(see references below).   If the date is after the end of the table,
-a linear extrapolation is used,  with a quadratic term added to that
-which assumes an acceleration of 32.5 seconds/century^2.
+/* Delta-T is computed as follows.  For dates after 1620, the value
+comes from the 'delta_t_table'.  This was copied from Meeus'
+_Astronomical Algorithms_ and has been extended using data from the USNO
+sites referenced below.  The table gives delta-t at two-year intervals;
+between those values,  a linear interpolation is used.  If the year is
+before 1620,  one of four polynomial approximations is used (see
+references below).   If the date is after the end of the table, a linear
+extrapolation is used,  with a quadratic term added to that which
+assumes an acceleration of 32.5 seconds/century^2.
 
    Updated at two-year intervals to add a new Delta-T table entry from
 
@@ -52,6 +52,7 @@ ftp://maia.usno.navy.mil/ser7/deltat.preds
    which is no longer available;  2020 and later uses
 
 ftp://ftp.iers.org/products/eop/rapid/standard/finals.all
+https://datacenter.iers.org/data/latestVersion/finals.all.iau1980.txt
 */
 
 static const short delta_t_table[] =
@@ -99,7 +100,8 @@ static const short delta_t_table[] =
   6897,    /* 2018  1 1:   68.9677                              */
   6936,    /* 2020  1 1:   UT1 - UTC = -0.1772554; 69.3612554   */
   6929,    /* 2022  1 1:   UT1 - UTC = -0.1104988; 69.2944988   */
-  6918 };  /* 2024  1 1:   UT1 - UTC =  0.0087688; 69.1752068   */
+  6918,    /* 2024  1 1:   UT1 - UTC =  0.0087688; 69.1752068   */
+  6911 };  /* 2026  1 1:   UT1 - UTC =  0.0740687; 69.1099313   */
 
 /* 8 Aug 2000:  Some people have expressed an interest in being able to
    insert their own formulae for Delta-T while running Guide.  I've
