@@ -169,23 +169,26 @@ static void miranda_elems( const double t, double *elems)
 /* --- ZETA = Q + IP --- */
    static const double ai_series[5] = { 37871.71e-06, +27.01e-06, +30.76e-06,
                   +12.18e-06, +5.37e-06 };
+   const double tval = an[0] - 3. * an[1] + 2. * an[2];
+   const double tval2 = an[0] - an[1];
+
 /* --- RN => mean motion (radians/day) ---- */
    elems[0] = 4443522.67e-06
-              -34.92e-06*cos(an[0]-3.e0*an[1]+2.e0*an[2])
-               +8.47e-06*cos(2.*an[0]-6.*an[1]+4.*an[2])
-               +1.31e-06*cos(3.*an[0]-9.*an[1]+6.*an[2])
-              -52.28e-06*cos(an[0]-an[1])
-             -136.65e-06*cos(2.*an[0]-2.*an[1]);
+              -34.92e-06*cos( tval)
+               +8.47e-06*cos(2. * tval)
+               +1.31e-06*cos(3. * tval)
+              -52.28e-06*cos( tval2)
+             -136.65e-06*cos(2. * tval2);
 /* --- RL => mean longitude (radians) ---- */
    elems[1] =  -238051.58e-06
           +4445190.55e-06*t
-            +25472.17e-06*sin(an[0]-3.*an[1]+2.*an[2])
-             -3088.31e-06*sin(2.*an[0]-6.*an[1]+4.*an[2])
-              -318.10e-06*sin(3.*an[0]-9.*an[1]+6.*an[2])
-               -37.49e-06*sin(4.*an[0]-12.*an[1]+8.*an[2])
-               -57.85e-06*sin(an[0]-an[1])
-               -62.32e-06*sin(2.*an[0]-2.*an[1])
-               -27.95e-06*sin(3.*an[0]-3.*an[1]);
+            +25472.17e-06*sin( tval)
+             -3088.31e-06*sin(2. * tval)
+              -318.10e-06*sin(3. * tval)
+               -37.49e-06*sin(4. * tval)
+               -57.85e-06*sin( tval2)
+               -62.32e-06*sin(2. * tval2)
+               -27.95e-06*sin(3. * tval2);
    phases[0] = -an[0] + 2.*an[1];
    phases[1] = -2. * an[0] + 3.*an[1];
    phases[2] = an[0];
@@ -208,22 +211,24 @@ static void ariel_elems( const double t, double *elems)
    static const double amplitudes[4] = {
             -84.60e-06, +91.81e-06, +20.03e-06, +89.77e-06 };
    double phases[4];
+   const double tval = an[0] - 3. * an[1] + 2. * an[2];
+   const double tval2 = an[1] - an[2];
 
 /* --- RN => mean motion (radians/day) --- */
    elems[0] = 2492542.57e-06
-                +2.55e-06*cos(an[0]-3.*an[1]+2.*an[2])
-               -42.16e-06*cos(an[1]-an[2])
-              -102.56e-06*cos(2.*an[1]-2.*an[2]);
+                +2.55e-06*cos( tval)
+               -42.16e-06*cos( tval2)
+              -102.56e-06*cos(2. * tval2);
 /* --- RL => mean longitude (radians) --- */
    elems[1] =   3098046.41e-06
             +2492952.52e-06*t
-               -1860.50e-06*sin(an[0]-3.*an[1]+2.*an[2])
-                +219.99e-06*sin(2.*an[0]-6.*an[1]+4.*an[2])
-                 +23.10e-06*sin(3.*an[0]-9.*an[1]+6.*an[2])
-                  +4.30e-06*sin(4.*an[0]-12.*an[1]+8.*an[2])
-                 -90.11e-06*sin(an[1]-an[2])
-                 -91.07e-06*sin(2.*an[1]-2.*an[2])
-                 -42.75e-06*sin(3.*an[1]-3.*an[2])
+               -1860.50e-06*sin( tval)
+                +219.99e-06*sin(2. * tval)
+                 +23.10e-06*sin(3. * tval)
+                  +4.30e-06*sin(4. * tval)
+                 -90.11e-06*sin( tval2)
+                 -91.07e-06*sin(2. * tval2)
+                 -42.75e-06*sin(3. * tval2)
                  -16.49e-06*sin(2.*an[1]-2.*an[3]);
    phases[0] =  2. * an[2] - an[1];
    phases[1] =  3. * an[2] - 2. * an[1];
@@ -254,39 +259,43 @@ static void umbriel_elems( const double t, double *elems)
                -16.22e-6, 549.23e-6, 34.70e-6, 12.81e-6, 21.81e-6,
                46.25e-6 };
    double phases[11];
+   const double tval = an[0] - 3. * an[1] + 2. * an[2];
+   const double diff23 = an[2] - an[3];
+   const double diff24 = an[2] - an[4];
+   const double diff12 = an[1] - an[2];
 
 /* --- RN => mean motion (radians/day) --- */
    elems[0] =  1515954.90e-06
                  +9.74e-06*cos(an[2]-2.*an[3]+ae[2])
-               -106.00e-06*cos(an[1]-an[2])
-                +54.16e-06*cos(2.*an[1]-2.*an[2])
-                -23.59e-06*cos(an[2]-an[3])
-                -70.70e-06*cos(2.*an[2]-2.*an[3])
-                -36.28e-06*cos(3.*an[2]-3.*an[3]);
+               -106.00e-06*cos( diff12)
+                +54.16e-06*cos(2. * diff12)
+                -23.59e-06*cos( diff23)
+                -70.70e-06*cos(2. * diff23)
+                -36.28e-06*cos(3. * diff23);
 /* --- RL => mean longitude (radians) --- */
    elems[1] =  2285401.69e-06
             +1516148.11e-06*t
-                +660.57e-06*sin(an[0]-3.*an[1]+2.*an[2])
-                 -76.51e-06*sin(2.*an[0]-6.*an[1]+4.*an[2])
-                  -8.96e-06*sin(3.*an[0]-9.*an[1]+6.*an[2])
-                  -2.53e-06*sin(4.*an[0]-12.*an[1]+8.*an[2])
+                +660.57e-06*sin( tval)
+                 -76.51e-06*sin(2. * tval)
+                  -8.96e-06*sin(3. * tval)
+                  -2.53e-06*sin(4. * tval)
                  -52.91e-06*sin(an[2]-4.*an[3]+3.*an[4])
                   -7.34e-06*sin(an[2]-2.*an[3]+ae[4])
                   -1.83e-06*sin(an[2]-2.*an[3]+ae[3])
                 +147.91e-06*sin(an[2]-2.*an[3]+ae[2]);
 
    elems[1] +=       -7.77e-06*sin(an[2]-2.*an[3]+ae[1])
-                 +97.76e-06*sin(an[1]-an[2])
-                 +73.13e-06*sin(2.*an[1]-2.*an[2])
-                 +34.71e-06*sin(3.*an[1]-3.*an[2])
-                 +18.89e-06*sin(4.*an[1]-4.*an[2])
-                 -67.89e-06*sin(an[2]-an[3])
-                 -82.86e-06*sin(2.*an[2]-2.*an[3]);
+                 +97.76e-06*sin( diff12)
+                 +73.13e-06*sin(2. * diff12)
+                 +34.71e-06*sin(3. * diff12)
+                 +18.89e-06*sin(4. * diff12)
+                 -67.89e-06*sin( diff23)
+                 -82.86e-06*sin(2. * diff23);
 
-   elems[1] +=      -33.81e-06*sin(3.*an[2]-3.*an[3])
-                 -15.79e-06*sin(4.*an[2]-4.*an[3])
-                 -10.21e-06*sin(an[2]-an[4])
-                 -17.08e-06*sin(2.*an[2]-2.*an[4]);
+   elems[1] +=      -33.81e-06*sin(3. * diff23)
+                 -15.79e-06*sin(4. * diff23)
+                 -10.21e-06*sin( diff24)
+                 -17.08e-06*sin(2. * diff24);
 
    phases[0]  = an[1];
    phases[1]  = an[2];
@@ -323,46 +332,49 @@ static void titania_elems( const double t, double *elems)
                 -17.86e-6, -32.10e-6, -177.83e-6, 793.43e-6, 99.48e-6,
                 44.83e-6, 25.13e-6, 15.43e-6 };
    double phases[13];
+   const double diff34 = an[3] - an[4];
+   const double tval = 2. * an[3] - 3. * an[4];
+   const double tval2 = an[2] - 2. * an[3];
 
 /* --- RN => mean motion (radians/day) --- */
    elems[0] = 721663.16e-06
                 -2.64e-06*cos(an[2]-2.*an[3]+ae[2])
-                -2.16e-06*cos(2.*an[3]-3.*an[4]+ae[4])
-                +6.45e-06*cos(2.*an[3]-3.*an[4]+ae[3])
-                -1.11e-06*cos(2.*an[3]-3.*an[4]+ae[2]);
+                -2.16e-06*cos( tval + ae[4])
+                +6.45e-06*cos( tval + ae[3])
+                -1.11e-06*cos( tval + ae[2]);
 
    elems[0] +=   -62.23e-06*cos(an[1]-an[3])
                -56.13e-06*cos(an[2]-an[3])
-               -39.94e-06*cos(an[3]-an[4])
-               -91.85e-06*cos(2.*an[3]-2.*an[4])
-               -58.31e-06*cos(3.*an[3]-3.*an[4])
-               -38.60e-06*cos(4.*an[3]-4.*an[4])
-               -26.18e-06*cos(5.*an[3]-5.*an[4])
-               -18.06e-06*cos(6.*an[3]-6.*an[4]);
+               -39.94e-06*cos( diff34)
+               -91.85e-06*cos(2. * diff34)
+               -58.31e-06*cos(3. * diff34)
+               -38.60e-06*cos(4. * diff34)
+               -26.18e-06*cos(5. * diff34)
+               -18.06e-06*cos(6. * diff34);
 /* --- RL => mean longitude (radians) --- */
    elems[1] =  856358.79e-06
             +721718.51e-06*t
                 +20.61e-06*sin(an[2]-4.*an[3]+3.*an[4])
-                 -2.07e-06*sin(an[2]-2.*an[3]+ae[4])
-                 -2.88e-06*sin(an[2]-2.*an[3]+ae[3])
-                -40.79e-06*sin(an[2]-2.*an[3]+ae[2])
-                 +2.11e-06*sin(an[2]-2.*an[3]+ae[1])
-                -51.83e-06*sin(2.*an[3]-3.*an[4]+ae[4])
-               +159.87e-06*sin(2.*an[3]-3.*an[4]+ae[3]);
+                 -2.07e-06*sin( tval2 + ae[4])
+                 -2.88e-06*sin( tval2 + ae[3])
+                -40.79e-06*sin( tval2 + ae[2])
+                 +2.11e-06*sin( tval2 + ae[1])
+                -51.83e-06*sin( tval + ae[4])
+               +159.87e-06*sin( tval + ae[3]);
 
-   elems[1]  +=    -35.05e-06*sin(2.*an[3]-3.*an[4]+ae[2])
+   elems[1]  +=    -35.05e-06*sin( tval + ae[2])
                  -1.56e-06*sin(3.*an[3]-4.*an[4]+ae[4])
                 +40.54e-06*sin(an[1]-an[3])
                 +46.17e-06*sin(an[2]-an[3])
-               -317.76e-06*sin(an[3]-an[4])
-               -305.59e-06*sin(2.*an[3]-2.*an[4])
-               -148.36e-06*sin(3.*an[3]-3.*an[4])
-                -82.92e-06*sin(4.*an[3]-4.*an[4]);
+               -317.76e-06*sin( diff34)
+               -305.59e-06*sin(2. * diff34)
+               -148.36e-06*sin(3. * diff34)
+                -82.92e-06*sin(4. * diff34);
 
-   elems[1]  +=    -49.98e-06*sin(5.*an[3]-5.*an[4])
-                -31.56e-06*sin(6.*an[3]-6.*an[4])
-                -20.56e-06*sin(7.*an[3]-7.*an[4])
-                -13.69e-06*sin(8.*an[3]-8.*an[4]);
+   elems[1]  +=    -49.98e-06*sin(5. * diff34)
+                -31.56e-06*sin(6. * diff34)
+                -20.56e-06*sin(7. * diff34)
+                -13.69e-06*sin(8. * diff34);
    phases[0] = an[1];
    phases[1] = an[3];
    phases[2] = -an[1]+2.*an[3];
@@ -397,38 +409,40 @@ static void oberon_elems( const double t, double *elems)
             39.00e-6, 17.66e-6, 32.42e-6, 79.75e-6, 75.66e-6, 134.04e-6,
             -987.26e-6, -126.09e-6, -57.42e-6, -32.41e-6, -19.99e-6, -12.94e-6 };
    double phases[12];
+   const double tval = 2. * an[3] - 3. * an[4];
+   const double diff34 = an[3] - an[4];
 
 /* --- RN => mean motion (radians/day) --- */
    elems[0] = 466580.54e-06
-                +2.08e-06*cos(2.*an[3]-3.*an[4]+ae[4])
-                -6.22e-06*cos(2.*an[3]-3.*an[4]+ae[3])
-                +1.07e-06*cos(2.*an[3]-3.*an[4]+ae[2])
+                +2.08e-06*cos( tval + ae[4])
+                -6.22e-06*cos( tval + ae[3])
+                +1.07e-06*cos( tval + ae[2])
                -43.10e-06*cos(an[1]-an[4]);
 
    elems[0] +=    -38.94e-06*cos(an[2]-an[4])
-               -80.11e-06*cos(an[3]-an[4])
-               +59.06e-06*cos(2.*an[3]-2.*an[4])
-               +37.49e-06*cos(3.*an[3]-3.*an[4])
-               +24.82e-06*cos(4.*an[3]-4.*an[4])
-               +16.84e-06*cos(5.*an[3]-5.*an[4]);
+               -80.11e-06*cos( diff34)
+               +59.06e-06*cos(2. * diff34)
+               +37.49e-06*cos(3. * diff34)
+               +24.82e-06*cos(4. * diff34)
+               +16.84e-06*cos(5. * diff34);
 
    elems[1] =  -915591.80e-06
              +466692.12e-06*t
                   -7.82e-06*sin(an[2]-4.*an[3]+3.*an[4])
-                 +51.29e-06*sin(2.*an[3]-3.*an[4]+ae[4])
-                -158.24e-06*sin(2.*an[3]-3.*an[4]+ae[3])
-                 +34.51e-06*sin(2.*an[3]-3.*an[4]+ae[2])
+                 +51.29e-06*sin( tval + ae[4])
+                -158.24e-06*sin( tval + ae[3])
+                 +34.51e-06*sin( tval + ae[2])
                  +47.51e-06*sin(an[1]-an[4])
                  +38.96e-06*sin(an[2]-an[4])
-                +359.73e-06*sin(an[3]-an[4]);
+                +359.73e-06*sin( diff34);
 
-   elems[1] +=      282.78e-06*sin(2.*an[3]-2.*an[4])
-                +138.60e-06*sin(3.*an[3]-3.*an[4])
-                 +78.03e-06*sin(4.*an[3]-4.*an[4])
-                 +47.29e-06*sin(5.*an[3]-5.*an[4])
-                 +30.00e-06*sin(6.*an[3]-6.*an[4])
-                 +19.62e-06*sin(7.*an[3]-7.*an[4])
-                 +13.11e-06*sin(8.*an[3]-8.*an[4]);
+   elems[1] +=      282.78e-06*sin(2. * diff34)
+                +138.60e-06*sin(3. * diff34)
+                 +78.03e-06*sin(4. * diff34)
+                 +47.29e-06*sin(5. * diff34)
+                 +30.00e-06*sin(6. * diff34)
+                 +19.62e-06*sin(7. * diff34)
+                 +13.11e-06*sin(8. * diff34);
 
     phases[0] = an[1];
     phases[1] = -an[1]+2.*an[4];
