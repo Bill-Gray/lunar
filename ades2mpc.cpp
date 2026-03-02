@@ -1433,25 +1433,6 @@ backward to the point right after the CR in question... fortunately,
 such files are quite rare as of 2020 (they were more common a couple of
 decades earlier.) */
 
-static char *fgets_trimmed( char *buff, const int len, FILE *ifile)
-{
-   char *rval = fgets( buff, len, ifile);
-
-   if( rval)
-      {
-      int i = 0;
-
-      while( buff[i] != 10 && buff[i] != 13 && buff[i])
-         i++;
-      if( buff[i] == 13 && buff[i + 1] != 10)   /* CR terminated */
-         fseek( ifile, 1L + (long)i - (long)strlen( buff), SEEK_CUR);
-      while( i && buff[i - 1] == ' ')
-         i--;           /* drop trailing spaces */
-      buff[i] = '\0';
-      }
-   return( rval);
-}
-
 int fgets_with_ades_xlation( char *buff, const size_t len,
                         void *ades_context, FILE *ifile)
 {
@@ -1460,8 +1441,24 @@ int fgets_with_ades_xlation( char *buff, const size_t len,
 
    if( prev_rval)
       prev_rval = xlate_ades2mpc_in_place( ades_context, buff);
-   while( !prev_rval && fgets_trimmed( buff, (int)len, ifile))
+   while( !prev_rval && fgets( buff, (int)len, ifile))
+      {
+      char *tptr = strstr( buff, "</optical>");
+      size_t i = 0;
+
+      if( tptr)
+         {
+         tptr += 10;
+         fseek( ifile, -(long)strlen( tptr), SEEK_CUR);
+         *tptr = '\0';
+         }
+      while( buff[i] != 10 && buff[i] != 13 && buff[i])
+         i++;
+      while( i && buff[i - 1] == ' ')
+         i--;           /* drop trailing spaces */
+      buff[i] = '\0';
       prev_rval = xlate_ades2mpc_in_place( ades_context, buff);
+      }
    while( *buff && *buff != 10 && *buff != 13)
       buff++;
    *buff = '\0';
