@@ -41,7 +41,9 @@ ifdef UCHAR
  CXXFLAGS += -funsigned-char
 endif
 
-ifdef DEBUG
+ifdef NDEBUG
+	CPPFLAGS += -DNDEBUG
+else
 	CFLAGS += -g
 	CXXFLAGS += -g
 endif
@@ -56,7 +58,7 @@ endif
 # (with root privileges) you can install them to /usr/local/include
 # and /usr/local/lib for all to enjoy.
 
-PREFIX?=~
+PREFIX?=..
 ifdef GLOBAL
 	INSTALL_DIR=/usr/local
 else
@@ -129,9 +131,9 @@ endif
 
 all: add_off$(EXE) add_off.cgi adestest$(EXE) astcheck$(EXE) astephem$(EXE) \
    calendar$(EXE) cgicheck$(EXE) chinese$(EXE) colors$(EXE) \
-   colors2$(EXE) cosptest$(EXE) csv2ades$(EXE) dist$(EXE) \
+   colors2$(EXE) cosptest$(EXE) csv2ades$(EXE) desigcgi$(EXE) dist$(EXE) \
    easter$(EXE) get_test$(EXE) gtest$(EXE) htc20b$(EXE) jd$(EXE)\
-   jevent$(EXE) jpl2b32$(EXE) jsattest$(EXE) lun_test$(EXE) \
+   jevent$(EXE) jpl2b32$(EXE) jpl_url$(EXE) jsattest$(EXE) lun_test$(EXE) \
    marstime$(EXE) moidtest$(EXE) mpc2sof$(EXE) mpc_time$(EXE) oblitest$(EXE) \
    persian$(EXE) parallax$(EXE) parallax.cgi phases$(EXE) \
    prectest$(EXE) prectes2$(EXE) ps_1996$(EXE) ssattest$(EXE) \
@@ -181,10 +183,10 @@ uninstall:
 	rm -f $(INSTALL_DIR)/bin/integrat$(EXE)
 
 .cpp.o:
-	$(CXX) $(CXXFLAGS) -c $<
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c $<
 
 .c.o:
-	$(CC) $(CFLAGS) -c $<
+	$(CC) $(CPPFLAGS) $(CFLAGS) -c $<
 
 OBJS= alt_az.o ades2mpc.o astfuncs.o big_vsop.o  \
    brentmin.o cgi_func.o classel.o conbound.o cospar.o date.o  \
@@ -201,7 +203,7 @@ clean:
 	$(RM) $(OBJS)
 	$(RM) adestest.o add_off.o astcheck.o astephem.o calendar.o cgicheck.o
 	$(RM) cosptest.o csv2ades.o get_test.o gtest.o gust86.o htc20b.o integrat.o jd.o
-	$(RM) jevent.o jpl2b32.o jsattest.o lun_test.o lun_tran.o mms.o
+	$(RM) jevent.o jpl2b32.o jpl_url.o jsattest.o lun_test.o lun_tran.o mms.o
 	$(RM) moidtest.o mpcorb.o oblitest.o obliqui2.o persian.o phases.o
 	$(RM) prectes2.o prectest.o ps_1996.o refract.o refract4.o riseset3.o solseqn.o
 	$(RM) ssattest.o tables.o test_des.o test_ref.o testprec.o
@@ -209,9 +211,9 @@ clean:
 	$(RM) add_off$(EXE) add_off.cgi
 	$(RM) adestest$(EXE) astcheck$(EXE) astephem$(EXE) calendar$(EXE)
 	$(RM) cgicheck$(EXE) chinese$(EXE) colors$(EXE)
-	$(RM) colors2$(EXE) cosptest$(EXE) csv2ades$(EXE) dist$(EXE)
+	$(RM) colors2$(EXE) cosptest$(EXE) csv2ades$(EXE) desigcgi$(EXE) dist$(EXE)
 	$(RM) easter$(EXE) get_test$(EXE) gtest$(EXE) htc20b$(EXE)
-	$(RM) integrat$(EXE) jd$(EXE) jevent$(EXE) jpl2b32$(EXE)
+	$(RM) integrat$(EXE) jd$(EXE) jevent$(EXE) jpl2b32$(EXE) jpl_url$(EXE)
 	$(RM) jsattest$(EXE) lun_test$(EXE) marstime$(EXE) moidtest$(EXE) mms$(EXE)
 	$(RM) mpc2sof$(EXE) mpc_time$(EXE) oblitest$(EXE) parallax$(EXE) parallax.cgi
 	$(RM) persian$(EXE) phases$(EXE) prectest$(EXE) prectes2$(EXE)
@@ -255,6 +257,9 @@ cosptest$(EXE): cosptest.o $(LIBLUNAR)
 csv2ades$(EXE): csv2ades.o $(LIBLUNAR)
 	$(CC) $(CFLAGS) -o csv2ades$(EXE) csv2ades.o   $(LIBLUNAR) $(LIBSADDED)
 
+desigcgi$(EXE): desigcgi.c $(LIBLUNAR)
+	$(CC) $(CXXFLAGS) -o desigcgi$(EXE) desigcgi.c $(LIBLUNAR) $(LIBSADDED)
+
 dist$(EXE): dist.cpp
 	$(CXX) $(CXXFLAGS) -o dist$(EXE) dist.cpp $(LIBSADDED)
 
@@ -284,6 +289,9 @@ jevent$(EXE):                    jevent.o $(LIBLUNAR)
 
 jpl2b32$(EXE):                    jpl2b32.o
 	$(CC) $(CFLAGS) -o jpl2b32$(EXE) jpl2b32.o $(LIBSADDED)
+
+jpl_url$(EXE):                    jpl_url.o
+	$(CC) $(CFLAGS) -o jpl_url$(EXE) jpl_url.o $(LIBLUNAR) $(LIBSADDED)
 
 jsattest$(EXE): jsattest.o $(LIBLUNAR)
 	$(CC) $(CFLAGS) -o jsattest$(EXE) jsattest.o $(LIBLUNAR) $(LIBSADDED)
