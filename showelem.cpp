@@ -21,6 +21,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 #include <string.h>
 #include <stdlib.h>
 #include <math.h>
+#include <assert.h>
 #include "watdefs.h"
 #include "comets.h"
 #include "date.h"
@@ -95,11 +96,7 @@ static int show_formatted_dist( char *obuff, const size_t obuff_size,
 {
    int in_km = 0, i, n_digits = 0;
 
-   if( dist_in_au < 0.)
-      {
-      *obuff++ = '-';
-      return( show_formatted_dist( obuff, obuff_size, -dist_in_au, precision));
-      }
+   assert( dist_in_au >= 0.);
    if( dist_in_au > 999999.)
       {
       strlcpy_err( obuff, " <HUGE>", obuff_size);
