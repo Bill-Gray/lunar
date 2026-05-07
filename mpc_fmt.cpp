@@ -520,6 +520,22 @@ static const char *net_codes[] = {
            "XGaia-3E",
            "YUCAC-5",
            "ZATLAS-2",
+           "0IHW",
+           "1PS1_DR1",
+           "2PS1_DR2",
+           "3Gaia_Int",
+           "4GZ",
+           "5UBSC",
+           "6Gaia_2016",
+           "6Gaia_2016",
+           "7ZZCAT",
+           "8APASS",
+           "9UBSC",
+           "!AKARI",
+           "@AG",
+           "#WISE",
+           "$LSST2502",
+           "^IRASPSC",
            NULL };
 
 const char *byte_code_to_net_name( const char byte_code)
