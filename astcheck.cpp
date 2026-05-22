@@ -576,6 +576,20 @@ static void show_astcheck_info( void)
    printf( "%d objects\n", n_asteroids);
 }
 
+static char *format_for_json( char *obuff, const char *fmt, const double ival)
+{
+   size_t i;
+
+   sprintf( obuff, fmt, ival);
+   i = strlen( obuff);
+   while( i && obuff[i - 1] == '0')
+      i--;
+   if( i && obuff[i - 1] == '.')
+      i--;
+   obuff[i] = '\0';
+   return( obuff);
+}
+
 /* An oversimplified getopt(). */
 
 static const char *get_arg( const int argc, const char **argv, const int idx)
@@ -584,6 +598,19 @@ static const char *get_arg( const int argc, const char **argv, const int idx)
       return( argv[idx] + 2);
    else
       return( argv[idx + 1]);
+}
+
+static void remove_spaces( char *buff)
+{
+   size_t i = 0, len = strlen( buff);
+
+   while( len && buff[len - 1] <= ' ')
+      len--;
+   while( i < len && buff[i] == ' ')
+      i++;
+   if( i)
+      memmove( buff, buff + i, len - i);
+   buff[len - i] = '\0';
 }
 
 #define IS_POWER_OF_TWO( n)    (((n) & ((n)-1)) == 0)
@@ -601,7 +628,7 @@ int main( const int argc, const char **argv)
 #endif
 {
    double jd, ra, dec;
-   FILE *ifile;
+   FILE *ifile, *json_ofile;
    const char *sof_filename = "mpcorb.sof";
    char buff[400];
    char **ilines = NULL;
@@ -621,6 +648,7 @@ int main( const int argc, const char **argv)
    bool is_list_file = false;
    bool show_header = true;
    const char *mpcorb_extracts = "";
+   const char *json_filename = "astcheck.json";
    void *ades_context = init_ades2mpc( );
 
    if( argc < 2)
@@ -655,6 +683,9 @@ int main( const int argc, const char **argv)
                break;
             case 'h':
                show_header = false;
+               break;
+            case 'j':
+               json_filename = arg;
                break;
             case 'r':
                tolerance_in_arcsec = atof( arg);
@@ -755,6 +786,15 @@ int main( const int argc, const char **argv)
       return( -1);
       }
    qsort( ilines, n_ilines, sizeof( char **), qsort_mpc_cmp);
+   json_ofile = fopen( json_filename, "wb");
+   if( !json_ofile)
+      {
+      fprintf( stderr, "JSON output file '%s' failed : ", json_filename);
+      perror( NULL);
+      err_message( );
+      return( -1);
+      }
+   fprintf( json_ofile, "{");
    for( n = 0; n < n_ilines; n++)
       if( strlen( ilines[n]) >= 80
                      && (!n || memcmp( ilines[n], ilines[n - 1], 12))
@@ -869,6 +909,17 @@ int main( const int argc, const char **argv)
 #endif
                         buff, ra_motion, dec_motion, (jd2 - jd) * 24.);
          n_lines_printed++;
+         if( n)
+            fprintf( json_ofile, ",");
+         remove_spaces( buff);
+         fprintf( json_ofile, "\n  \"%s\":\n  {\n", buff);
+         if( !singleton_observation)
+            {
+            fprintf( json_ofile, "    \"ra_motion\": %.1f,\n", ra_motion);
+            fprintf( json_ofile, "    \"dec_motion\": %.1f,\n", dec_motion);
+            fprintf( json_ofile, "    \"time_span\": %.3f,\n", (jd2 - jd) * 24.);
+            }
+         fprintf( json_ofile, "    \"matches\":\n    {\n");
          for( i = 0; i < n_asteroids; i++)
             {
             const int16_t tolerance2 = tolerance;
@@ -925,7 +976,7 @@ int main( const int argc, const char **argv)
                            fabs( computed_ra_motion - ra_motion) < motion_tolerance)
                                     || singleton_observation)
                         {
-                        char mpcorb_info[240];
+                        char mpcorb_info[240], json_buff[40];
                         double ra2, dec2, lov_len, dist_from_lov;
                         int j;
 
@@ -939,7 +990,20 @@ int main( const int argc, const char **argv)
                         dec2 -= d_dec;     /* along the LOV                        */
                         lov_len = sqrt( ra2 * ra2 + dec2 * dec2);
                         dist_from_lov = (d_ra * dec2 - ra2 * d_dec) / lov_len;
-
+                        memcpy( buff, tbuff, 12);
+                        buff[12] = '\0';
+                        remove_spaces( buff);
+                        if( n_results)
+                           fprintf( json_ofile, ",");
+                        fprintf( json_ofile, "\n      \"%s\":\n", buff);
+                        fprintf( json_ofile, "      {\n");
+                        fprintf( json_ofile, "        \"ra\": %s,\n",
+                                 format_for_json( json_buff, "%.6f", ra1 * 180. / PI));
+                        fprintf( json_ofile, "        \"dec\": %s,\n",
+                                 format_for_json( json_buff, "%.6f", dec1 * 180. / PI));
+                        fprintf( json_ofile, "        \"mag\": %s\n",
+                                 format_for_json( json_buff, "%.2f", mag));
+                        fprintf( json_ofile, "      }");
                         if( is_list_file)
                            {
                            if( ra1 < 0.)
@@ -1011,6 +1075,7 @@ int main( const int argc, const char **argv)
                      }
                   }
             }
+         fprintf( json_ofile, "    }\n  }");
          for( i = 0; i < n_results; i++)
             {
             if( i < max_results)
@@ -1023,6 +1088,8 @@ int main( const int argc, const char **argv)
          if( verbose)
             printf( "%d objects had to be checked\n", n_checked);
          }
+   fprintf( json_ofile, "\n}\n");
+   fclose( json_ofile);
    for( i= 0; i < n_ilines; i++)
       free( ilines[i]);
    free( ilines);
