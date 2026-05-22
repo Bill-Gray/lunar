@@ -64,6 +64,7 @@ it corresponds to a known spacecraft observatory.  Otherwise,  it'll
 be an empty string. */
 
 char mpc_code_from_ades[4];
+static double timing_offset = 0.;
 
 static double get_sat_obs_jd( const char *buff)
 {
@@ -95,7 +96,7 @@ static double get_sat_obs_jd( const char *buff)
    if( jd < hst_launch_jd)
       jd = 0.;
    else
-      jd += td_minus_utc( jd) / seconds_per_day;
+      jd += (td_minus_utc( jd) + timing_offset) / seconds_per_day;
    return( jd);
 }
 
@@ -579,6 +580,9 @@ int main( const int argc, const char **argv)
                break;
             case 'd':
                show_offsets_from_original = true;
+               break;
+            case 'o':
+               timing_offset = atof( argv[i] + 2);
                break;
             default:
                printf( "Option '%s' unrecognized\n", argv[i]);
