@@ -834,7 +834,7 @@ int create_mpc_packed_desig( char *packed_desig, const char *obj_name)
    size_t i, j, len;
    int rval = -1;
    bool in_parentheses = false;
-   unsigned number = 0;
+   unsigned number = 0, min_year = 1800;        /* no asteroids before 1800 */
    char comet_desig = 0;
    const unsigned max_number = 620000 + 62 * 62 * 62 * 62;
 
@@ -857,6 +857,7 @@ int create_mpc_packed_desig( char *packed_desig, const char *obj_name)
       {
       comet_desig = *obj_name;
       obj_name += 2;
+      min_year = 0;
       }
 
    memset( packed_desig, ' ', 12);
@@ -895,7 +896,7 @@ int create_mpc_packed_desig( char *packed_desig, const char *obj_name)
       i++;
                /* If the name starts with four digits followed by an */
                /* uppercase letter,  it's a provisional designation: */
-   if( number > 999 && number < 9000 && isupper( obj_name[i]))
+   if( number > min_year && number < 9000 && isupper( obj_name[i]))
       {
       int sub_designator;
       bool mangled_designation = false;
@@ -917,8 +918,8 @@ int create_mpc_packed_desig( char *packed_desig, const char *obj_name)
 
       if( number < 6200)
          packed_desig[5] = int_to_mutant_hex_char( number / 100);
-      packed_desig[6] = obj_name[2];    /* decade */
-      packed_desig[7] = obj_name[3];    /* year */
+      packed_desig[6] = (char)( '0' + (number / 10) % 10);    /* decade */
+      packed_desig[7] = (char)( '0' +  number       % 10);    /* year */
 
       packed_desig[8] = (char)toupper( obj_name[i]);    /* prelim desigs */
       i++;                            /* are _very_ scrambled when packed */

@@ -81,7 +81,7 @@ with obuff == NULL just to find out if ibuff is actually a packed desig. */
 static int unpack_provisional_packed_desig( char *obuff, const size_t obuff_size,
                                         const char *ibuff)
 {
-   int rval = 0;
+   int rval = 0, century;
 
    if( obuff)
       *obuff = '\0';
@@ -102,7 +102,8 @@ static int unpack_provisional_packed_desig( char *obuff, const size_t obuff_size
                            letter, 620 + desig_num / 25);
          }
       }
-   else if( *ibuff >= 'G' && *ibuff <= 'K' && isdigit( ibuff[1])
+   else if( (century = mutant_hex_char_to_int( *ibuff)) >= 0
+            && isdigit( ibuff[1])
             && isdigit( ibuff[2]) && isupper( ibuff[3])
             && isdigit( ibuff[5]) && (isalpha( ibuff[6]) || ibuff[6] == '0'))
       {
@@ -113,8 +114,8 @@ static int unpack_provisional_packed_desig( char *obuff, const size_t obuff_size
 
       if( obuff)
          {
-         obuff[0] = ((*ibuff >= 'K') ? '2' : '1');          /* millennium */
-         obuff[1] = (char)( '0' + ((*ibuff - 'A') % 10));   /* century   */
+         obuff[0] = (char)( '0' + century / 10);            /* millennium */
+         obuff[1] = (char)( '0' + century % 10);            /* century   */
          obuff[2] = ibuff[1];                               /* decade   */
          obuff[3] = ibuff[2];                               /* year    */
          obuff[4] = ' ';
@@ -126,6 +127,8 @@ static int unpack_provisional_packed_desig( char *obuff, const size_t obuff_size
             }
          else
             obuff[6] = '\0';
+         while( *obuff == '0')         /* first-millennium years */
+            memmove( obuff, obuff + 1, 7);
          output_no = output_no * 10 + ibuff[5] - '0';
          if( output_no)
             snprintf_append( obuff, obuff_size, "%d", output_no);
