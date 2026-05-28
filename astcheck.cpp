@@ -576,11 +576,13 @@ static void show_astcheck_info( void)
    printf( "%d objects\n", n_asteroids);
 }
 
+#define JSON_BUFF_SIZE   40
+
 static char *format_for_json( char *obuff, const char *fmt, const double ival)
 {
    size_t i;
 
-   sprintf( obuff, fmt, ival);
+   snprintf( obuff, JSON_BUFF_SIZE, fmt, ival);
    i = strlen( obuff);
    while( i && obuff[i - 1] == '0')
       i--;
@@ -976,7 +978,7 @@ int main( const int argc, const char **argv)
                            fabs( computed_ra_motion - ra_motion) < motion_tolerance)
                                     || singleton_observation)
                         {
-                        char mpcorb_info[240], json_buff[40];
+                        char mpcorb_info[240], json_buff[JSON_BUFF_SIZE];
                         double ra2, dec2, lov_len, dist_from_lov;
                         int j;
 
