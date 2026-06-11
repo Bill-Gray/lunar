@@ -563,6 +563,7 @@ static void err_message( void)
    printf( "   -z(tol)    Set motion match tolerance to 'tol' arcsec/hr. Default is 10.\n");
    printf( "   -m(mag)    Set limiting mag to 'mag'.  Default is 22.\n");
    printf( "   -l         Show distance from line of variations. Experimental.\n");
+   printf( "   -h         No headers.\n");
    printf( "Alternatively,  one can get a list of asteroids/comets within a desired\n");
    printf( "area with\n\n");
    printf( "astcheck -c (date) (RA in degrees) (dec in degrees) (MPC code) (options)\n\n");
@@ -811,7 +812,7 @@ int main( const int argc, const char **argv)
          double jd2;
          const int16_t tolerance = (int16_t)
                           ( tolerance_in_arcsec * 65536 / (360. * 3600.));
-         char tbuff[300];
+         char tbuff[300], json_buff[JSON_BUFF_SIZE];
          int n_results = 0;
          int n_checked = 0;
          bool singleton_observation;
@@ -917,11 +918,14 @@ int main( const int argc, const char **argv)
          fprintf( json_ofile, "\n  \"%s\":\n  {\n", buff);
          if( !singleton_observation)
             {
-            fprintf( json_ofile, "    \"ra_motion\": %.1f,\n", ra_motion);
-            fprintf( json_ofile, "    \"dec_motion\": %.1f,\n", dec_motion);
-            fprintf( json_ofile, "    \"time_span\": %.3f,\n", (jd2 - jd) * 24.);
+            fprintf( json_ofile, "    \"rate_ra\": %s,\n",
+                        format_for_json( json_buff, "%.1f", ra_motion));
+            fprintf( json_ofile, "    \"rate_dec\": %s,\n",
+                        format_for_json( json_buff, "%.1f", dec_motion));
+            fprintf( json_ofile, "    \"arc_len\": %s,\n",
+                        format_for_json( json_buff, "%.3f", (jd2 - jd) * 24.));
             }
-         fprintf( json_ofile, "    \"matches\":\n    {\n");
+         fprintf( json_ofile, "    \"matches\": [\n");
          for( i = 0; i < n_asteroids; i++)
             {
             const int16_t tolerance2 = tolerance;
@@ -978,7 +982,7 @@ int main( const int argc, const char **argv)
                            fabs( computed_ra_motion - ra_motion) < motion_tolerance)
                                     || singleton_observation)
                         {
-                        char mpcorb_info[240], json_buff[JSON_BUFF_SIZE];
+                        char mpcorb_info[240];
                         double ra2, dec2, lov_len, dist_from_lov;
                         int j;
 
@@ -997,8 +1001,8 @@ int main( const int argc, const char **argv)
                         remove_spaces( buff);
                         if( n_results)
                            fprintf( json_ofile, ",");
-                        fprintf( json_ofile, "\n      \"%s\":\n", buff);
-                        fprintf( json_ofile, "      {\n");
+                        fprintf( json_ofile, "\n      {\n");
+                        fprintf( json_ofile, "        \"object\": \"%s\",\n", buff);
                         fprintf( json_ofile, "        \"ra\": %s,\n",
                                  format_for_json( json_buff, "%.6f", ra1 * 180. / PI));
                         fprintf( json_ofile, "        \"dec\": %s,\n",
@@ -1077,7 +1081,7 @@ int main( const int argc, const char **argv)
                      }
                   }
             }
-         fprintf( json_ofile, "    }\n  }");
+         fprintf( json_ofile, "    ]\n  }");
          for( i = 0; i < n_results; i++)
             {
             if( i < max_results)
