@@ -916,6 +916,8 @@ int main( const int argc, const char **argv)
             fprintf( json_ofile, ",");
          remove_spaces( buff);
          fprintf( json_ofile, "\n  \"%s\":\n  {\n", buff);
+         fprintf( json_ofile, "    \"single\": %s,\n",
+                  singleton_observation ? "true" : "false");
          if( !singleton_observation)
             {
             fprintf( json_ofile, "    \"rate_ra\": %s,\n",
@@ -984,6 +986,7 @@ int main( const int argc, const char **argv)
                         {
                         char mpcorb_info[240];
                         double ra2, dec2, lov_len, dist_from_lov;
+                        double total_motion, pa_motion;
                         int j;
 
                              /* Compute asteroid posn .1 days later, but same */
@@ -1007,8 +1010,20 @@ int main( const int argc, const char **argv)
                                  format_for_json( json_buff, "%.6f", ra1 * 180. / PI));
                         fprintf( json_ofile, "        \"dec\": %s,\n",
                                  format_for_json( json_buff, "%.6f", dec1 * 180. / PI));
-                        fprintf( json_ofile, "        \"mag\": %s\n",
+                        fprintf( json_ofile, "        \"mag\": %s,\n",
                                  format_for_json( json_buff, "%.2f", mag));
+                        fprintf( json_ofile, "        \"rateRA\": %s,\n",
+                                 format_for_json( json_buff, "%.5f", computed_ra_motion / 60.));
+                        fprintf( json_ofile, "        \"rateDec\": %s,\n",
+                                 format_for_json( json_buff, "%.5f", computed_dec_motion / 60.));
+                        total_motion = hypot( computed_ra_motion, computed_dec_motion) / 60.;
+                        pa_motion = atan2( computed_ra_motion, computed_dec_motion);
+                        if( pa_motion < 0.)
+                           pa_motion += 2. * PI;
+                        fprintf( json_ofile, "        \"rate\": %s,\n",
+                                 format_for_json( json_buff, "%.5f", total_motion / 60.));
+                        fprintf( json_ofile, "        \"PA\": %s\n",
+                                 format_for_json( json_buff, "%.2f", pa_motion * 180. / PI));
                         fprintf( json_ofile, "      }");
                         if( is_list_file)
                            {
