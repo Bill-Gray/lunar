@@ -763,8 +763,7 @@ int main( const int argc, const char **argv)
       }
 
                /* Read astrometry lines and allocate memory for them : */
-   ilines = (char **)malloc( (n_ilines + 1) * sizeof( char *));
-   n_ilines = 0;
+   ilines = (char **)malloc(  sizeof( char *));
    while( fgets_with_ades_xlation( buff, sizeof( buff), ades_context, ifile))
       if( !get_mpc_data( buff, &jd, &ra, &dec))
          {
