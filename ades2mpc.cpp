@@ -339,7 +339,7 @@ static inline void pack_mpc_reference( char *packed, const char *ref)
       }
    else if( !memcmp( ref, "MPS ", 4))
       {
-      unsigned mps_number = atoi( ref + 4);
+      const unsigned mps_number = atoi( ref + 4);
 
       if( mps_number < 260000)
          {
@@ -356,7 +356,7 @@ static inline void pack_mpc_reference( char *packed, const char *ref)
       }
    else if( !memcmp( ref, "MPC ", 4))
       {
-      unsigned mpc_number = atoi( ref + 4);
+      const unsigned mpc_number = atoi( ref + 4);
 
       if( mpc_number < 110000)
          {
@@ -1090,6 +1090,11 @@ static int process_ades_tag( char *obuff, ades2mpc_t *cptr, const int itag,
       case ADES_obsID:
          assert( len < sizeof( cptr->obs_id));
          strlcpy_err( cptr->obs_id, name, sizeof( cptr->obs_id));
+         if( cptr->ignore_artsat_desigs)     /* for artsats,  set reference to */
+            {                              /* be '!' plus first three chars of  */
+            cptr->line[72] = '!';         /* obsID = date obs was submitted. */
+            memcpy( cptr->line + 73, name, 3);
+            }
          break;
       case ADES_mag:
          memcpy( cptr->line + 65, tptr, (len < 5) ? len : 5);
