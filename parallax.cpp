@@ -73,10 +73,10 @@ static int get_mpc_obscode_data( mpc_code_t *loc, const char *mpc_code, int pass
                {
                if( loc->lon > PI)
                   loc->lon -= PI + PI;
-               printf( "%s !%+014.9f  %+013.9f %9.3f   %s%s", mpc_code,
+               printf( "%s !%+014.9f  %+013.9f %9.3f   %s", mpc_code,
                      loc->lon * 180. / PI,
                      loc->lat * 180. / PI,
-                     loc->alt, loc->name, buff);
+                     loc->alt, loc->name);
                }
             else if( -1 != err_code)
                printf( "%s\n", loc->name);
@@ -289,6 +289,7 @@ int main( int argc, const char **argv)
       printf( "(%s) is %.3f km from (%s),  at bearing %.2f (0=N, 90=E, 180=S, 270=W)\n",
                argv[2], dist * EARTH_MAJOR_AXIS_IN_METERS / 1000.,
                argv[1], 360. - posn_ang * 180. / PI);
+      return( 0);
       }
    else if( argc == 3)          /* parallax constants provided */
       set_location_two_params( &loc, atof( argv[1]), atof( argv[2]));
@@ -299,8 +300,10 @@ int main( int argc, const char **argv)
    show_location( &loc);
    if( show_mpc_format)             /* output in format desired when */
       {                             /* submitting corrections to MPC */
+      const char *part_of_email = "@projectp";
+
       printf( "contact_name: Bill Gray\n");
-      printf( "email_adr: pluto@projectpluto.com\n");
+      printf( "email_adr: pluto%sluto" ".com\n", part_of_email);
       printf( "observatory_code: %s\n", loc.code);
       printf( "observatory_name: %s\n", loc.name);
       printf( "observatory_site: %s\n", loc.name);
