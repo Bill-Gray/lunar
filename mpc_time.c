@@ -43,11 +43,13 @@ month,  and we'll be having leap seconds monthly by then,  so
 that will probably happen.)   In that case,  the scheme can be
 extended by one second :
 
-zzzMTYG7 = 2440-Aug-31 24:00:00.999
+zzzMTYG7 = 2440-Aug-31 23:59:60.999
 
    The need to handle leap second madness may be why MPC went with
 this scheme,  instead of the straightforward 'milliseconds since
-an epoch' one I'd expected.
+an epoch' one I'd expected.  It also means you can convert to or
+from the ISO date format quite readily,  without having to handle
+the oddities of the Gregorian calendar.
 
    Some test cases :
 
