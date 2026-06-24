@@ -659,15 +659,15 @@ int main( const int argc, const char **argv)
       err_message( );
       return( -1);
       }
-#ifdef _WIN32
-   strlcpy_error( _dummy_filename, "astcheck.tmp");
-#else
-   snprintf( _dummy_filename, sizeof( _dummy_filename), "astcheck%d.tmp",
-                        (int)getpid( ));
-#endif
    if( !strcmp( argv[1], "-c"))
       {
       assert( argc > 5);
+#ifdef _WIN32
+      strlcpy_error( _dummy_filename, "astcheck.tmp");
+#else
+      snprintf( _dummy_filename, sizeof( _dummy_filename), "astcheck%d.tmp",
+                        (int)getpid( ));
+#endif
       make_fake_file( argv);
       is_list_file = true;
       max_results = 20000;
@@ -754,7 +754,7 @@ int main( const int argc, const char **argv)
       return( -2);
       }
 
-   ifile = fopen( is_list_file ? _dummy_filename : argv[1], "rb");
+   ifile = fopen( *_dummy_filename ? _dummy_filename : argv[1], "rb");
    if( !ifile)
       {
       printf( "%s not opened\n", argv[1]);
@@ -775,7 +775,7 @@ int main( const int argc, const char **argv)
          }
    fclose( ifile);
    free_ades2mpc_context( ades_context);
-   if( is_list_file)
+   if( *_dummy_filename)
 #ifdef _WIN32                /* MS is different. */
       _unlink( _dummy_filename);
 #else
