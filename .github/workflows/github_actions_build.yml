@@ -20,13 +20,13 @@ jobs:
       run: make CLANG=Y ERRORS=Y
 
   buildWindowsX64:
-    runs-on: windows-latest
+    runs-on: windows-2022
 
     steps:
     - uses: actions/checkout@master
     - name: make
       run: |
-        call "C:\Program Files\Microsoft Visual Studio\2026\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" x64
+        call "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" x64
         nmake -f lunar.mak
       shell: cmd
     - name: Archive .EXEs
@@ -36,12 +36,12 @@ jobs:
          path: '*.exe'
 
   buildWindowsX86:
-    runs-on: windows-latest
+    runs-on: windows-2022
 
     steps:
     - uses: actions/checkout@master
     - name: make
       run: |
-        call "C:\Program Files\Microsoft Visual Studio\2026\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" x86
+        call "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" x86
         nmake -f lunar.mak BITS_32=Y
       shell: cmd
