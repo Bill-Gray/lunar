@@ -1144,7 +1144,7 @@ int main( const int argc, const char **argv)
                            fabs( computed_ra_motion - ra_motion) < motion_tolerance)
                                     || singleton_observation)
                         {
-                        char mpcorb_info[240];
+                        char mpcorb_info[240], packed_desig[15];
                         double ra2, dec2, lov_len, dist_from_lov;
                         double total_motion, pa_motion;
                         int j;
@@ -1166,6 +1166,11 @@ int main( const int argc, const char **argv)
                            fprintf( json_ofile, ",");
                         fprintf( json_ofile, "\n      {\n");
                         fprintf( json_ofile, "        \"object\": \"%s\",\n", buff);
+                        if( !create_mpc_packed_desig( packed_desig, buff))
+                           {
+                           text_search_and_replace( packed_desig, " ", "");
+                           fprintf( json_ofile, "        \"packedID\": \"%s\",\n", packed_desig);
+                           }
                         fprintf( json_ofile, "        \"ra\": %s,\n",
                                  format_for_json( json_buff, "%.6f", ra1 * 180. / PI));
                         fprintf( json_ofile, "        \"dec\": %s,\n",
