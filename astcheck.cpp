@@ -615,6 +615,14 @@ static char *get_json_string( char *obuff, const char *ibuff, const size_t obuff
    return( obuff);
 }
 
+/* By default,  if a field goes to magnitude m_limit,  we output matches
+to one magnitude fainter,  in case an object just happens to be bright
+enough during that exposure to show up anyway (and/or the computed magnitude
+is simply wrong by that much).  'magnitude_add_on' can be reset with the
+-a command line option.       */
+
+static double magnitude_add_on = 1.;
+
 static int parse_coverage_json( char *obuff, char *ibuff)
 {
    static char survey_name[100], mpc_code[5];
@@ -647,6 +655,8 @@ static int parse_coverage_json( char *obuff, char *ibuff)
             height = atof( tptr);
          else if( !strcmp( ibuff, "width"))
             width = atof( tptr);
+         else if( !strcmp( ibuff, "fieldDiam"))
+            height = width = atof( tptr);
          else if( !strcmp( ibuff, "limit"))
             limit = atof( tptr);
          else if( !strcmp( ibuff, "duration"))
@@ -677,7 +687,8 @@ static int parse_coverage_json( char *obuff, char *ibuff)
       {
       got_center = 0;
       snprintf( obuff, 200, "%s %11.5f %11.5f %5.2f %5.2f %5.2f %6.1f %11.5f %s", mpc_code,
-                 ra, dec, width, height, limit, duration, mjd, survey_name);
+                 ra, dec, width, height, limit + magnitude_add_on,
+                 duration, mjd, survey_name);
       rval = 1;
       }
    return( rval);
@@ -789,6 +800,9 @@ int main( const int argc, const char **argv)
                break;
             case 'm':
                mag_limit = atof( arg);
+               break;
+            case 'a':
+               magnitude_add_on = atof( arg);
                break;
             case 'p':
                data_path = arg;
