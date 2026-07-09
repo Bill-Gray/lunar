@@ -19,7 +19,7 @@ int main( void)
 
    assert( ifile);
    while( fgets( buff, sizeof( buff), ifile))
-      if( *buff != '#')
+      if( *buff != '#' && *buff >= ' ')
          {
          char tbuff[100];
          const int rval = unpack_mpc_desig( tbuff, buff);

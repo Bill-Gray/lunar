@@ -835,6 +835,7 @@ int create_mpc_packed_desig( char *packed_desig, const char *obj_name)
    int rval = -1;
    bool in_parentheses = false;
    unsigned number = 0, min_year = 1800;        /* no asteroids before 1800 */
+   const unsigned max_year = 2099;          /* nor after 2099 (at least,  not yet) */
    char comet_desig = 0;
    const unsigned max_number = 620000 + 62 * 62 * 62 * 62;
 
@@ -871,7 +872,7 @@ int create_mpc_packed_desig( char *packed_desig, const char *obj_name)
    while( len && obj_name[len - 1] == ' ')
       len--;         /* ignore trailing spaces */
    if( i == len)        /* nothing but numbers */
-      if( number > 0 && number < 1000000 && i >= 5)
+      if( number > 0 && number < 1000000 && i)
          in_parentheses = true;
    if( number > 0 && number < 10000 && obj_name[i]
                       && (!obj_name[i + 1] || obj_name[i + 1] == '-')
@@ -896,7 +897,7 @@ int create_mpc_packed_desig( char *packed_desig, const char *obj_name)
       i++;
                /* If the name starts with four digits followed by an */
                /* uppercase letter,  it's a provisional designation: */
-   if( number > min_year && number < 9000 && isupper( obj_name[i]))
+   if( number >= min_year && number < 9000 && isupper( obj_name[i]))
       {
       int sub_designator;
       bool mangled_designation = false;
@@ -916,60 +917,61 @@ int create_mpc_packed_desig( char *packed_desig, const char *obj_name)
             }
          }
 
-      if( number < 6200)
+      if( number <= max_year)
+         {
          packed_desig[5] = int_to_mutant_hex_char( number / 100);
-      packed_desig[6] = (char)( '0' + (number / 10) % 10);    /* decade */
-      packed_desig[7] = (char)( '0' +  number       % 10);    /* year */
-
-      packed_desig[8] = (char)toupper( obj_name[i]);    /* prelim desigs */
-      i++;                            /* are _very_ scrambled when packed */
-      if( isupper( obj_name[i]))
-         {
-         packed_desig[11] = obj_name[i];
-         i++;
-         }
-      else if( !comet_desig)  /* asteroid desigs _must_ have a second */
-         mangled_designation = true;              /* uppercase letter */
-      else
-         packed_desig[11] = '0';
-
-      sub_designator = quick_atoi( obj_name + i);
-      if( sub_designator >= 0 && number < 6200)
-         {
-         if( sub_designator < 620)
+         packed_desig[6] = (char)( '0' + (number / 10) % 10);    /* decade */
+         packed_desig[7] = (char)( '0' +  number       % 10);    /* year */
+         packed_desig[8] = (char)toupper( obj_name[i]);    /* prelim desigs */
+         i++;                            /* are _very_ scrambled when packed */
+         if( isupper( obj_name[i]))
             {
-            packed_desig[10] = int_to_mutant_hex_char( sub_designator % 10);
-            packed_desig[9] = int_to_mutant_hex_char( sub_designator / 10);
-            }
-         else if( number >= 2000 && number < 2062)
-            {
-            int n = (sub_designator - 620) * 25 + packed_desig[11] - 'A';
-
-            if( packed_desig[11] > 'I')
-               n--;
-            if( n >= 62 * 62 * 62 * 62)
-               mangled_designation = true;
-            else
-               {
-               packed_desig[5] = '_';
-               packed_desig[6] = int_to_mutant_hex_char( number - 2000);
-               packed_desig[7] = packed_desig[8];    /* move half-month specifier */
-               encode_value_in_mutant_hex( packed_desig + 8, 4, n);
-               }
-            }
-         while( isdigit( obj_name[i]))
+            packed_desig[11] = obj_name[i];
             i++;
-         if( comet_desig)
-            {
-            packed_desig[4] = comet_desig;
-            if( obj_name[i] == '-' && isupper( obj_name[i + 1]))
-               {        /* Comet fragment such as C/2018 F4-A */
-               i++;     /* pack as,  e.g.,  CK18F04a */
-               packed_desig[11] = obj_name[i++] + 'a' - 'A';
-               }
             }
-         if( i == len && !mangled_designation)  /* successfully unpacked desig */
-            rval = 0;
+         else if( !comet_desig)  /* asteroid desigs _must_ have a second */
+            mangled_designation = true;              /* uppercase letter */
+         else
+            packed_desig[11] = '0';
+
+         sub_designator = quick_atoi( obj_name + i);
+         if( sub_designator >= 0)
+            {
+            if( sub_designator < 620)
+               {
+               packed_desig[10] = int_to_mutant_hex_char( sub_designator % 10);
+               packed_desig[9] = int_to_mutant_hex_char( sub_designator / 10);
+               }
+            else if( number >= 2000 && number < 2062)
+               {
+               int n = (sub_designator - 620) * 25 + packed_desig[11] - 'A';
+
+               if( packed_desig[11] > 'I')
+                  n--;
+               if( n >= 62 * 62 * 62 * 62)
+                  mangled_designation = true;
+               else
+                  {
+                  packed_desig[5] = '_';
+                  packed_desig[6] = int_to_mutant_hex_char( number - 2000);
+                  packed_desig[7] = packed_desig[8];    /* move half-month specifier */
+                  encode_value_in_mutant_hex( packed_desig + 8, 4, n);
+                  }
+               }
+            while( isdigit( obj_name[i]))
+               i++;
+            if( comet_desig)
+               {
+               packed_desig[4] = comet_desig;
+               if( obj_name[i] == '-' && isupper( obj_name[i + 1]))
+                  {        /* Comet fragment such as C/2018 F4-A */
+                  i++;     /* pack as,  e.g.,  CK18F04a */
+                  packed_desig[11] = obj_name[i++] + 'a' - 'A';
+                  }
+               }
+            if( i == len && !mangled_designation)  /* successfully unpacked desig */
+               rval = 0;
+            }
          }
       }
    else if( in_parentheses && i == len && number < max_number && number > 0

@@ -93,3 +93,18 @@ U410S         5 Uranus CDX
     Censored -1 Censored
     P317abo# -1 P317abo#
     STress17 -1 STress17
+# Asteroid designations before 1800 should be considered to be plain old
+# temporary designations.  (ATLAS,  for example,  has had designations
+# such as A11Ey4K,  which should _not_ be unpacked to 1011 EK604.)
+# Any designations starting with L or later (i.e.,  after 2099) are also
+# assumed temorary;  for example,  PanSTARRS has provided P12Rb3K,
+# which shouldn't be assumed to be 2512 RK273.
+# Test 3
+     H27L44C -1 H27L44C
+     I27R19J  0 1827 RJ19
+     K43DH0Q  0 2043 DQ170
+     L00Wc3E -1 L00Wc3E
+     M42B23N -1 M42B23N
+
+    CI37C05A  2 C/1837 CA5
+    CH50M31V  2 C/1750 MV31

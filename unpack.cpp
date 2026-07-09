@@ -82,6 +82,10 @@ static int unpack_provisional_packed_desig( char *obuff, const size_t obuff_size
                                         const char *ibuff)
 {
    int rval = 0, century;
+   const int max_century = 20;   /* nothing past K99 = 2099 */
+   const int min_century = (ibuff[-1] == ' ' ? 18 : 0);
+            /* if it's an asteroid,  nothing before I00 = 1800;
+               but some comets go back to before 0 AD */
 
    if( obuff)
       *obuff = '\0';
@@ -103,6 +107,7 @@ static int unpack_provisional_packed_desig( char *obuff, const size_t obuff_size
          }
       }
    else if( (century = mutant_hex_char_to_int( *ibuff)) >= 0
+            && century >= min_century && century <= max_century
             && isdigit( ibuff[1])
             && isdigit( ibuff[2]) && isupper( ibuff[3])
             && isdigit( ibuff[5]) && (isalpha( ibuff[6]) || ibuff[6] == '0'))
