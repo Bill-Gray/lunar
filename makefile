@@ -58,7 +58,7 @@ endif
 # (with root privileges) you can install them to /usr/local/include
 # and /usr/local/lib for all to enjoy.
 
-PREFIX?=..
+PREFIX?=~
 ifdef GLOBAL
 	INSTALL_DIR=/usr/local
 else
