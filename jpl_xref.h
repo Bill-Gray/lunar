@@ -1,5 +1,5 @@
 /* The following table is going to need occasional fixes,  mostly
-as new spacecraft are launched.  Cas = Cassini,  SoO = Solar Orbiter,
+as new spacecraft are launched.  Cas = Cassini,  Cap = CAPSTONE,
 etc. are _not_ official MPC codes;  if they ever get them,  that
 will also cause updates to be made.  The list does not reflect
 every spacecraft listed on Horizons;  it lists those that have
@@ -25,7 +25,7 @@ static const jpl_xref_t jpl_xrefs[] = {
    { "EuC",     -159, 61507, "2024-182A",   "Europa Clipper" },
    { "339",     -143, 41388, "2016-017A",   "ExoMars Trace Gas Orbiter" },
    { "258",  -139479, 39479, "2013-074A",   "Gaia" },
-   { "Goe",  -160133, 60133, "2024-119A",   "GOES-19" },
+   { "311",  -160133, 60133, "2024-119A",   "GOES-19" },
    { "Ha2",      -37, 40319, "2014-076A",   "Hayabusa 2" },
    { "Her",      -91, 61449, "2024-180A",   "Hera", },
    { "250",      -48, 20580, "1990-037B",   "Hubble Space Telescope" },
@@ -37,18 +37,18 @@ static const jpl_xref_t jpl_xrefs[] = {
    { "336",      -49, 49328, "2021-093A",   "Lucy" },
    { "LFL",     -164, 54697, "2022-168B",   "Lunar Flashlight" },
    { "MRO",      -74, 28788, "2005-029A",   "Mars Reconnaissance Orbiter" },
-   { "289",     -211, 99999, "2026-000ZZZ", "Nancy Grace Roman Space Telescope" },
+   { "289",     -211, 100532, "2026-199A",   "Nancy Grace Roman Space Telescope" },
    { "C53",  -139089, 39089, "2013-009D",   "NEOSSat" },
    { "C58",      -33, 99999, "2027-000ZZZ", "NEO Surveyor" },
    { "C54",      -98, 28928, "2006-001A",   "New Horizons" },
    { "OsR",      -64, 41757, "2016-055A",   "OSIRIS-REx" },
-   { "PSP",      -96, 43592, "2018-065A",   "Parker Solar Probe" },
+   { "313",      -96, 43592, "2018-065A",   "Parker Solar Probe" },
    { "Prg",     -244, 58751, "2024-006A",   "Peregrine" },
    { "338",     -255, 58049, "2023-157A",   "Psyche" },
    { "Sli",     -240, 57803, "2023-137D",   "SLIM" },
-   { "SWF",     -231, 65726, "2025-215B",   "Space Weather Follow-On L1" },
+   { "314",     -231, 65726, "2025-215B",   "SOLAR-1" },
    { "249",      -21, 23726, "1995-065A",   "SOHO" },
-   { "SoO",     -144, 45167, "2020-010A",   "Solar Orbiter" },
+   { "315",     -144, 45167, "2020-010A",   "Solar Orbiter" },
    { "288",  -163183, 63183, "2025-047E",   "SPHEREx" },
    { "245",      -79, 27871, "2003-038A",   "Spitzer Space Telescope" },
    { "C49",     -234, 29510, "2006-047A",   "STEREO-A" },
