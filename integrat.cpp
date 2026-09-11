@@ -867,8 +867,8 @@ int main( int argc, const char **argv)
    dest_jd = get_time_from_string( 0., argv[3], FULL_CTIME_YMD, NULL);
    full_ctime( time_buff, dest_jd, 0);
    snprintf( buff, sizeof( buff),
-                   "Integrat version %s %s\nIntegrating to %s = JD %.5f\n",
-                    __DATE__, __TIME__, time_buff, dest_jd);
+                   "Integrat\nIntegrating to %s = JD %.5f\n",
+                    time_buff, dest_jd);
    printf( "%s", buff);
    ofile = err_fopen( output_filename, "wb");
    setvbuf( ofile, NULL, _IONBF, 0);
