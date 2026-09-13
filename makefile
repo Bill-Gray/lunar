@@ -279,7 +279,7 @@ integrat$(EXE): integrat.o $(LIBLUNAR)
 	$(CC) $(CFLAGS) -o integrat$(EXE) integrat.o $(LIBLUNAR) $(LIBSADDED) -L $(INSTALL_DIR)/lib -ljpl
 
 integrat.o: integrat.cpp
-	$(CXX) $(CXXFLAGS) -c -I $(INSTALL_DIR)/include $<
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c $<
 
 jd$(EXE): jd.o $(LIBLUNAR)
 	$(CC) $(CFLAGS) -o jd$(EXE) jd.o $(LIBLUNAR) $(LIBSADDED)
