@@ -376,7 +376,13 @@ static void remove_ades_posn_tags( char *buff)
       *buff = '\0';
 }
 
-bool show_offsets_from_original = false;
+static bool show_offsets_from_original = false;
+static bool ades_found = false;
+#ifdef ON_LINE_VERSION
+static const char *content_type_text = "Content-type: text/html\n\n"
+                                       "<html> <body> <pre>\n";
+static const char *content_type_xml = "Content-type: text/xml\n";
+#endif
 
 /* The following reads the input file and looks for 80-column obs from
 spacecraft.  It then finds out where the spacecraft in question (there
@@ -423,7 +429,6 @@ int process_file( const char *filename, FILE *ofile)
    time_t t0 = time( NULL);
    offset_t *offsets = NULL;
    int i, n_offsets = 0;
-   bool ades_found = false;
 
    assert( ifile);
    while( fgets( buff, sizeof( buff), ifile))
@@ -463,6 +468,9 @@ int process_file( const char *filename, FILE *ofile)
       if( !offsets[i].xyz[0] && offsets[i].mpc_code[0])
          set_offsets( offsets + i, n_offsets - i);
       }
+#ifdef ON_LINE_VERSION
+   fputs( ades_found ? content_type_xml : content_type_text, ofile);
+#endif
    if( !ades_found)
       fprintf( ofile, "COM add_off ver 2025 Aug 08,  run %.24s UTC\n", asctime( gmtime( &t0)));
    fseek( ifile, 0, SEEK_SET);
@@ -529,6 +537,7 @@ int process_file( const char *filename, FILE *ofile)
          }
    fclose( ifile);
    free( offsets);
+#ifndef ON_LINE_VERSION
    snprintf( buff, sizeof( buff),
          "COM %d positions set by add_off; %d failed in %.2f seconds\n",
          n_positions_set, n_positions_failed,
@@ -537,6 +546,7 @@ int process_file( const char *filename, FILE *ofile)
       fprintf( ofile, "%s", buff);
    if( ofile != stdout)
       printf( "%s", buff + 4);
+#endif
    return( 0);
 }
 
@@ -597,7 +607,7 @@ int main( const int argc, const char **argv)
 int main( void)
 {
    const char *argv[20];
-   const size_t max_buff_size = 40000;
+   const size_t max_buff_size = 4000000;
    char *buff = (char *)malloc( max_buff_size);
    char field[30];
    FILE *lock_file = fopen( "lock.txt", "w");
@@ -607,12 +617,11 @@ int main( void)
    size_t i, bytes_written = 0;
 
    avoid_runaway_process( 15);
-   printf( "Content-type: text/html\n\n");
-   printf( "<html> <body> <pre>\n");
    if( !lock_file)
       {
+      fputs( content_type_text, stdout);
       printf( "<p> Server is busy.  Try again in a minute or two. </p>");
-      printf( "<p> Your TLEs are very important to us! </p>");
+      printf( "<p> Your spacecraft-based observations are very important to us! </p>");
       return( 0);
       }
    setbuf( lock_file, NULL);
@@ -623,6 +632,7 @@ int main( void)
    fprintf( lock_file, "CGI status %d\n", cgi_status);
    if( cgi_status <= 0)
       {
+      fputs( content_type_text, stdout);
       printf( "<p> <b> CGI data reading failed : error %d </b>", cgi_status);
       printf( "This isn't supposed to happen.</p>\n");
       return( 0);
@@ -656,7 +666,8 @@ int main( void)
    argv[2] = NULL;
    dummy_main( 2, argv);
    fprintf( lock_file, "Done\n");
-   printf( "</pre> </body> </html>");
+   if( !ades_found)
+      printf( "</pre> </body> </html>");
    fclose( lock_file);
    return( 0);
 }
