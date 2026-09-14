@@ -103,7 +103,7 @@ int main( const int argc, const char **argv)
 
    fclose( ifile);
    fprintf( ofile, "Ephemeris from JPL Horizons output\n");
-   fprintf( ofile, "Created using 'jpl2b32', version %s\n", __DATE__);
+   fprintf( ofile, "Created using 'jpl2b32'\n");
    fprintf( ofile, "Ephemeris converted %.24s\n", asctime( gmtime( &t0)));
    printf( "JD0: %f   Step size: %f   %ld steps\n",
                                jd0,  step_size, (long)n_written);
