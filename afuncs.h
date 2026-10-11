@@ -59,6 +59,10 @@ DPT
 #define seconds_per_day    (seconds_per_hour * hours_per_day)
 #define minutes_per_day    (minutes_per_hour * hours_per_day)
 
+#ifndef DLL_FUNC
+   #include "watdefs.h"
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif /* #ifdef __cplusplus */
