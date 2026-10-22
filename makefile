@@ -279,7 +279,7 @@ integrat$(EXE): integrat.o $(LIBLUNAR)
 	$(CC) $(LDFLAGS) $(CFLAGS) -o integrat$(EXE) integrat.o $(LIBLUNAR) $(LIBSADDED) -L $(INSTALL_DIR)/lib -ljpl
 
 integrat.o: integrat.cpp
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c $<
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -I $(INSTALL_DIR)/include -c $<
 
 jd$(EXE): jd.o $(LIBLUNAR)
 	$(CC) $(LDFLAGS) $(CFLAGS) -o jd$(EXE) jd.o $(LIBLUNAR) $(LIBSADDED)
@@ -290,7 +290,7 @@ jevent$(EXE):                    jevent.o $(LIBLUNAR)
 jpl2b32$(EXE):                    jpl2b32.o
 	$(CC) $(LDFLAGS) $(CFLAGS) -o jpl2b32$(EXE) jpl2b32.o $(LIBSADDED)
 
-jpl_url$(EXE):                    jpl_url.o
+jpl_url$(EXE):                    jpl_url.o $(LIBLUNAR)
 	$(CC) $(LDFLAGS) $(CFLAGS) -o jpl_url$(EXE) jpl_url.o $(LIBLUNAR) $(LIBSADDED)
 
 jsattest$(EXE): jsattest.o $(LIBLUNAR)
