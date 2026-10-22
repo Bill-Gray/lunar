@@ -45,6 +45,8 @@ DPT
 #define AU_PER_DAY (86400. * SPEED_OF_LIGHT / AU_IN_KM)
 #endif
 
+#define VERSION_DATE "2026 Sep 29"
+
 #ifdef FRENCH_REPUBLICAN_CLOCK
    #define  hours_per_day      10
    #define minutes_per_hour   100

@@ -22,6 +22,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 #include <time.h>
 #include <stdint.h>
 
+#define VERSION_DATE "2026 Sep 29"
+
 /* Very Guide-specific code to convert an ephemeris gathered from JPL's
 _Horizons_ system into the .b32 ("binary 32-bit fixed-point integer")
 format used in Guide.  Probably of no interest to anyone except me.
@@ -103,7 +105,7 @@ int main( const int argc, const char **argv)
 
    fclose( ifile);
    fprintf( ofile, "Ephemeris from JPL Horizons output\n");
-   fprintf( ofile, "Created using 'jpl2b32', version %s\n", __DATE__);
+   fprintf( ofile, "Created using 'jpl2b32', version %s\n", VERSION_DATE);
    fprintf( ofile, "Ephemeris converted %.24s\n", asctime( gmtime( &t0)));
    printf( "JD0: %f   Step size: %f   %ld steps\n",
                                jd0,  step_size, (long)n_written);
